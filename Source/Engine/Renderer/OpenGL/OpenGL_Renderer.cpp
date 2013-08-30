@@ -371,7 +371,7 @@ void OpenGL_Renderer::Render_Mesh(int id)
 	glTexCoordPointer(2, GL_FLOAT, 0, NULL);
 
 	glBindBuffer(GL_ARRAY_BUFFER_ARB, mesh.vbo_normals_buffer);
-	glNormalPointer(GL_FLOAT, 3, NULL);
+	glNormalPointer(GL_FLOAT, 0, NULL);
 
 	glDrawArrays(GL_TRIANGLES, 0, mesh.vbo_vertices_count);
 

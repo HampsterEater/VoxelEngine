@@ -165,8 +165,12 @@ void ChunkLoader::Chunk_Load_Thread(Thread* thread)
 			for (LinkedList<IntVector3>::Iterator iter = m_chunks.Begin(); iter != m_chunks.End(); iter++)
 			{
 				IntVector3 chunk = *iter;
-				float distance = (chunk - camera_position).Length_Squared();
-				
+
+				// We bias height, as its better to load things on the same height as us than not. Keep smooooth scrolling :)
+				IntVector3 vecDistance = (chunk - camera_position);
+				vecDistance.Y *= CHUNK_LOAD_Y_BIAS;
+				float distance = vecDistance.Length_Squared();
+
 				AABB chunk_aabb = m_manager->Calculate_Chunk_AABB(chunk);
 
 				// If chunk is in frustum, then bias it so its loaded earlier.

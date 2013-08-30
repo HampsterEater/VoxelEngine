@@ -30,6 +30,9 @@ private:
 
 public:
 	NoiseSampler3D(Noise* noise, Vector3 position, IntVector3 size, Vector3 scale_factor, float octaves, float persistence, float scale);
+	~NoiseSampler3D();
+
+	void Resposition(Vector3 position);
 
 	float Sample(int x, int y, int z);
 

@@ -19,6 +19,10 @@ class Chunk;
 class ChunkManager;
 class Mutex;
 
+// How much the Y axis is biased. The higher this is the more we perfer to load
+// chunks on the cameras "level"
+#define CHUNK_LOAD_Y_BIAS 2
+
 class ChunkLoader
 {
 private:

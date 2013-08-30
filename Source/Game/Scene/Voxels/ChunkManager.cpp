@@ -81,7 +81,7 @@ void ChunkManager::Tick(const FrameTime& time)
 			{
 				break;
 			}
-
+			
 			Remove_Chunk(chunk->Get_Position());
 			m_chunk_memory_pool.Release(chunk);		
 		}
@@ -140,7 +140,15 @@ void ChunkManager::Draw(const FrameTime& time, Renderer* renderer)
 	}
 	
 	// Emit stats.
-	printf("[FPS %i, FRAME TIME %0.2f, UPDATE TIME %0.2f, DRAW TIME %0.2f, VOXELS %i, CHUNKS %i, VISIBLE CHUNKS %i, CHUNKS TO GEN %i]\n", time.Get_FPS(), time.Get_Frame_Time(), time.Get_Update_Time(), time.Get_Render_Time(), m_drawn_voxels, m_chunks.Size(), m_visible_chunks.Size(), m_dirty_chunks.Size());	
+// DEBUG =======================================================================================
+	static float s_emit_fps_time = 0.0f;
+	s_emit_fps_time += time.Get_Delta();
+	if (s_emit_fps_time > 60.0f)
+	{
+		printf("[FPS %i, FRAME TIME %0.2f, UPDATE TIME %0.2f, DRAW TIME %0.2f, VOXELS %i, CHUNKS %i, VISIBLE CHUNKS %i, CHUNKS TO GEN %i]\n", time.Get_FPS(), time.Get_Frame_Time(), time.Get_Update_Time(), time.Get_Render_Time(), m_drawn_voxels, m_chunks.Size(), m_visible_chunks.Size(), m_dirty_chunks.Size());	
+		s_emit_fps_time = 0.0f;
+	}
+// DEBUG =======================================================================================
 }
 
 void ChunkManager::Update_Chunk_Lists()

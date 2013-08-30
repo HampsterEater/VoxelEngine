@@ -30,6 +30,7 @@ private:
 	int	  m_instance_size;
 	char* m_block_head;
 	char* m_free_head;
+	int   m_pool_size;
 
 public:
 
@@ -44,6 +45,7 @@ public:
 
 		m_block_head = NULL;
 		m_free_head	 = NULL;
+		m_pool_size = 0;
 	}
 
 	~CachedMemoryPool()
@@ -87,6 +89,7 @@ public:
 			// Add to block chain.
 			*block_chain_next_ptr = m_block_head;
 			m_block_head = block;
+			m_pool_size++;
 
 			return block + sizeof(char*) + sizeof(char*);
 		}

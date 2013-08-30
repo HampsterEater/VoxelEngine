@@ -14,7 +14,17 @@ NoiseSampler3D::NoiseSampler3D(Noise* noise, Vector3 position, IntVector3 size, 
 	, m_scale(scale)
 {
 	m_samples = new float[size.X * size.Y * size.Z];
+	Generate_Samples();
+}
 
+NoiseSampler3D::~NoiseSampler3D()
+{
+	SAFE_DELETE_ARRAY(m_samples);
+}
+
+void NoiseSampler3D::Resposition(Vector3 position)
+{
+	m_position = position;
 	Generate_Samples();
 }
 

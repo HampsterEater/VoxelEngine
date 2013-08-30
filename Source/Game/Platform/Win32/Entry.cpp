@@ -42,7 +42,7 @@ int main(int argc, char* argv[])
 	config.chunk_config.draw_distance						= IntVector3(16,	16,		16);
 	config.chunk_config.load_distance						= IntVector3(17,	17,		17);
 	config.chunk_config.unload_distance						= IntVector3(18,	18,		18);
-	config.chunk_config.chunk_regenerations_per_frame		= 5;
+	config.chunk_config.chunk_regenerations_per_frame		= 20;
 	config.chunk_config.chunk_unloads_per_frame				= 50;
 	config.chunk_config.unload_timeout						= 1000.0f * 10;
 

@@ -14,7 +14,16 @@ ChunkGenerator::ChunkGenerator(ChunkManager* manager, const ChunkManagerConfig& 
 	, m_terrain_base_noise_sampler(NULL)
 	, m_terrain_base_noise(NULL)
 {
+	m_scale_factor = m_config.map_terrain_base_noise_sample_step;
+
 	m_terrain_base_noise = new SimplexNoise(m_config.map_seed);
+	m_terrain_base_noise_sampler = new NoiseSampler3D(m_terrain_base_noise, 
+													  m_chunk_world_position,
+													  IntVector3(m_config.chunk_size.X, m_config.chunk_size.Y, m_config.chunk_size.Z),
+													  m_scale_factor,
+													  m_config.map_terrain_base_noise_octaves,
+													  m_config.map_terrain_base_noise_persistence,
+													  m_config.map_terrain_base_noise_scale); 
 }
 
 ChunkGenerator::~ChunkGenerator()
@@ -30,19 +39,9 @@ void ChunkGenerator::Generate(Chunk* chunk)
 	m_chunk_world_position = Vector3(m_chunk_position.X * m_config.chunk_size.X,
 									 m_chunk_position.Y * m_config.chunk_size.Y,
 								  	 m_chunk_position.Z * m_config.chunk_size.Z);
-	m_scale_factor		   = m_config.map_terrain_base_noise_sample_step;
-
-	// Delete old samplers?
-	SAFE_DELETE(m_terrain_base_noise_sampler);
 
 	// Generate noise samplers.
-	m_terrain_base_noise_sampler = new NoiseSampler3D(m_terrain_base_noise, 
-													  m_chunk_world_position,
-													  IntVector3(m_config.chunk_size.X, m_config.chunk_size.Y, m_config.chunk_size.Z),
-													  m_scale_factor,
-													  m_config.map_terrain_base_noise_octaves,
-													  m_config.map_terrain_base_noise_persistence,
-													  m_config.map_terrain_base_noise_scale); 
+	m_terrain_base_noise_sampler->Resposition(m_chunk_world_position);
 
 	// Place base terrain.
 	Place_Terrain();

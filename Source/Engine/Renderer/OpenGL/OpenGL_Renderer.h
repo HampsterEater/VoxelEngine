@@ -18,7 +18,7 @@ class Display;
 class OpenGL_Texture;
 
 // If this is not defined then display lists will be used.
-#define USE_VBO_FOR_MESH
+//#define USE_VBO_FOR_MESH
 
 // Maximum number of meshs that can exist at one time. Theoretical max of this is load_distance_w*load_distance_h*load_Distance_d
 #define MAX_MESHS			1024 * 256
