@@ -1,0 +1,129 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Source Files\Platform">
+      <UniqueIdentifier>{9aa2655c-bae7-4261-ad6f-5ef5d4d7060f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Platform">
+      <UniqueIdentifier>{ca38911e-01d6-4b6d-9032-4602396d59b0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Platform\Win32">
+      <UniqueIdentifier>{84a6e0c3-598c-4764-9554-4edec8292650}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Platform\Win32">
+      <UniqueIdentifier>{9f7f3cdf-155b-41a8-92d7-4f97dba90a9f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Runner">
+      <UniqueIdentifier>{3c52538f-000f-4278-8f1e-95fdecbffa1b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Runner">
+      <UniqueIdentifier>{e321fca2-07b4-47ac-a253-c33bf39912ce}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Scene">
+      <UniqueIdentifier>{69c78852-e08d-4693-8470-6fc576ba9da9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Scene">
+      <UniqueIdentifier>{73775987-1412-476a-aeba-6ea73ae8072c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Scene\Cameras">
+      <UniqueIdentifier>{24644ae3-1c93-4e05-aa0b-381e9fd48f82}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Scene\Cameras">
+      <UniqueIdentifier>{1f828ede-d663-4f58-9417-eca80e0118f8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Scene\Voxels">
+      <UniqueIdentifier>{8ddd8943-9ee2-4868-98c3-3813d86eb36b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Scene\Voxels">
+      <UniqueIdentifier>{f63fc495-8ecd-467b-a0b6-4698bf325aa6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Scene\Voxels\Generation">
+      <UniqueIdentifier>{400ceb67-67d7-4640-869b-6b828014f4e8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Scene\Voxels\Generation">
+      <UniqueIdentifier>{8c6742e5-f8de-485e-a21c-539549834136}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Platform\Win32\Entry.h">
+      <Filter>Header Files\Platform\Win32</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\Cameras\FirstPersonCamera.h">
+      <Filter>Header Files\Scene\Cameras</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\Voxels\Chunk.h">
+      <Filter>Header Files\Scene\Voxels</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\Voxels\Voxel.h">
+      <Filter>Header Files\Scene\Voxels</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\Voxels\ChunkManager.h">
+      <Filter>Header Files\Scene\Voxels</Filter>
+    </ClInclude>
+    <ClInclude Include="Runner\Game.h">
+      <Filter>Header Files\Runner</Filter>
+    </ClInclude>
+    <ClInclude Include="Runner\GameConfig.h">
+      <Filter>Header Files\Runner</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\Voxels\ChunkManagerConfig.h">
+      <Filter>Header Files\Scene\Voxels</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\Voxels\ChunkLoader.h">
+      <Filter>Header Files\Scene\Voxels</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\Voxels\ChunkUnloader.h">
+      <Filter>Header Files\Scene\Voxels</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\Voxels\Generation\ChunkGenerator.h">
+      <Filter>Header Files\Scene\Voxels\Generation</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Platform\Win32\Entry.cpp">
+      <Filter>Source Files\Platform\Win32</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene\Cameras\FirstPersonCamera.cpp">
+      <Filter>Source Files\Scene\Cameras</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene\Voxels\Chunk.cpp">
+      <Filter>Source Files\Scene\Voxels</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene\Voxels\Voxel.cpp">
+      <Filter>Source Files\Scene\Voxels</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene\Voxels\ChunkManager.cpp">
+      <Filter>Source Files\Scene\Voxels</Filter>
+    </ClCompile>
+    <ClCompile Include="Runner\Game.cpp">
+      <Filter>Source Files\Runner</Filter>
+    </ClCompile>
+    <ClCompile Include="Runner\GameConfig.cpp">
+      <Filter>Source Files\Runner</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene\Voxels\ChunkManagerConfig.cpp">
+      <Filter>Source Files\Scene\Voxels</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene\Voxels\ChunkLoader.cpp">
+      <Filter>Source Files\Scene\Voxels</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene\Voxels\ChunkUnloader.cpp">
+      <Filter>Source Files\Scene\Voxels</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene\Voxels\Generation\ChunkGenerator.cpp">
+      <Filter>Source Files\Scene\Voxels\Generation</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,234 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Header Files\Renderer">
+      <UniqueIdentifier>{8d029fb9-1ed6-4192-9364-1d4151f9e821}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Engine">
+      <UniqueIdentifier>{66376109-c251-4447-8d5c-dd50da0f9a15}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Engine">
+      <UniqueIdentifier>{8df9498a-e983-46f9-9abb-976a8fbefdf7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Platform">
+      <UniqueIdentifier>{5123795e-bb83-410e-8126-3ca9c513c52b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Platform">
+      <UniqueIdentifier>{560a57c5-0295-46dd-a360-f7cd9f051881}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Renderer">
+      <UniqueIdentifier>{69a19593-b912-4ffe-be85-28433cd45c17}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Renderer\OpenGL">
+      <UniqueIdentifier>{9d13f9c3-a301-4afb-aaf6-a83ba95a4573}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Renderer\OpenGL">
+      <UniqueIdentifier>{ac46dbcc-7c1d-42b9-80fe-74368fe29154}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Platform\Win32">
+      <UniqueIdentifier>{4eaecba8-6222-44b8-a9de-9fa4472dd5d8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Platform\Win32">
+      <UniqueIdentifier>{7f5d3023-b69c-4a1c-8548-d2125a962462}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Display">
+      <UniqueIdentifier>{1c4bfdcc-44e8-46ef-88e6-06df9c93561f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Display\Win32">
+      <UniqueIdentifier>{99643994-f934-4937-aa59-599159d8f39b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Display">
+      <UniqueIdentifier>{e15d5379-bc0f-452a-a415-5c330aabd078}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Display\Win32">
+      <UniqueIdentifier>{735362cf-956d-484c-9192-626845a8fb8b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Scene">
+      <UniqueIdentifier>{c1cd5be7-994b-41bf-8a59-4e1a0b811fd7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Scene">
+      <UniqueIdentifier>{6013b365-3d9a-4f4c-9f82-feeb3d70a632}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Renderer\Textures">
+      <UniqueIdentifier>{b49f69a0-173c-44f8-b11e-d1477aef8d21}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Renderer\Textures">
+      <UniqueIdentifier>{94b752b5-d659-41bd-b1c3-892f92f259b0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\IO">
+      <UniqueIdentifier>{8a8b1d68-960c-407f-9d16-2a8ab3407ce5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\IO">
+      <UniqueIdentifier>{1993b10c-7830-4ab9-9c5c-251c4b6a0d4a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\IO\Win32">
+      <UniqueIdentifier>{b2498cec-02e4-496a-b743-8a8266d79908}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\IO\Win32">
+      <UniqueIdentifier>{7a81e081-b171-4d33-9578-b31e17c69ffe}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Renderer\Textures\PNG">
+      <UniqueIdentifier>{9f45b047-7cf9-490f-b05c-6dd9d0a94724}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Renderer\Textures\PNG">
+      <UniqueIdentifier>{18fe49c8-f82b-4b7b-95da-58cf86b96c36}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Engine\GameEngine.cpp">
+      <Filter>Source Files\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Renderer.cpp">
+      <Filter>Source Files\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\FrameTime.cpp">
+      <Filter>Source Files\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\GameEngineConfig.cpp">
+      <Filter>Source Files\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="Platform\Platform.cpp">
+      <Filter>Source Files\Platform</Filter>
+    </ClCompile>
+    <ClCompile Include="Platform\Win32\Win32_Platform.cpp">
+      <Filter>Source Files\Platform\Win32</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\OpenGL\OpenGL_Renderer.cpp">
+      <Filter>Source Files\Renderer\OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="Display\Display.cpp">
+      <Filter>Source Files\Display</Filter>
+    </ClCompile>
+    <ClCompile Include="Display\Win32\Win32_Display.cpp">
+      <Filter>Source Files\Display\Win32</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene\Scene.cpp">
+      <Filter>Source Files\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene\Actor.cpp">
+      <Filter>Source Files\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene\Camera.cpp">
+      <Filter>Source Files\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\GameRunner.cpp">
+      <Filter>Source Files\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Drawable.cpp">
+      <Filter>Source Files\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Textures\TextureFactory.cpp">
+      <Filter>Source Files\Renderer\Textures</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\StreamFactory.cpp">
+      <Filter>Source Files\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\Stream.cpp">
+      <Filter>Source Files\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Textures\Texture.cpp">
+      <Filter>Source Files\Renderer\Textures</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\Win32\Win32_FileStream.cpp">
+      <Filter>Source Files\IO\Win32</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\Win32\Win32_FileStreamFactory.cpp">
+      <Filter>Source Files\IO\Win32</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Textures\PNG\PNGTextureFactory.cpp">
+      <Filter>Source Files\Renderer\Textures\PNG</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\OpenGL\OpenGL_Texture.cpp">
+      <Filter>Source Files\Renderer\OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Textures\TextureAtlas.cpp">
+      <Filter>Source Files\Renderer\Textures</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Engine\GameEngine.h">
+      <Filter>Header Files\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Renderer.h">
+      <Filter>Header Files\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\FrameTime.h">
+      <Filter>Header Files\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\GameEngineConfig.h">
+      <Filter>Header Files\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="Platform\Platform.h">
+      <Filter>Header Files\Platform</Filter>
+    </ClInclude>
+    <ClInclude Include="Platform\Win32\Win32_Platform.h">
+      <Filter>Header Files\Platform\Win32</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\OpenGL\OpenGL_Renderer.h">
+      <Filter>Header Files\Renderer\OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="Display\Display.h">
+      <Filter>Header Files\Display</Filter>
+    </ClInclude>
+    <ClInclude Include="Display\Win32\Win32_Display.h">
+      <Filter>Header Files\Display\Win32</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\Scene.h">
+      <Filter>Header Files\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\Actor.h">
+      <Filter>Header Files\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\Camera.h">
+      <Filter>Header Files\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\GameRunner.h">
+      <Filter>Header Files\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="Display\Keys.h">
+      <Filter>Header Files\Display</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Drawable.h">
+      <Filter>Header Files\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Textures\TextureFactory.h">
+      <Filter>Header Files\Renderer\Textures</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\StreamFactory.h">
+      <Filter>Header Files\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\Stream.h">
+      <Filter>Header Files\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Textures\Texture.h">
+      <Filter>Header Files\Renderer\Textures</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\Win32\Win32_FileStream.h">
+      <Filter>Header Files\IO\Win32</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\Win32\Win32_FileStreamFactory.h">
+      <Filter>Header Files\IO\Win32</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Textures\PNG\PNGTextureFactory.h">
+      <Filter>Header Files\Renderer\Textures\PNG</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\OpenGL\OpenGL_Texture.h">
+      <Filter>Header Files\Renderer\OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Textures\TextureAtlas.h">
+      <Filter>Header Files\Renderer\Textures</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

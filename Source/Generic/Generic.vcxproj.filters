@@ -1,0 +1,249 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Header Files\Types">
+      <UniqueIdentifier>{11185b90-fed8-47a3-8ca8-78fb70c9c95e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Types">
+      <UniqueIdentifier>{345e58bd-43e0-45c6-bb67-7c2cd6df2f92}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Patterns">
+      <UniqueIdentifier>{ef7cdfda-0c8e-49ad-b5cf-0be592f2077d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Patterns">
+      <UniqueIdentifier>{0d90e0b8-3968-444b-a12c-b7b19200b9a5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Math">
+      <UniqueIdentifier>{0213a553-aa1f-4620-bd03-456b63368467}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Threads">
+      <UniqueIdentifier>{218ca909-6d6b-463f-977c-ac487dd35b55}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Threads">
+      <UniqueIdentifier>{a4e8fc27-54a7-4665-ac67-94eba0d4b4b3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Math">
+      <UniqueIdentifier>{a9167ee8-3388-47e4-b216-18a3bfa14567}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Threads\Win32">
+      <UniqueIdentifier>{6aadf754-4f34-446b-bb14-08358facbe9c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Threads\Win32">
+      <UniqueIdentifier>{d7af3c9a-f55b-4c8a-a0ce-9a03838cee31}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Memory">
+      <UniqueIdentifier>{852ccf3f-e46a-4db6-b655-178a3ffab28e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Memory">
+      <UniqueIdentifier>{3accf619-3bb9-4d11-bd50-c55fb450180d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Memory\Win32">
+      <UniqueIdentifier>{9e80be0e-ff14-4e7f-8ad0-f36593db4ed7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Memory\Win32">
+      <UniqueIdentifier>{0594e02f-40dd-4026-9444-33b6bd815390}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Math\Noise">
+      <UniqueIdentifier>{3bf00663-1165-4f79-ae6d-abccae29be9b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Math\Noise\Noise">
+      <UniqueIdentifier>{5897447f-9e19-4ca6-91df-82f90b76bbec}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Math\Noise">
+      <UniqueIdentifier>{0167364e-993e-465c-9088-f5d432708358}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Types\String.h">
+      <Filter>Header Files\Types</Filter>
+    </ClInclude>
+    <ClInclude Include="Patterns\Singleton.h">
+      <Filter>Header Files\Patterns</Filter>
+    </ClInclude>
+    <ClInclude Include="Defines.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Types\Rectangle.h">
+      <Filter>Header Files\Types</Filter>
+    </ClInclude>
+    <ClInclude Include="Types\Vector3.h">
+      <Filter>Header Files\Types</Filter>
+    </ClInclude>
+    <ClInclude Include="Types\Matrix4.h">
+      <Filter>Header Files\Types</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Math.h">
+      <Filter>Header Files\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Types\Point.h">
+      <Filter>Header Files\Types</Filter>
+    </ClInclude>
+    <ClInclude Include="Types\VirtualArray3.h">
+      <Filter>Header Files\Types</Filter>
+    </ClInclude>
+    <ClInclude Include="Types\HashTable.h">
+      <Filter>Header Files\Types</Filter>
+    </ClInclude>
+    <ClInclude Include="Types\AABB.h">
+      <Filter>Header Files\Types</Filter>
+    </ClInclude>
+    <ClInclude Include="Types\Frustum.h">
+      <Filter>Header Files\Types</Filter>
+    </ClInclude>
+    <ClInclude Include="Types\Plane.h">
+      <Filter>Header Files\Types</Filter>
+    </ClInclude>
+    <ClInclude Include="Threads\Thread.h">
+      <Filter>Header Files\Threads</Filter>
+    </ClInclude>
+    <ClInclude Include="Threads\Win32\Win32_Thread.h">
+      <Filter>Header Files\Threads\Win32</Filter>
+    </ClInclude>
+    <ClInclude Include="Threads\Win32\Win32_Mutex.h">
+      <Filter>Header Files\Threads\Win32</Filter>
+    </ClInclude>
+    <ClInclude Include="Threads\Mutex.h">
+      <Filter>Header Files\Threads</Filter>
+    </ClInclude>
+    <ClInclude Include="Threads\MutexLock.h">
+      <Filter>Header Files\Threads</Filter>
+    </ClInclude>
+    <ClInclude Include="Threads\Semaphore.h">
+      <Filter>Header Files\Threads</Filter>
+    </ClInclude>
+    <ClInclude Include="Threads\Win32\Win32_Semaphore.h">
+      <Filter>Header Files\Threads\Win32</Filter>
+    </ClInclude>
+    <ClInclude Include="Types\EmbeddedLinkedList.h">
+      <Filter>Header Files\Types</Filter>
+    </ClInclude>
+    <ClInclude Include="Types\LinkedList.h">
+      <Filter>Header Files\Types</Filter>
+    </ClInclude>
+    <ClInclude Include="Types\IntVector3.h">
+      <Filter>Header Files\Types</Filter>
+    </ClInclude>
+    <ClInclude Include="Types\FixedMemoryPool.h">
+      <Filter>Header Files\Types</Filter>
+    </ClInclude>
+    <ClInclude Include="Types\CachedMemoryPool.h">
+      <Filter>Header Files\Types</Filter>
+    </ClInclude>
+    <ClInclude Include="Memory\Memory.h">
+      <Filter>Header Files\Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="Memory\Win32\Win32_Memory.h">
+      <Filter>Header Files\Memory\Win32</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Random.h">
+      <Filter>Header Files\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Noise\SimplexNoise.h">
+      <Filter>Header Files\Math\Noise</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Noise\Noise.h">
+      <Filter>Header Files\Math\Noise</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Noise\NoiseSampler3D.h">
+      <Filter>Header Files\Math\Noise</Filter>
+    </ClInclude>
+    <ClInclude Include="Types\Sphere.h">
+      <Filter>Header Files\Types</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Types\String.cpp">
+      <Filter>Source Files\Types</Filter>
+    </ClCompile>
+    <ClCompile Include="Patterns\Singleton.cpp">
+      <Filter>Source Files\Patterns</Filter>
+    </ClCompile>
+    <ClCompile Include="Types\Rectangle.cpp">
+      <Filter>Source Files\Types</Filter>
+    </ClCompile>
+    <ClCompile Include="Types\Vector3.cpp">
+      <Filter>Source Files\Types</Filter>
+    </ClCompile>
+    <ClCompile Include="Types\Matrix4.cpp">
+      <Filter>Source Files\Types</Filter>
+    </ClCompile>
+    <ClCompile Include="Types\Point.cpp">
+      <Filter>Source Files\Types</Filter>
+    </ClCompile>
+    <ClCompile Include="Types\VirtualArray3.cpp">
+      <Filter>Source Files\Types</Filter>
+    </ClCompile>
+    <ClCompile Include="Types\HashTable.cpp">
+      <Filter>Source Files\Types</Filter>
+    </ClCompile>
+    <ClCompile Include="Types\AABB.cpp">
+      <Filter>Source Files\Types</Filter>
+    </ClCompile>
+    <ClCompile Include="Types\Frustum.cpp">
+      <Filter>Source Files\Types</Filter>
+    </ClCompile>
+    <ClCompile Include="Types\Plane.cpp">
+      <Filter>Source Files\Types</Filter>
+    </ClCompile>
+    <ClCompile Include="Threads\Thread.cpp">
+      <Filter>Source Files\Threads</Filter>
+    </ClCompile>
+    <ClCompile Include="Threads\Win32\Win32_Thread.cpp">
+      <Filter>Source Files\Threads\Win32</Filter>
+    </ClCompile>
+    <ClCompile Include="Threads\Win32\Win32_Mutex.cpp">
+      <Filter>Source Files\Threads\Win32</Filter>
+    </ClCompile>
+    <ClCompile Include="Threads\Mutex.cpp">
+      <Filter>Source Files\Threads</Filter>
+    </ClCompile>
+    <ClCompile Include="Threads\MutexLock.cpp">
+      <Filter>Source Files\Threads</Filter>
+    </ClCompile>
+    <ClCompile Include="Threads\Semaphore.cpp">
+      <Filter>Source Files\Threads</Filter>
+    </ClCompile>
+    <ClCompile Include="Threads\Win32\Win32_Semaphore.cpp">
+      <Filter>Source Files\Threads\Win32</Filter>
+    </ClCompile>
+    <ClCompile Include="Types\IntVector3.cpp">
+      <Filter>Source Files\Types</Filter>
+    </ClCompile>
+    <ClCompile Include="Types\FixedMemoryPool.cpp">
+      <Filter>Source Files\Types</Filter>
+    </ClCompile>
+    <ClCompile Include="Memory\Memory.cpp">
+      <Filter>Source Files\Memory</Filter>
+    </ClCompile>
+    <ClCompile Include="Memory\Win32\Win32_Memory.cpp">
+      <Filter>Source Files\Memory\Win32</Filter>
+    </ClCompile>
+    <ClCompile Include="Math\Math.cpp">
+      <Filter>Source Files\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Math\Random.cpp">
+      <Filter>Source Files\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Math\Noise\SimplexNoise.cpp">
+      <Filter>Source Files\Math\Noise\Noise</Filter>
+    </ClCompile>
+    <ClCompile Include="Math\Noise\Noise.cpp">
+      <Filter>Source Files\Math\Noise\Noise</Filter>
+    </ClCompile>
+    <ClCompile Include="Math\Noise\NoiseSampler3D.cpp">
+      <Filter>Source Files\Math\Noise\Noise</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
