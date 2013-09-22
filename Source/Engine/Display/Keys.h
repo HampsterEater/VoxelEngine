@@ -12,7 +12,9 @@ struct Key
 		Down,
 		Left,
 		Right,
-		Escape
+
+		Escape,
+		F1
 	};
 };
 

@@ -74,3 +74,8 @@ float Vector3::Length_Squared() const
 {
 	return X * X + Y * Y + Z * Z;
 }
+
+Vector4 Vector3::To_Vector4() const
+{
+	return Vector4(X, Y, Z, 1.0f);
+}

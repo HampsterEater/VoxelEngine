@@ -64,6 +64,24 @@
     <Filter Include="Header Files\Math\Noise">
       <UniqueIdentifier>{0167364e-993e-465c-9088-f5d432708358}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Helper">
+      <UniqueIdentifier>{c76b47d5-416a-43f0-87e8-2f904f595f45}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Helper">
+      <UniqueIdentifier>{d6fac2df-5d56-44fa-a13f-1dc5be58aab0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\ThirdParty">
+      <UniqueIdentifier>{f8cd2a30-3da4-45c8-a6e1-4de8b8543c0b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ThirdParty">
+      <UniqueIdentifier>{15c85266-8068-48b1-9fc7-591ff5bd898e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\ThirdParty\RapidXML">
+      <UniqueIdentifier>{9931c537-c55a-468a-b7fb-88817445f05b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ThirdParty\RapidXML">
+      <UniqueIdentifier>{4a5ca7fc-51de-4e6e-b5c3-e1154881582a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Types\String.h">
@@ -162,6 +180,27 @@
     <ClInclude Include="Types\Sphere.h">
       <Filter>Header Files\Types</Filter>
     </ClInclude>
+    <ClInclude Include="Helper\StringHelper.h">
+      <Filter>Header Files\Helper</Filter>
+    </ClInclude>
+    <ClInclude Include="Types\Color.h">
+      <Filter>Header Files\Types</Filter>
+    </ClInclude>
+    <ClInclude Include="Types\Vector4.h">
+      <Filter>Header Files\Types</Filter>
+    </ClInclude>
+    <ClInclude Include="ThirdParty\RapidXML\rapidxml.hpp">
+      <Filter>Header Files\ThirdParty\RapidXML</Filter>
+    </ClInclude>
+    <ClInclude Include="ThirdParty\RapidXML\rapidxml_iterators.hpp">
+      <Filter>Header Files\ThirdParty\RapidXML</Filter>
+    </ClInclude>
+    <ClInclude Include="ThirdParty\RapidXML\rapidxml_print.hpp">
+      <Filter>Header Files\ThirdParty\RapidXML</Filter>
+    </ClInclude>
+    <ClInclude Include="ThirdParty\RapidXML\rapidxml_utils.hpp">
+      <Filter>Header Files\ThirdParty\RapidXML</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Types\String.cpp">
@@ -244,6 +283,15 @@
     </ClCompile>
     <ClCompile Include="Math\Noise\NoiseSampler3D.cpp">
       <Filter>Source Files\Math\Noise\Noise</Filter>
+    </ClCompile>
+    <ClCompile Include="Helper\StringHelper.cpp">
+      <Filter>Source Files\Helper</Filter>
+    </ClCompile>
+    <ClCompile Include="Types\Color.cpp">
+      <Filter>Source Files\Types</Filter>
+    </ClCompile>
+    <ClCompile Include="Types\Vector4.cpp">
+      <Filter>Source Files\Types</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

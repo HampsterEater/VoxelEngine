@@ -1,0 +1,228 @@
+<xml>	
+	<defaults>
+
+		<state>
+			<clear-color>0,0,0,0</clear-color>
+			<clear-depth>1</clear-depth>
+			<depth-function>lower_or_equal</depth-function>
+			<cull-face>back</cull-face>
+			<depth-test>true</depth-test>
+		</state>
+		
+	</defaults>
+	<meshes>
+	
+		<!-- Used to render a quad covering the entire screen -->
+		<mesh name="fullscreen_quad">
+			<primative>quads</primative>
+			<vertices>
+				-1, -1, 0,
+				 1, -1, 0,
+				 1,  1, 0,
+				-1,  1, 0
+			</vertices>
+			<normals>
+				 0, 0, 0,
+				 0, 0, 0,
+				 0, 0, 0,
+				 0, 0, 0
+			</normals>
+			<texture-coordinates>
+				 0, 0,
+				 1, 0,
+				 1, 1,
+				 0, 1
+			</texture-coordinates>
+		</mesh>
+
+	</meshes>
+	<textures>
+	
+		<!-- Render target textures -->
+		<texture name="diffuse" 			format="R8G8B8A8" 		  width="DISPLAY_WIDTH" height="DISPLAY_HEIGHT" flags="" />
+		<texture name="normal"  			format="R32FG32FB32FA32F" width="DISPLAY_WIDTH" height="DISPLAY_HEIGHT" flags="" />
+		<texture name="light_accumulation" 	format="R8G8B8A8" 		  width="DISPLAY_WIDTH" height="DISPLAY_HEIGHT" flags="" />
+		<texture name="material" 			format="R8G8B8A8" 		  width="DISPLAY_WIDTH" height="DISPLAY_HEIGHT" flags="" />
+		<texture name="ssao" 				format="R32FG32FB32FA32F" width="DISPLAY_WIDTH" height="DISPLAY_HEIGHT" flags="" />
+		<texture name="position" 			format="R32FG32FB32FA32F" width="DISPLAY_WIDTH" height="DISPLAY_HEIGHT" flags="" />
+		<texture name="depth"	  			format="DepthFormat" 	  width="DISPLAY_WIDTH" height="DISPLAY_HEIGHT" flags="" />
+
+		<!-- External file textures -->
+		<texture name="noise"	  			file="Data/Textures/Shaders/noise.png" flags="AllowRepeat" />	
+	
+	</textures>	
+	<targets>
+	
+		<!-- Gbuffer stores all the information neccessary for deferred shading -->
+		<target name="gbuffer">
+			<attached-texture name="diffuse"				type="color" />
+			<attached-texture name="normal" 				type="color" />
+			<attached-texture name="light_accumulation" 	type="color" />
+			<attached-texture name="material" 				type="color" />
+			<attached-texture name="ssao" 					type="color" />
+			<attached-texture name="position" 				type="color" />
+			<attached-texture name="depth" 					type="depth" />
+		</target>
+		
+	</targets>
+	<shaders>
+	
+		<!-- Shaders for each pass -->
+		<shader name="gbuffer">
+			<vertex>Data/Shaders/gbuffer.vert</vertex>
+			<fragment>Data/Shaders/gbuffer.frag</fragment>
+			<uniforms>
+				<uniform name="g_texture" 						type="texture" 	value="MATERIAL_TEXTURE" />
+				<uniform name="g_world_view_matrix" 			type="matrix4" 	value="WORLD_VIEW_MATRIX" />
+				<uniform name="g_world_view_projection_matrix" 	type="matrix4" 	value="WORLD_VIEW_PROJECTION_MATRIX" />
+				<uniform name="g_camera_near_clip" 				type="float" 	value="CAMERA_NEAR_CLIP" />
+				<uniform name="g_camera_far_clip" 				type="float" 	value="CAMERA_FAR_CLIP" />
+				<uniform name="g_material_shininess" 			type="float" 	value="MATERIAL_SHININESS" />
+				<uniform name="g_material_specular" 			type="vector3" 	value="MATERIAL_SPECULAR" />
+			</uniforms>
+		</shader>
+		<shader name="screen_quad">
+			<vertex>Data/Shaders/screen_quad.vert</vertex>
+			<fragment>Data/Shaders/screen_quad.frag</fragment>
+			<uniforms>
+				<uniform name="g_texture" 			type="texture" value="MATERIAL_TEXTURE" />
+			</uniforms>
+		</shader>
+		<shader name="ssao">
+			<vertex>Data/Shaders/ssao.vert</vertex>
+			<fragment>Data/Shaders/ssao.frag</fragment>
+			<uniforms>	
+				<uniform name="g_diffuse" 				type="texture" value="diffuse" />
+				<uniform name="g_depth" 				type="texture" value="depth" />
+				<uniform name="g_normal" 				type="texture" value="normal" />
+				<uniform name="g_material" 				type="texture" value="material" />
+				<uniform name="g_noise" 				type="texture" value="noise" />
+				<uniform name="g_position" 				type="texture" value="position" />
+				<uniform name="g_resolution" 			type="vector3" value="RESOLUTION" />
+				<uniform name="g_noise_texture_size" 	type="vector3" value="TEXTURE_SIZE" texture="noise" />
+			</uniforms>
+		</shader>
+		<shader name="combine">
+			<vertex>Data/Shaders/combine.vert</vertex>
+			<fragment>Data/Shaders/combine.frag</fragment>
+			<uniforms>
+				<uniform name="g_diffuse" 			 type="texture" value="diffuse" />
+				<uniform name="g_depth" 			 type="texture" value="depth" />
+				<uniform name="g_normal" 			 type="texture" value="normal" />
+				<uniform name="g_material" 		 	 type="texture" value="material" />
+				<uniform name="g_light_accumulation" type="texture" value="light_accumulation" />
+				<uniform name="g_ssao"				 type="texture" value="ssao" />
+				<uniform name="g_position" 			 type="texture" value="position" />
+			</uniforms>
+		</shader>
+		<shader name="light">
+			<vertex>Data/Shaders/light.vert</vertex>
+			<fragment>Data/Shaders/light.frag</fragment>
+			<uniforms>
+				<uniform name="g_position" 				type="texture" 	value="position" />
+				<uniform name="g_depth" 				type="texture" 	value="depth" />
+				<uniform name="g_normal" 				type="texture" 	value="normal" />
+				<uniform name="g_material" 				type="texture" 	value="material" />
+				<uniform name="g_light_position" 		type="vector4" 	value="LIGHT_POSITION" />
+				<uniform name="g_light_direction"	 	type="vector4" 	value="LIGHT_DIRECTION" />
+				<uniform name="g_light_outer_radius" 	type="float" 	value="LIGHT_OUTER_RADIUS" />
+				<uniform name="g_light_color" 			type="vector4" 	value="LIGHT_COLOR" />
+				<uniform name="g_light_radius" 			type="float" 	value="LIGHT_RADIUS" />
+				<uniform name="g_light_type" 			type="int" 		value="LIGHT_TYPE" />
+			</uniforms>
+		</shader>
+		
+	</shaders>
+	<passes>
+	
+		<!-- Geometry pass, builds the gbuffer -->
+		<pass name="geometry" enabled="true">			
+			<type>scene</type>
+			
+			<state>
+				<clear>true</clear>
+				<depth-test>true</depth-test>
+			</state>
+			
+			<target>gbuffer</target>
+			<shader>gbuffer</shader>
+			
+			<outputs>
+				<output>diffuse</output>
+				<output>normal</output>
+				<output>material</output>
+				<output>position</output> 
+			</outputs>
+		</pass>	
+	
+		<!-- Lighting pass, fills the light accumulation buffer based on the gbuffer from the previous step. -->
+		<pass name="lighting" enabled="true">	
+			<foreach>light</foreach>
+			
+			<type>container</type>
+			<target>gbuffer</target>
+			<shader>light</shader>
+			
+			<state>
+				<clear>true</clear>
+				<depth-test>false</depth-test>
+				<blend>true</blend>
+				<blend-function>one_one</blend-function>
+			</state>			
+			
+			<outputs>
+				<output>light_accumulation</output>
+			</outputs>
+			
+			<sub-passes>
+				<pass name="light-accumulation" enabled="true">					
+					<type>mesh</type>
+					<mesh>fullscreen_quad</mesh>
+					
+					<target>gbuffer</target>
+					<shader>light</shader>
+					
+					<outputs>
+						<output>light_accumulation</output>
+					</outputs>
+				</pass>
+			</sub-passes>
+		</pass>	
+		
+		<!-- SSAO pass builds the ambient occlusion buffer. -->
+		<pass name="ssao" enabled="true">	
+			<type>mesh</type>
+			<mesh>fullscreen_quad</mesh>
+			
+			<target>gbuffer</target>
+			<shader>ssao</shader>
+			
+			<state>
+				<depth-test>false</depth-test>
+				<blend>false</blend>
+			</state>
+						
+			<outputs>
+				<output>ssao</output>
+			</outputs>
+		</pass>	
+		
+		<!-- Combine pass, combines all the buffers into our final output. -->
+		<pass name="combine" enabled="true">	
+			<type>mesh</type>
+			<mesh>fullscreen_quad</mesh>
+			
+			<target></target>
+			<shader>combine</shader>
+			
+			<state>
+				<depth-test>false</depth-test>
+			</state>
+						
+			<outputs>
+				<output>BACK_BUFFER</output>
+			</outputs>
+		</pass>	
+			
+	</passes>
+</xml>

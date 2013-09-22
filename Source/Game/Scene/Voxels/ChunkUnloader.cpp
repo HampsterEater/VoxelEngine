@@ -205,6 +205,9 @@ void ChunkUnloader::Unload_Chunk(Chunk* chunk)
 {
 	IntVector3 position = chunk->Get_Position();
 
+	RegionFile* region = m_manager->Get_Region_File(chunk->Get_Region());
+	region->Save_Chunk(chunk);
+
 	//DBG_LOG("Unloading chunk: %i,%i,%i", position.X, position.Y, position.Z);
 }
 

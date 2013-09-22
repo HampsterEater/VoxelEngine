@@ -7,7 +7,7 @@
 #include "Generic\Types\LinkedList.h"
 #include "Engine\IO\Stream.h"
 
-class Texture;
+#include "Engine\Renderer\Textures\Texture.h"
 
 class TextureFactory
 {
@@ -17,14 +17,14 @@ private:
 public:
 		
 	// Static methods.
-	static Texture* Load(const char* url);
+	static Texture* Load(const char* url, TextureFlags::Type flags);
 
 	// Constructors
 	TextureFactory();	
 	~TextureFactory();	
 
 	// Derived factory methods.
-	virtual Texture* Try_Load(const char* url) = 0;
+	virtual Texture* Try_Load(const char* url, TextureFlags::Type flags) = 0;
 
 };
 

@@ -87,6 +87,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Defines.h" />
+    <ClInclude Include="Helper\StringHelper.h" />
     <ClInclude Include="Math\Math.h" />
     <ClInclude Include="Math\Noise\Noise.h" />
     <ClInclude Include="Math\Noise\NoiseSampler3D.h" />
@@ -95,6 +96,10 @@
     <ClInclude Include="Memory\Memory.h" />
     <ClInclude Include="Memory\Win32\Win32_Memory.h" />
     <ClInclude Include="Patterns\Singleton.h" />
+    <ClInclude Include="ThirdParty\RapidXML\rapidxml.hpp" />
+    <ClInclude Include="ThirdParty\RapidXML\rapidxml_iterators.hpp" />
+    <ClInclude Include="ThirdParty\RapidXML\rapidxml_print.hpp" />
+    <ClInclude Include="ThirdParty\RapidXML\rapidxml_utils.hpp" />
     <ClInclude Include="Threads\MutexLock.h" />
     <ClInclude Include="Threads\Mutex.h" />
     <ClInclude Include="Threads\Semaphore.h" />
@@ -104,6 +109,7 @@
     <ClInclude Include="Threads\Win32\Win32_Thread.h" />
     <ClInclude Include="Types\AABB.h" />
     <ClInclude Include="Types\CachedMemoryPool.h" />
+    <ClInclude Include="Types\Color.h" />
     <ClInclude Include="Types\Frustum.h" />
     <ClInclude Include="Types\HashTable.h" />
     <ClInclude Include="Types\EmbeddedLinkedList.h" />
@@ -117,9 +123,11 @@
     <ClInclude Include="Types\Sphere.h" />
     <ClInclude Include="Types\String.h" />
     <ClInclude Include="Types\Vector3.h" />
+    <ClInclude Include="Types\Vector4.h" />
     <ClInclude Include="Types\VirtualArray3.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Helper\StringHelper.cpp" />
     <ClCompile Include="Math\Math.cpp" />
     <ClCompile Include="Math\Noise\Noise.cpp" />
     <ClCompile Include="Math\Noise\NoiseSampler3D.cpp" />
@@ -136,6 +144,7 @@
     <ClCompile Include="Threads\Win32\Win32_Semaphore.cpp" />
     <ClCompile Include="Threads\Win32\Win32_Thread.cpp" />
     <ClCompile Include="Types\AABB.cpp" />
+    <ClCompile Include="Types\Color.cpp" />
     <ClCompile Include="Types\FixedMemoryPool.cpp" />
     <ClCompile Include="Types\Frustum.cpp" />
     <ClCompile Include="Types\HashTable.cpp" />
@@ -146,6 +155,7 @@
     <ClCompile Include="Types\Rectangle.cpp" />
     <ClCompile Include="Types\String.cpp" />
     <ClCompile Include="Types\Vector3.cpp" />
+    <ClCompile Include="Types\Vector4.cpp" />
     <ClCompile Include="Types\VirtualArray3.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

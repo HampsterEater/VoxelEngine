@@ -25,6 +25,7 @@ public:
 	void			Write		(const char* buffer, int offset, int length);
 	void			Read		(char* buffer, int offset, int length);
 	void			Close		();
+	void			Flush		();
 
 };
 

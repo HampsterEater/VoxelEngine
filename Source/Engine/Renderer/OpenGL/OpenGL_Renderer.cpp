@@ -6,6 +6,7 @@
 #include "Engine\Scene\Scene.h"
 #include "Engine\Scene\Actor.h"
 #include "Engine\Scene\Camera.h"
+#include "Engine\Scene\Light.h"
 #include "Engine\Renderer\Drawable.h"
 #include "Engine\Engine\GameEngine.h"
 
@@ -13,19 +14,63 @@
 #include "Generic\Types\Matrix4.h"
 #include "Generic\Types\Rectangle.h"
 
+#include "Engine\Renderer\Textures\TextureFactory.h"
+
 #include "Engine\Renderer\OpenGL\OpenGL_Texture.h"
+#include "Engine\Renderer\OpenGL\OpenGL_Shader.h"
+#include "Engine\Renderer\OpenGL\OpenGL_ShaderProgram.h"
+#include "Engine\Renderer\OpenGL\OpenGL_RenderTarget.h"
 
 #ifdef PLATFORM_WIN32
 #include "Engine\Display\Win32\Win32_Display.h"
 #endif
 
+#include "Engine\IO\StreamFactory.h"
+#include "Engine\IO\Stream.h"
+
 #include <vector>
+
+// Does some debug checking when loading gl extensions.
+#define LOAD_GL_EXTENSION(func, type, name) \
+	{ \
+		func = (type)wglGetProcAddress(#name); \
+		DBG_ASSERT(func != NULL); \
+	}
 
 // Extension methods to opengl that we need.
 PFNGLGENBUFFERSARBPROC				glGenBuffers				= NULL;                  
 PFNGLBINDBUFFERARBPROC				glBindBuffer				= NULL;                 
 PFNGLBUFFERDATAARBPROC				glBufferData				= NULL;                
 PFNGLDELETEBUFFERSARBPROC			glDeleteBuffers				= NULL;  
+
+PFNGLCREATESHADERPROC				glCreateShader				= NULL;
+PFNGLDELETESHADERPROC				glDeleteShader				= NULL;
+PFNGLATTACHSHADERPROC				glAttachShader				= NULL;
+PFNGLSHADERSOURCEPROC				glShaderSource				= NULL;
+PFNGLCOMPILESHADERPROC				glCompileShader				= NULL;
+PFNGLCREATEPROGRAMPROC				glCreateProgram				= NULL;
+PFNGLLINKPROGRAMPROC				glLinkProgram				= NULL;
+PFNGLDELETEPROGRAMPROC				glDeleteProgram				= NULL;
+PFNGLGETPROGRAMIVPROC				glGetProgramiv				= NULL;
+PFNGLGETSHADERIVPROC				glGetShaderiv				= NULL;
+PFNGLGETSHADERINFOLOGPROC			glGetShaderInfoLog			= NULL;
+PFNGLGETPROGRAMINFOLOGPROC			glGetProgramInfoLog			= NULL;
+PFNGLUSEPROGRAMPROC					glUseProgram				= NULL;
+
+PFNGLACTIVETEXTUREPROC				glActiveTexture				= NULL;
+PFNGLGETUNIFORMLOCATIONPROC			glGetUniformLocation		= NULL;
+PFNGLUNIFORM1IPROC					glUniform1i					= NULL;
+PFNGLUNIFORM1FPROC					glUniform1f					= NULL;
+PFNGLUNIFORM3FPROC					glUniform3f					= NULL;
+PFNGLUNIFORM4FPROC					glUniform4f					= NULL;
+PFNGLUNIFORMMATRIX4FVPROC			glUniformMatrix4fv 			= NULL;
+
+PFNGLGENFRAMEBUFFERSPROC			glGenFramebuffers			= NULL;
+PFNGLBINDFRAMEBUFFERPROC			glBindFramebuffer			= NULL;
+PFNGLFRAMEBUFFERTEXTURE2DPROC		glFramebufferTexture2D		= NULL;
+PFNGLCHECKFRAMEBUFFERSTATUSPROC		glCheckFramebufferStatus	= NULL;
+	
+PFNGLDRAWBUFFERSPROC				glDrawBuffers				= NULL;		
 
 #ifdef PLATFORM_WIN32
 typedef BOOL (WINAPI * PFNWGLSWAPINTERVALEXTPROC) (int interval);              
@@ -34,16 +79,19 @@ PFNWGLSWAPINTERVALEXTPROC			wglSwapInterval				= NULL;
 
 OpenGL_Renderer::OpenGL_Renderer()
 	: m_initialized(false)
-	, m_near_clip(0.1f)
-	, m_far_clip(100.0f)
-	, m_active_camera(NULL)
 	, m_display(NULL)
-	, m_binded_texture(NULL)
+	, m_binded_shader_program(NULL)
+	, m_binded_render_target(NULL)
+	, m_binded_material(NULL)
+	, m_viewport(0, 0, 0, 0)
 {
+	memset(m_binded_textures, 0, sizeof(OpenGL_Texture*) * MAX_BINDED_TEXTURES);
 }
 
 OpenGL_Renderer::~OpenGL_Renderer()
 {
+	// TODO: Destroy all shaders etc.
+
 	// check meshs were correctly destroyed!
 	for (int i = 0; i < MAX_MESHS; i++)
 	{
@@ -58,12 +106,38 @@ void OpenGL_Renderer::Initialize_OpenGL()
 {
 	DBG_ASSERT(Is_Extension_Supported("GL_ARB_vertex_buffer_object"));
 
-	glGenBuffers		= (PFNGLGENBUFFERSARBPROC)wglGetProcAddress("glGenBuffersARB");
-	glBindBuffer		= (PFNGLBINDBUFFERARBPROC)wglGetProcAddress("glBindBufferARB");
-	glBufferData		= (PFNGLBUFFERDATAARBPROC)wglGetProcAddress("glBufferDataARB");
-	glDeleteBuffers		= (PFNGLDELETEBUFFERSARBPROC)wglGetProcAddress("glDeleteBuffersARB");
-	wglSwapInterval		= (PFNWGLSWAPINTERVALEXTPROC)wglGetProcAddress("wglSwapIntervalEXT");
-	
+	LOAD_GL_EXTENSION(glGenBuffers,				PFNGLGENBUFFERSARBPROC,				glGenBuffersARB);
+	LOAD_GL_EXTENSION(glBindBuffer,				PFNGLBINDBUFFERARBPROC,				glBindBufferARB);
+	LOAD_GL_EXTENSION(glBufferData,				PFNGLBUFFERDATAARBPROC,				glBufferDataARB);
+	LOAD_GL_EXTENSION(glDeleteBuffers,			PFNGLDELETEBUFFERSARBPROC,			glDeleteBuffersARB);
+	LOAD_GL_EXTENSION(wglSwapInterval,			PFNWGLSWAPINTERVALEXTPROC,			wglSwapIntervalEXT);
+	LOAD_GL_EXTENSION(glCreateShader,			PFNGLCREATESHADERPROC,				glCreateShader);
+	LOAD_GL_EXTENSION(glDeleteShader,			PFNGLDELETESHADERPROC,				glDeleteShader);
+	LOAD_GL_EXTENSION(glAttachShader,			PFNGLATTACHSHADERPROC,				glAttachShader);
+	LOAD_GL_EXTENSION(glShaderSource,			PFNGLSHADERSOURCEPROC,				glShaderSource);
+	LOAD_GL_EXTENSION(glCompileShader,			PFNGLCOMPILESHADERPROC,				glCompileShader);
+	LOAD_GL_EXTENSION(glCreateProgram,			PFNGLCREATEPROGRAMPROC,				glCreateProgram);
+	LOAD_GL_EXTENSION(glLinkProgram,			PFNGLLINKPROGRAMPROC,				glLinkProgram);
+	LOAD_GL_EXTENSION(glDeleteProgram,			PFNGLDELETEPROGRAMPROC,				glDeleteProgram);
+	LOAD_GL_EXTENSION(glGetProgramiv,			PFNGLGETPROGRAMIVPROC,				glGetProgramiv);
+	LOAD_GL_EXTENSION(glGetShaderiv,			PFNGLGETSHADERIVPROC,				glGetShaderiv);
+	LOAD_GL_EXTENSION(glGetShaderInfoLog,		PFNGLGETSHADERINFOLOGPROC,			glGetShaderInfoLog);
+	LOAD_GL_EXTENSION(glGetProgramInfoLog,		PFNGLGETPROGRAMINFOLOGPROC,			glGetProgramInfoLog);
+	LOAD_GL_EXTENSION(glUseProgram,				PFNGLUSEPROGRAMPROC,				glUseProgram);
+	LOAD_GL_EXTENSION(glActiveTexture,			PFNGLACTIVETEXTUREPROC,				glActiveTexture);
+	LOAD_GL_EXTENSION(glGetUniformLocation,		PFNGLGETUNIFORMLOCATIONPROC,		glGetUniformLocation);
+	LOAD_GL_EXTENSION(glUniform1i,				PFNGLUNIFORM1IPROC,					glUniform1i);
+	LOAD_GL_EXTENSION(glUniform1f,				PFNGLUNIFORM1FPROC,					glUniform1f);
+	LOAD_GL_EXTENSION(glUniform3f,				PFNGLUNIFORM3FPROC,					glUniform3f);
+	LOAD_GL_EXTENSION(glUniform4f,				PFNGLUNIFORM4FPROC,					glUniform4f);
+	LOAD_GL_EXTENSION(glUniformMatrix4fv,		PFNGLUNIFORMMATRIX4FVPROC,			glUniformMatrix4fv);
+	LOAD_GL_EXTENSION(glGenFramebuffers,		PFNGLGENFRAMEBUFFERSPROC,			glGenFramebuffers);
+	LOAD_GL_EXTENSION(glBindFramebuffer,		PFNGLBINDFRAMEBUFFERPROC,			glBindFramebuffer);
+	LOAD_GL_EXTENSION(glFramebufferTexture2D,	PFNGLFRAMEBUFFERTEXTURE2DPROC,		glFramebufferTexture2D);
+	LOAD_GL_EXTENSION(glCheckFramebufferStatus, PFNGLCHECKFRAMEBUFFERSTATUSPROC,	glCheckFramebufferStatus);
+	LOAD_GL_EXTENSION(glDrawBuffers,			PFNGLDRAWBUFFERSPROC,				glDrawBuffers);
+
+	// Turn off vsync.
 	wglSwapInterval(0);
 
 	for (int i = 0; i < MAX_MESHS; i++)
@@ -71,38 +145,17 @@ void OpenGL_Renderer::Initialize_OpenGL()
 		m_meshs[i].active = false;
 	}
 
-	// Clear screen.	
-	glShadeModel(GL_SMOOTH);							
-	glClearColor(125.0f / 255.0f, 154.0f / 255.0f, 234.0f / 255.0f, 0.5f);				
-	glClearDepth(1.0f);									
-	glEnable(GL_DEPTH_TEST);							
-	glDepthFunc(GL_LEQUAL);								
+	// Clear screen.							
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);	
-	glCullFace(GL_BACK);
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_TEXTURE_2D);	
-	
-	// Cheap shitty fog - todo:add to a Set_Fog etc call.
-	float max_view_distance = 27.0f;
-	GLfloat fogColor[] = { 125.0f / 255.0f, 154.0f / 255.0f, 234.0f / 255.0f, 0.5f };
-	glFogfv(GL_FOG_COLOR, fogColor);
-    glFogi(GL_FOG_MODE, GL_LINEAR);
-    glFogf(GL_FOG_START, max_view_distance * 0.75);
-    glFogf(GL_FOG_END, max_view_distance);
-	//glEnable(GL_FOG);
-	
-	// Wireframe
-	//glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+	glDisable(GL_LIGHTING);
 
-	// Lighting
-	glEnable(GL_LIGHTING);
-	glEnable(GL_LIGHT0);
-	//glEnable(GL_COLOR_MATERIAL);
-	
-	GLfloat lightpos[] = { 0.f, 20.f, 0.f, 0.f };
-	GLfloat lightambient[] = { 0.75f, 0.75f, 0.75f, 1.0f };
-	glLightfv(GL_LIGHT0, GL_POSITION, lightpos);
-	glLightfv(GL_LIGHT0, GL_AMBIENT, lightambient);
+	Set_Clear_Color(Color::Black);
+	Set_Clear_Depth(1.0f);
+	Set_Depth_Test(true);
+	Set_Depth_Function(RendererOption::Lower_Or_Equal);
+	Set_Cull_Face(RendererOption::Back);
 }
 
 bool OpenGL_Renderer::Is_Extension_Supported(const char* szTargetExtension)
@@ -159,73 +212,9 @@ int OpenGL_Renderer::Get_Free_Mesh_Index()
 	return -1;
 }
 
-void OpenGL_Renderer::Tick(const FrameTime& time)
+void OpenGL_Renderer::Flip(const FrameTime& time)
 {
-
-}
-
-void OpenGL_Renderer::Draw(const FrameTime& time)
-{	
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
-	glViewport(0, 0, m_display->Get_Width(), m_display->Get_Height()); 
-	
-	// Render the scene for each camera.
-	std::vector<Camera*>& cameras = GameEngine::Get()->Get_Scene()->Get_Cameras();
-	for (auto iter = cameras.begin(); iter != cameras.end(); iter++)
-	{
-		Camera* camera = *iter;
-
-		m_active_camera = camera;
-
-		Rect	  viewport = camera->Get_Viewport();
-		Vector3   rotation = camera->Get_Rotation();
-		Vector3   position = camera->Get_Position();
-
-		// Calculate projection matrix.
-		//Matrix4 projection_matrix = Matrix4::Perspective(20, viewport.Width / viewport.Height, 5, 15);
-
-		// Calculate view matrix.
-		float horizontal = rotation.Y;
-		float vertical   = rotation.Z;
-		Vector3 direction
-		(
-			cos(vertical) * sin(horizontal),
-			sin(vertical),
-			cos(vertical) * cos(horizontal)
-		);
-		Vector3	right
-		(
-			sin(horizontal - 3.14f / 2.0f),
-			0,
-			cos(horizontal - 3.14f / 2.0f)
-		);
-		Vector3 center = position + direction;
-		Vector3 up = right.Cross(direction);
-		//Matrix4 view_matrix = Matrix4::LookAt(position, center, up);
-
-		// Apply projection matrix.
-		glMatrixMode(GL_PROJECTION);
-		glLoadIdentity();	
-		//glLoadMatrixf(reinterpret_cast<GLfloat*>(projection_matrix.Elements));		
-		gluPerspective(camera->Get_FOV(), viewport.Width / (float) viewport.Height, m_near_clip, m_far_clip);
-		glViewport((GLint)viewport.X, (GLint)viewport.Y, (GLsizei)viewport.Width, (GLsizei)viewport.Height);	
-
-		// Apply view matrix.
-		glMatrixMode(GL_MODELVIEW);
-		glLoadIdentity();
-		gluLookAt(position.X, position.Y, position.Z, center.X, center.Y, center.Z, up.X, up.Y, up.Z);
-		//glLoadMatrixf(reinterpret_cast<GLfloat*>(view_matrix.Elements));
-		
-		// Render all drawables.
-		std::vector<Drawable*>& drawable = GameEngine::Get()->Get_Scene()->Get_Drawables();
-		for (auto iter = drawable.begin(); iter != drawable.end(); iter++)
-		{
-			Drawable* drawable = *iter;
-			drawable->Draw(time, this);
-		}
-	}
-
-	// Swap buffers.
+	// Swap front/back buffers.
 	m_display->Swap_Buffers();
 }
 
@@ -242,60 +231,430 @@ bool OpenGL_Renderer::Set_Display(Display* display)
 	return true;
 }
 
-Camera* OpenGL_Renderer::Get_Active_Camera()
+void OpenGL_Renderer::Bind_Shader_Program(ShaderProgram* shader)
 {
-	return m_active_camera;
-}
+	OpenGL_ShaderProgram* glShader = dynamic_cast<OpenGL_ShaderProgram*>(shader);
 
-Frustum OpenGL_Renderer::Get_Frustum()
-{
-	DBG_ASSERT(m_active_camera != NULL);
-	
-	Rect	  viewport = m_active_camera->Get_Viewport();
-	Vector3   rotation = m_active_camera->Get_Rotation();
-	Vector3   position = m_active_camera->Get_Position();
-
-	// Calculate view matrix.
-	float horizontal = rotation.Y;
-	float vertical   = rotation.Z;
-	Vector3 direction
-	(
-		cos(vertical) * sin(horizontal),
-		sin(vertical),
-		cos(vertical) * cos(horizontal)
-	);
-	Vector3	right
-	(
-		sin(horizontal - 3.14f / 2.0f),
-		0,
-		cos(horizontal - 3.14f / 2.0f)
-	);
-	Vector3 center = position + direction;
-	Vector3 up = right.Cross(direction);
-	
-	return Frustum(m_active_camera->Get_FOV(),
-				   viewport.Width / (float) viewport.Height,
-				   m_near_clip,
-				   m_far_clip,
-				   position,
-				   center,
-				   up);
-}
-
-void OpenGL_Renderer::Bind_Texture(Texture* texture)
-{
-	OpenGL_Texture* glTexture = dynamic_cast<OpenGL_Texture*>(texture);
-
-	if (m_binded_texture != glTexture)
+	if (m_binded_shader_program != glShader)
 	{
-		glBindTexture(GL_TEXTURE_2D, glTexture->Get_ID());
-		m_binded_texture = glTexture;
+		if (glShader != NULL)
+		{
+			glUseProgram(glShader->Get_ID());
+		}
+		else
+		{
+			glUseProgram(0);
+		}
+
+		m_binded_shader_program = glShader;
+	}	
+}
+
+Shader* OpenGL_Renderer::Create_Shader(char* source, ShaderType::Type type)
+{
+	GLuint shader = -1;
+
+	switch (type)
+	{
+		case ShaderType::Vertex:	
+			{
+				shader = glCreateShader(GL_VERTEX_SHADER);		
+				break;
+			}
+		case ShaderType::Fragment:	
+			{
+				shader = glCreateShader(GL_FRAGMENT_SHADER);	
+				break;
+			}
+	}
+
+	if (shader < 0)
+	{
+		return NULL;
+	}
+
+	glShaderSource(shader, 1, &source, NULL);
+    glCompileShader(shader);
+	
+	GLint	result		= GL_FALSE;
+	int		logLength	= 0;
+	char*	log			= NULL;
+
+    glGetShaderiv(shader, GL_COMPILE_STATUS,  &result);
+    glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &logLength);
+
+	if (logLength > 1)
+	{
+		log = new char[logLength + 1];
+		memset(log, 0, logLength + 1);
+		glGetShaderInfoLog(shader, logLength, NULL, log);
+
+		DBG_LOG("=== Shader compile log ===\n%s\n", log);
+
+		SAFE_DELETE(log);
+
+		return NULL;
+	}
+	
+ 	if (result != GL_TRUE)
+	{
+		return NULL;
+	}
+	else
+	{
+		return new OpenGL_Shader(shader, source, type);
 	}
 }
 
-Texture* OpenGL_Renderer::Create_Texture(char* data, int width, int height, int pitch, TextureFormat::Type format)
+ShaderProgram* OpenGL_Renderer::Create_Shader_Program(std::vector<Shader*>& shaders)
+{
+	GLuint program = glCreateProgram();
+
+	for (std::vector<Shader*>::iterator iter = shaders.begin(); iter != shaders.end(); iter++)
+	{
+		OpenGL_Shader* shader = dynamic_cast<OpenGL_Shader*>(*iter);
+		glAttachShader(program, shader->Get_ID());
+	}
+
+	glLinkProgram(program);
+	
+	GLint	result = GL_FALSE;
+	int		logLength = 0;
+	char*	log = NULL;
+
+    glGetProgramiv(program, GL_LINK_STATUS,  &result);
+    glGetProgramiv(program, GL_INFO_LOG_LENGTH, &logLength);
+
+	if (logLength > 1)
+	{
+		log = new char[logLength + 1];
+		memset(log, 0, logLength + 1);
+		glGetProgramInfoLog(program, logLength, NULL, log);
+
+		DBG_LOG("=== Shader program link log ===\n%s", log);
+
+		SAFE_DELETE(log);
+
+		return NULL;
+	}
+
+	if (result != GL_TRUE)
+	{
+		return NULL;
+	}
+	else
+	{
+		return new OpenGL_ShaderProgram(program, shaders);
+	}
+}
+
+void OpenGL_Renderer::Bind_Render_Target(RenderTarget* target)
+{
+	OpenGL_RenderTarget* glTarget = dynamic_cast<OpenGL_RenderTarget*>(target);
+
+	if (m_binded_render_target != glTarget)
+	{
+		// Make sure commands on previous buffer are complete.
+		glFlush();
+
+		if (glTarget != NULL)
+		{
+			glBindFramebuffer(GL_FRAMEBUFFER, glTarget->Get_ID());
+		}
+		else
+		{
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		}
+
+		m_binded_render_target = glTarget;
+	}
+}
+
+RenderTarget* OpenGL_Renderer::Create_Render_Target()
+{
+	GLuint id = 0;
+	glGenFramebuffers(1, &id);
+	
+	if (id >= 0)
+	{
+		glBindFramebuffer(GL_FRAMEBUFFER, id);
+		return new OpenGL_RenderTarget(id);
+	}
+	else
+	{
+		return NULL;
+	}
+}
+
+void OpenGL_Renderer::Bind_Texture(Texture* texture, int index)
+{
+	OpenGL_Texture* glTexture = dynamic_cast<OpenGL_Texture*>(texture);
+
+	DBG_ASSERT(index >= 0 && index < MAX_BINDED_TEXTURES);
+
+	if (m_binded_textures[index] != glTexture)
+	{
+		glActiveTexture(GL_TEXTURE0 + index);
+
+		if (glTexture == NULL)
+		{
+			glBindTexture(GL_TEXTURE_2D, 0);
+		}
+		else
+		{
+			glBindTexture(GL_TEXTURE_2D, glTexture->Get_ID());
+		}
+		
+		m_binded_textures[index] = glTexture;
+	}
+}
+
+void OpenGL_Renderer::Bind_Material(Material* material)
+{
+	//if (m_binded_material != material)
+	//{
+		Bind_Texture(material->Get_Texture(), 0);
+
+		m_binded_material = material;
+	//}
+}
+	
+Material* OpenGL_Renderer::Get_Material()
+{
+	return m_binded_material;
+}
+	
+void OpenGL_Renderer::Set_Output_Buffers(std::vector<OutputBufferType::Type>& outputs)
+{
+	GLenum real_outputs[16];
+	DBG_ASSERT(outputs.size() < 16);
+
+	int index = 0;
+	for (std::vector<OutputBufferType::Type>::iterator iter = outputs.begin(); iter != outputs.end(); iter++, index++)
+	{
+		OutputBufferType::Type type = *iter;
+		switch (type)
+		{
+		case OutputBufferType::BackBuffer:				real_outputs[index] = GL_BACK;				break;
+		case OutputBufferType::RenderTargetTexture0:	real_outputs[index] = GL_COLOR_ATTACHMENT0;	break;
+		case OutputBufferType::RenderTargetTexture1:	real_outputs[index] = GL_COLOR_ATTACHMENT1;	break;
+		case OutputBufferType::RenderTargetTexture2:	real_outputs[index] = GL_COLOR_ATTACHMENT2;	break;
+		case OutputBufferType::RenderTargetTexture3:	real_outputs[index] = GL_COLOR_ATTACHMENT3;	break;
+		case OutputBufferType::RenderTargetTexture4:	real_outputs[index] = GL_COLOR_ATTACHMENT4;	break;
+		case OutputBufferType::RenderTargetTexture5:	real_outputs[index] = GL_COLOR_ATTACHMENT5;	break;
+		case OutputBufferType::RenderTargetTexture6:	real_outputs[index] = GL_COLOR_ATTACHMENT6;	break;
+		case OutputBufferType::RenderTargetTexture7:	real_outputs[index] = GL_COLOR_ATTACHMENT7;	break;
+		case OutputBufferType::RenderTargetTexture8:	real_outputs[index] = GL_COLOR_ATTACHMENT8;	break;
+		case OutputBufferType::RenderTargetTexture9:	real_outputs[index] = GL_COLOR_ATTACHMENT9;	break;
+		default:										DBG_ASSERT(false);							break;
+		}
+	}
+
+	glDrawBuffers(outputs.size(), real_outputs);
+}
+
+void OpenGL_Renderer::Set_Clear_Color(Color color)
+{
+	glClearColor(color.R / 255.0f, color.G / 255.0f, color.B / 255.0f, color.A / 255.0f);
+	m_clear_color = color;
+}
+
+Color OpenGL_Renderer::Get_Clear_Color()
+{
+	return m_clear_color;
+}
+
+void OpenGL_Renderer::Set_Clear_Depth(float depth)
+{
+	glClearDepth(depth);
+	m_clear_depth = depth;
+}
+
+float OpenGL_Renderer::Get_Clear_Depth()
+{
+	return m_clear_depth;
+}
+
+void OpenGL_Renderer::Set_Cull_Face(RendererOption::Type option)
+{
+	glCullFace(option == RendererOption::Back ? GL_BACK : GL_FRONT);
+	m_cull_face = option;
+}
+
+RendererOption::Type OpenGL_Renderer::Get_Cull_Face()
+{
+	return m_cull_face;
+}
+
+void OpenGL_Renderer::Set_Depth_Function(RendererOption::Type option)
+{
+	switch (option)
+	{
+		case RendererOption::Lower_Or_Equal:		glDepthFunc(GL_LEQUAL);		break;
+		case RendererOption::Lower:					glDepthFunc(GL_LESS);		break;
+		case RendererOption::Greater_Or_Equal:		glDepthFunc(GL_GEQUAL);		break;
+		case RendererOption::Greater:				glDepthFunc(GL_GREATER);	break;
+		case RendererOption::Equal:					glDepthFunc(GL_EQUAL);		break;
+		case RendererOption::Not_Equal:				glDepthFunc(GL_NOTEQUAL);	break;
+		case RendererOption::Never:					glDepthFunc(GL_NEVER);		break;
+		case RendererOption::Always:				glDepthFunc(GL_ALWAYS);		break;
+		default:									DBG_ASSERT(false);			break;
+	}
+	m_depth_function = option;
+}
+
+RendererOption::Type OpenGL_Renderer::Get_Depth_Function()
+{
+	return m_depth_function;
+}
+
+void OpenGL_Renderer::Set_Depth_Test(bool depth)
+{
+	if (depth)
+	{
+		glEnable(GL_DEPTH_TEST);
+	}
+	else
+	{
+		glDisable(GL_DEPTH_TEST);
+	}
+
+	m_depth_test = depth;
+}
+
+bool OpenGL_Renderer::Get_Depth_Test()
+{
+	return m_depth_test;
+}
+
+
+void OpenGL_Renderer::Set_Blend_Function(RendererOption::Type option)
+{
+	switch (option)
+	{
+		case RendererOption::One_One:	glBlendFunc(GL_ONE, GL_ONE);	break;
+		default:						DBG_ASSERT(false);				break;
+	}
+	m_blend_function = option;
+}
+
+RendererOption::Type OpenGL_Renderer::Get_Blend_Function()
+{
+	return m_blend_function;
+}
+
+void OpenGL_Renderer::Set_Blend(bool blend)
+{
+	if (blend)
+	{
+		glEnable(GL_BLEND);
+	}
+	else
+	{
+		glDisable(GL_BLEND);
+	}
+
+	m_blend = blend;
+}
+
+bool OpenGL_Renderer::Get_Blend()
+{
+	return m_blend;
+}
+
+void OpenGL_Renderer::Set_Viewport(Rect viewport)
+{
+	glViewport(viewport.X, viewport.Y, viewport.Width, viewport.Height);
+	m_viewport = viewport;
+}
+
+Rect OpenGL_Renderer::Set_Viewport()
+{
+	return m_viewport;
+}
+
+void OpenGL_Renderer::Clear_Buffer()
+{
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
+
+Texture* OpenGL_Renderer::Create_Texture(int width, int height, int pitch, TextureFormat::Type format, TextureFlags::Type flags)
 {
 	GLuint texture_id;	
+
+	OpenGL_Texture* previous_texture = m_binded_textures[0];
+
+	// Generate and bind texture.
+	glActiveTexture(0);
+	glGenTextures(1, &texture_id);
+	glBindTexture(GL_TEXTURE_2D, texture_id);
+	
+	// And some nice filtering and clamp the texture.
+	if ((flags & TextureFlags::AllowRepeat) != 0)
+	{
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	}
+	else
+	{
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+	}
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR); 
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); 
+	glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_FALSE); 
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+
+	// Upload data to GPU.
+	switch (format)
+	{
+	case TextureFormat::R8G8B8:
+		{
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+			break;
+		}
+	case TextureFormat::R32FG32FB32FA32F:
+		{
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, 0);
+			break;
+		}
+	case TextureFormat::R8G8B8A8:
+		{
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+			break;
+		}
+	case TextureFormat::DepthFormat:
+		{
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+			break;
+		}
+	case TextureFormat::StencilFormat:
+		{
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_STENCIL_INDEX, width, height, 0, GL_STENCIL_INDEX, GL_FLOAT, 0);
+			break;
+		}
+	default:
+		{
+			// Format not supported.
+			DBG_ASSERT(false);
+			break;
+		}
+	}
+
+	// Reset binding to previous texture.
+	if (previous_texture != NULL)
+	{
+		glBindTexture(GL_TEXTURE_2D, previous_texture->Get_ID());
+	}
+
+	return new OpenGL_Texture(texture_id, NULL, width, height, pitch, format);
+}
+
+Texture* OpenGL_Renderer::Create_Texture(char* data, int width, int height, int pitch, TextureFormat::Type format, TextureFlags::Type flags)
+{
+	GLuint texture_id;	
+	
+	OpenGL_Texture* previous_texture = m_binded_textures[0];
 
 	// Generate and bind texture.
 	glGenTextures(1, &texture_id);
@@ -303,8 +662,16 @@ Texture* OpenGL_Renderer::Create_Texture(char* data, int width, int height, int 
 	
 	// And some nice filtering and clamp the texture.
 	glHint(GL_GENERATE_MIPMAP_HINT, GL_NICEST);	
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+	if ((flags & TextureFlags::AllowRepeat) != 0)
+	{
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	}
+	else
+	{
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+	}
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR); 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); 
 	glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE); 
@@ -318,40 +685,71 @@ Texture* OpenGL_Renderer::Create_Texture(char* data, int width, int height, int 
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
 			break;
 		}
+	case TextureFormat::R32FG32FB32FA32F:
+		{
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, data);
+			break;
+		}
 	case TextureFormat::R8G8B8A8:
 		{
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 			break;
 		}
+	case TextureFormat::DepthFormat:
+		{
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, data);
+			break;
+		}
+	case TextureFormat::StencilFormat:
+		{
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_STENCIL_INDEX, width, height, 0, GL_STENCIL_INDEX, GL_FLOAT, data);
+			break;
+		}
+	default:
+		{
+			// Format not supported.
+			DBG_ASSERT(false);
+			break;
+		}
 	}
 
 	// Reset binding to previous texture.
-	if (m_binded_texture != NULL)
+	if (previous_texture != NULL)
 	{
-		Bind_Texture(m_binded_texture);
+		glBindTexture(GL_TEXTURE_2D, previous_texture->Get_ID());
 	}
 
 	return new OpenGL_Texture(texture_id, data, width, height, pitch, format);
 }
 
-void OpenGL_Renderer::Push_Matrix()
+void OpenGL_Renderer::Set_World_Matrix(Matrix4 matrix)
 {
-	glPushMatrix();
+	m_world_matrix = matrix;
 }
 
-void OpenGL_Renderer::Pop_Matrix()
+Matrix4 OpenGL_Renderer::Get_World_Matrix()
 {
-	glPopMatrix();
+	return m_world_matrix;
 }
 
-void OpenGL_Renderer::Translate_World_Matrix(float x, float y, float z)
+void OpenGL_Renderer::Set_View_Matrix(Matrix4 matrix)
 {
-	glTranslatef(x, y, z);
+	m_view_matrix = matrix;
 }
 
-void OpenGL_Renderer::Rotate_World_Matrix(float x, float y, float z)
+Matrix4 OpenGL_Renderer::Get_View_Matrix()
 {
-	glRotatef(1.0f, x, y, z);
+	return m_view_matrix;
+}
+
+void OpenGL_Renderer::Set_Projection_Matrix(Matrix4 matrix)
+{
+	m_projection_matrix = matrix;
+}
+
+Matrix4 OpenGL_Renderer::Get_Projection_Matrix()
+{
+	return m_projection_matrix;
 }
 
 void OpenGL_Renderer::Render_Mesh(int id)
@@ -625,5 +1023,23 @@ void OpenGL_Renderer::Draw_Line(float x1, float y1, float z1, float x2, float y2
 	glBegin(GL_LINES);
 	glVertex3f(x1, y1, z1);
 	glVertex3f(x2, y2, z2);
+	glEnd();
+}
+
+void OpenGL_Renderer::Draw_Quad(float x, float y, float w, float h)
+{
+	glBegin(GL_QUADS);
+		glTexCoord2f(0.0f, 0.0f);
+		glVertex3f(x - w, y - h, 0.0f);
+
+		glTexCoord2f(1.0f, 0.0f);
+		glVertex3f(x + w, y - h, 0.0f);
+
+		glTexCoord2f(1.0f, 1.0f);
+		glVertex3f(x + w, y + h, 0.0f);
+		
+		glTexCoord2f(0.0f, 1.0f);
+		glVertex3f(x - w, y + h, 0.0f);
+
 	glEnd();
 }

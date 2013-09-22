@@ -37,6 +37,7 @@ Chunk::Chunk(ChunkManager* manager, int x, int y, int z, int width, int height, 
 	, m_is_full(false)
 	, m_is_contained(false)
 	, m_has_hole_face(false)
+	, m_aabb_cached(false)
 {	
 	int chunk_size = sizeof(Voxel) * m_width * m_height * m_depth;
 		
@@ -63,19 +64,35 @@ IntVector3 Chunk::Get_Position() const
 	return IntVector3(m_x, m_y, m_z);
 }
 
+IntVector3 Chunk::Get_Region() const
+{
+	return IntVector3(
+		floor((float)m_x / (float)m_manager->Get_Config().region_size.X),
+		floor((float)m_y / (float)m_manager->Get_Config().region_size.Y),
+		floor((float)m_z / (float)m_manager->Get_Config().region_size.Z)
+	);
+}
+
 bool Chunk::Should_Render() const
 {
 	return m_triangle_count > 0 || m_is_dirty == true;
 }
 
-AABB Chunk::Get_AABB() const
+AABB Chunk::Get_AABB() 
 {
-	return AABB(m_x * (m_width * m_voxel_width),
-				m_y * (m_height * m_voxel_height),
-				m_z * (m_depth * m_voxel_depth),
-				(m_width * m_voxel_width),
-				(m_height * m_voxel_height),
-				(m_depth * m_voxel_depth));
+	if (m_aabb_cached == false)
+	{
+		m_aabb_cached = true;
+
+		m_aabb = AABB(m_x * (m_width * m_voxel_width),
+						m_y * (m_height * m_voxel_height),
+						m_z * (m_depth * m_voxel_depth),
+						(m_width * m_voxel_width),
+						(m_height * m_voxel_height),
+						(m_depth * m_voxel_depth));
+	}
+
+	return m_aabb;
 }
 
 Sphere Chunk::Get_Bounding_Sphere() const
@@ -581,30 +598,14 @@ Voxel* Chunk::Get_Relative_Voxel(int voxel_x, int voxel_y, int voxel_z,
 	return NULL;
 }
 
-void Chunk::Draw(const FrameTime& time, Renderer* renderer)
+void Chunk::Draw(const FrameTime& time, RenderPipeline* pipeline)
 {
-	renderer->Push_Matrix();
-	//renderer->Translate_World_Matrix((float)m_x * (m_width * (m_voxel_width * 1)), 
-	//							     (float)m_y * (m_height * (m_voxel_height * 1)), 
-	//							     (float)m_z * (m_depth * (m_voxel_depth * 1)));
+	Renderer* renderer = Renderer::Get();
 
 	if (m_mesh_id >= 0)
 	{
 		renderer->Render_Mesh(m_mesh_id);
 	}
-
-/*	if (m_x == 0 && m_y == 0 && m_z == 0)
-	{
-		renderer->Draw_Wireframe_Cube(m_width * m_voxel_width, m_height * m_voxel_height, m_depth * m_voxel_depth);
-		Sphere sphere = Get_Bounding_Sphere();
-
-		renderer->Translate_World_Matrix(sphere.Center.X, sphere.Center.Y, sphere.Center.Z);
-		renderer->Draw_Wireframe_Sphere(sphere.Radius);
-		renderer->Draw_Wireframe_Cube(0.1f, 0.1f, 0.1f);
-	}
-*/
-
-	renderer->Pop_Matrix();
 }
 
 void Chunk::Tick(const FrameTime& time)

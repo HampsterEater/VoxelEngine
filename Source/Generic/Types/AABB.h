@@ -15,6 +15,10 @@ public:
 	Vector3 Vertices[8];
 	Vector3 Center;
 
+	AABB()
+	{
+	}
+
 	AABB(float x, float y, float z, float w, float h, float d)
 	{
 		X = x;
@@ -33,9 +37,9 @@ public:
 		Vertices[6] = Vector3(X + Width, Y + Height, Z + Depth);
 		Vertices[7] = Vector3(X, Y + Height, Z + Depth);
 		
-		Center = Vector3(X + (Width / 2),
-					     Y + (Height / 2),
-					     Z + (Depth / 2));
+		Center = Vector3(X + (Width  * 0.5),
+					     Y + (Height * 0.5),
+					     Z + (Depth  * 0.5));
 	}
 
 };

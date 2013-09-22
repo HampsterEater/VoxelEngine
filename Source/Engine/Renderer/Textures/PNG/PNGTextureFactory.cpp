@@ -16,7 +16,7 @@ void PNGTextureFactory::libpng_read_function(png_structp png_ptr, png_bytep data
 	((Stream*)ptr)->Read((char*)data, 0, length);
 }
 
-Texture* PNGTextureFactory::Try_Load(const char* url)
+Texture* PNGTextureFactory::Try_Load(const char* url, TextureFlags::Type flags)
 {
 	// Can we open this path as a file?
 	Stream* stream = StreamFactory::Open(url, StreamMode::Read);
@@ -143,7 +143,7 @@ Texture* PNGTextureFactory::Try_Load(const char* url)
 	png_read_image(png_ptr, row_pointers);
 	
 	// Create texture.
-	Texture* texture = Renderer::Get()->Create_Texture((char*)image_data, temp_width, temp_height, pitch_bytes / bytes_per_pixel, format);
+	Texture* texture = Renderer::Get()->Create_Texture((char*)image_data, temp_width, temp_height, pitch_bytes / bytes_per_pixel, format, flags);
 	if (texture == NULL)
 	{
 		platform_free(row_pointers);

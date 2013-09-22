@@ -21,7 +21,7 @@ bool Win32_FileStream::IsEOF()
 {
 	DBG_ASSERT(m_open == true);
 
-	return feof(m_handle);
+	return feof(m_handle) != 0;
 }
 
 unsigned int Win32_FileStream::Position()
@@ -71,3 +71,7 @@ void Win32_FileStream::Close()
 	m_open = false;
 }
 
+void Win32_FileStream::Flush()
+{
+	fflush(m_handle);
+}

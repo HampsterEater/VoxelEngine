@@ -4,10 +4,11 @@
 #ifndef _GAME_GAMECONFIG_
 #define _GAME_GAMECONFIG_
 
+#include "Engine\Config\ConfigFile.h"
 #include "Engine\Engine\GameEngineConfig.h"
 #include "Game\Scene\Voxels\ChunkManagerConfig.h"
 
-class GameConfig
+class GameConfig : public ConfigFile
 {
 public:
 
@@ -16,6 +17,9 @@ public:
 
 	// Chunk manager configuration.
 	ChunkManagerConfig	chunk_config;
+
+	// Loading methods.
+	void Unpack(const ConfigFile& file);
 
 };
 

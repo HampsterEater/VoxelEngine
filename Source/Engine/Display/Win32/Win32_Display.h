@@ -30,6 +30,7 @@ private:
 
 	bool		m_key_down[KEY_COUNT];
 	bool		m_key_press[KEY_COUNT];
+	bool		m_prev_key_down[KEY_COUNT];
 
 	void Setup_Window();
 	void Destroy_Window();
@@ -62,6 +63,7 @@ public:
 	// Input.
 	Point Get_Mouse();
 	void  Set_Mouse(Point pos);
+	bool  Is_Active();
 	bool  Is_Key_Down(Key::Type key);
 	bool  Is_Key_Pressed(Key::Type key);
 

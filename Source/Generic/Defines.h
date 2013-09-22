@@ -30,6 +30,16 @@
 
 // Debugging macros!
 #ifdef PLATFORM_WIN32
+	#define DBG_ASSERT_STR(cond, format, ...) \
+		if (!(cond)) \
+		{ \
+			printf("====== ASSERT FAILED ======\n"); \
+			printf("%s:%i\n", __FILE__, __LINE__); \
+			printf("%s\n", #cond); \
+			printf(format "\n", __VA_ARGS__); \
+			__debugbreak(); \
+		}
+
 	#define DBG_ASSERT(cond) \
 		if (!(cond)) \
 		{ \
@@ -58,6 +68,21 @@
 			delete[] x; \
 			x = NULL; \
 		} 
+
+// Dammnit windows, this is cross platform code, I don't care about your
+// secure functions.
+#if defined(_MSC_VER)
+	#ifndef _CRT_SECURE_NO_WARNINGS
+		#define _CRT_SECURE_NO_WARNINGS (1)
+	#endif
+	#ifndef _CRT_SECURE_NO_DEPRECATE
+		#define _CRT_SECURE_NO_DEPRECATE (1)
+	#endif
+	#pragma warning(disable : 4996)
+#endif
+
+// Special types.
+#define s64 long long int
 
 // Include memory function overrides.
 #include "Generic\Memory\Memory.h"

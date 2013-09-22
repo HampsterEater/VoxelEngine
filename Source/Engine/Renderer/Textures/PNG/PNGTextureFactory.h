@@ -14,7 +14,7 @@ private:
 	static void libpng_read_function(png_structp pngPtr, png_bytep data, png_size_t length);
 
 public:
-	Texture* Try_Load(const char* url);
+	Texture* Try_Load(const char* url, TextureFlags::Type flags);
 
 };
 

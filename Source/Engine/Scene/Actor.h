@@ -19,9 +19,6 @@ public:
 	// Constructors.
 	Actor();
 
-	// Base functions.
-	virtual void Tick(const FrameTime& time) = 0;
-	
 	// Get modifiers.
 	virtual Vector3 Get_Position();
 	virtual void	Set_Position(Vector3 position);

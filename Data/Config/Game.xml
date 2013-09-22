@@ -1,0 +1,39 @@
+<xml>
+	<name>Voxel Engine</name>
+	<rendering>
+		<pipeline>Data/Config/Render_Pipeline.xml</pipeline>
+		<display>
+			<width>800</width>
+			<height>600</height>
+			<fullscreen>0</fullscreen>
+			<title>Voxel Engine</title>
+		</display>
+		<frame_rate>60</frame_rate>
+	</rendering>
+	<voxels>
+		<chunk_size>16,16,16</chunk_size>
+		<region_size>16,16,16</region_size>
+		<voxel_size>0.07,0.07,0.07</voxel_size>
+		<draw_distance>16,5,16</draw_distance>
+		<load_distance>17,6,17</load_distance>
+		<unload_distance>18,7,18</unload_distance>
+		<unload_timeout>10000</unload_timeout>
+		<chunk_regenerations_per_frame>2</chunk_regenerations_per_frame>
+		<chunk_unloads_per_frame>25</chunk_unloads_per_frame>
+		<chunk_memory_pool_buffer>1.6</chunk_memory_pool_buffer>
+		<voxel_memory_pool_buffer>1.6</voxel_memory_pool_buffer>
+		<generation>
+			<map_seed>123456789</map_seed>
+			<density_threshold>0.0</density_threshold>
+			<map_terrain_base_noise_sample_step>0.02,0.06,0.02</map_terrain_base_noise_sample_step>
+			<map_terrain_base_noise_octaves>2</map_terrain_base_noise_octaves>
+			<map_terrain_base_noise_persistence>0.5</map_terrain_base_noise_persistence>
+			<map_terrain_base_noise_scale>0.5</map_terrain_base_noise_scale>
+		</generation>
+	</voxels>
+	<saving>
+		<save_directory>Save/World1/</save_directory>
+		<world_file_path>Save/World1/World.dat</world_file_path>
+		<region_directory>Save/World1/Regions/</region_directory>
+	</saving>
+</xml>

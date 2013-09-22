@@ -55,6 +55,12 @@
     <Filter Include="Source Files\Scene\Voxels\Generation">
       <UniqueIdentifier>{8c6742e5-f8de-485e-a21c-539549834136}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Scene\Voxels\Serialization">
+      <UniqueIdentifier>{926902a5-3c19-4be5-b55f-64cd1728bd88}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Scene\Voxels\Serialization">
+      <UniqueIdentifier>{e2bd693e-021f-46a8-aa56-f5c7473fcaaa}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Platform\Win32\Entry.h">
@@ -89,6 +95,12 @@
     </ClInclude>
     <ClInclude Include="Scene\Voxels\Generation\ChunkGenerator.h">
       <Filter>Header Files\Scene\Voxels\Generation</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\Voxels\Serialization\RegionFile.h">
+      <Filter>Header Files\Scene\Voxels\Serialization</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\Voxels\Serialization\WorldFile.h">
+      <Filter>Header Files\Scene\Voxels\Serialization</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -125,5 +137,16 @@
     <ClCompile Include="Scene\Voxels\Generation\ChunkGenerator.cpp">
       <Filter>Source Files\Scene\Voxels\Generation</Filter>
     </ClCompile>
+    <ClCompile Include="Scene\Voxels\Serialization\RegionFile.cpp">
+      <Filter>Source Files\Scene\Voxels\Serialization</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene\Voxels\Serialization\WorldFile.cpp">
+      <Filter>Source Files\Scene\Voxels\Serialization</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Scene\Voxels\ChunkManagerConfig.inc">
+      <Filter>Header Files\Scene\Voxels</Filter>
+    </None>
   </ItemGroup>
 </Project>

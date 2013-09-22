@@ -21,6 +21,8 @@
     <ClInclude Include="Scene\Voxels\ChunkManagerConfig.h" />
     <ClInclude Include="Scene\Voxels\ChunkUnloader.h" />
     <ClInclude Include="Scene\Voxels\Generation\ChunkGenerator.h" />
+    <ClInclude Include="Scene\Voxels\Serialization\RegionFile.h" />
+    <ClInclude Include="Scene\Voxels\Serialization\WorldFile.h" />
     <ClInclude Include="Scene\Voxels\Voxel.h" />
   </ItemGroup>
   <ItemGroup>
@@ -34,7 +36,12 @@
     <ClCompile Include="Scene\Voxels\ChunkManagerConfig.cpp" />
     <ClCompile Include="Scene\Voxels\ChunkUnloader.cpp" />
     <ClCompile Include="Scene\Voxels\Generation\ChunkGenerator.cpp" />
+    <ClCompile Include="Scene\Voxels\Serialization\RegionFile.cpp" />
+    <ClCompile Include="Scene\Voxels\Serialization\WorldFile.cpp" />
     <ClCompile Include="Scene\Voxels\Voxel.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Scene\Voxels\ChunkManagerConfig.inc" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{CE4AC838-5622-40FD-8008-DFC91AF6787A}</ProjectGuid>

@@ -47,6 +47,11 @@ int Win32_Display::Get_Fullscreen()
 	return m_fullscreen;
 }
 
+bool Win32_Display::Is_Active()
+{
+	return m_active;
+}
+
 void Win32_Display::Set_Title(const char* title)
 {
 	m_title = title;
@@ -75,9 +80,9 @@ void Win32_Display::Tick(const FrameTime& time)
 	MSG message;
 
 //#ifndef DEBUG_BUILD
-	do
+//	do
 //#endif
-	{
+//	{
 		// Pump message queue.
 		while (PeekMessage(&message, NULL, 0, 0, PM_REMOVE))
 		{
@@ -94,22 +99,21 @@ void Win32_Display::Tick(const FrameTime& time)
 
 		// Sleep if not active.
 //#ifndef DEBUG_BUILD
-		if (m_active == false)
-		{
-			Sleep(100);
-		}
+//		if (m_active == false)
+//		{
+//			Sleep(100);
+//		}
 //#endif
 
 		// Work out which keys were pressed.
-		bool prev_key_down[KEY_COUNT];
-		memcpy(prev_key_down, m_key_down, KEY_COUNT * sizeof(bool));
 		for (int i = 0; i < KEY_COUNT; i++)
 		{
-			m_key_press[i] = m_key_down[i] && prev_key_down[i];
+			m_key_press[i] = (m_key_down[i] == true) && (m_prev_key_down[i] == false);
 		}
-	} 
+		memcpy(m_prev_key_down, m_key_down, KEY_COUNT * sizeof(bool));
+//	} 
 //#ifndef DEBUG_BUILD
-	while (m_active == false);
+//	while (m_active == false);
 //#endif
 }
 
@@ -125,8 +129,8 @@ Point Win32_Display::Get_Mouse()
 void Win32_Display::Set_Mouse(Point pos)
 {
 	POINT point;
-	point.x = pos.X;
-	point.y = pos.Y;
+	point.x = (int)pos.X;
+	point.y = (int)pos.Y;
 
 	ClientToScreen(m_window_handle, &point);
 	SetCursorPos(point.x, point.y);
@@ -141,9 +145,12 @@ bool Win32_Display::Is_Key_Down(Key::Type key)
 	case Key::Left:		return m_key_down['A'];
 	case Key::Right:	return m_key_down['D'];
 	case Key::Escape:	return m_key_down[VK_ESCAPE];
+	case Key::F1:		return m_key_down[VK_F1];
 	default:
 		DBG_ASSERT(0);
 	}
+
+	return false;
 }
 
 bool Win32_Display::Is_Key_Pressed(Key::Type key)
@@ -155,9 +162,12 @@ bool Win32_Display::Is_Key_Pressed(Key::Type key)
 	case Key::Left:		return m_key_press['A'];
 	case Key::Right:	return m_key_press['D'];
 	case Key::Escape:	return m_key_press[VK_ESCAPE];
+	case Key::F1:		return m_key_press[VK_F1];
 	default:
 		DBG_ASSERT(0);
 	}
+
+	return false;
 }
 
 LRESULT CALLBACK Win32_Display::Static_Event_Handler(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam)
@@ -229,7 +239,7 @@ void Win32_Display::Setup_Window()
 	window_rect.bottom	= window_rect.top + m_height;
 
 	color_depth			= 32;
-	depth_depth			= 32;
+	depth_depth			= 16;
 	stencil_depth		= 0;
 
 	dw_extented_style	= WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;

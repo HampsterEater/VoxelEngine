@@ -5,6 +5,7 @@
 #define _GENERIC_VECTOR3_
 
 #include "Generic\Types\IntVector3.h"
+#include "Generic\Types\Vector4.h"
 
 struct Vector3
 {
@@ -28,6 +29,7 @@ public:
 	Vector3 Normalize() const;
 	float	Length() const;
 	float	Length_Squared() const;
+	Vector4 To_Vector4() const;
 
 };
 

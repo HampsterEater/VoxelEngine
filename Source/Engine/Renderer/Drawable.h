@@ -7,6 +7,7 @@
 #include "Engine\Engine\FrameTime.h"
 #include "Generic\Patterns\Singleton.h"
 #include "Engine\Renderer\Renderer.h"
+#include "Engine\Renderer\RenderPipeline.h"
 
 // Base class for all objects that can be drawn by the renderer.
 class Drawable
@@ -14,7 +15,7 @@ class Drawable
 public:
 
 	// Base functions.	
-	virtual void Draw(const FrameTime& time, Renderer* renderer) = 0;
+	virtual void Draw(const FrameTime& time, RenderPipeline* pipeline) = 0;
 
 };
 

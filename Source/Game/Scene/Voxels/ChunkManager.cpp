@@ -4,10 +4,17 @@
 #include "Game\Scene\Voxels\ChunkManager.h"
 #include "Engine\Scene\Camera.h"
 #include "Generic\Math\Math.h"
-#include "Engine\Platform\Platform.h"
 #include "Generic\Types\LinkedList.h"
+#include "Generic\Math\Random.h"
+#include "Engine\Platform\Platform.h"
+#include "Engine\Engine\GameEngine.h"
 #include "Engine\Renderer\Textures\TextureFactory.h"
 #include "Engine\Renderer\Textures\TextureAtlas.h"
+#include "Engine\Renderer\RenderPipeline.h"
+
+#include "Engine\Renderer\Shaders\Shader.h"
+#include "Engine\Renderer\Shaders\ShaderFactory.h"
+#include "Engine\Renderer\Shaders\ShaderProgram.h"
 
 #include <algorithm>
 
@@ -15,7 +22,7 @@ ChunkManager::ChunkManager(const ChunkManagerConfig& config)
 	: m_config(config)
 	, m_last_camera_chunk_position(-9999, -9999, -9999)
 	, m_last_camera_position(-9999, -9999, -9999)
-	, m_chunk_loader(this, config)
+	, m_chunk_loader(this, config)					// TODO: Not going to be deterministically destructed, will mess with destructor of ChunkManager, fix.
 	, m_chunk_unloader(this, config)
 	, m_max_chunks((m_config.unload_distance.X * 2) * 
 				   (m_config.unload_distance.Y * 2) * 
@@ -25,20 +32,44 @@ ChunkManager::ChunkManager(const ChunkManagerConfig& config)
 						 (m_config.chunk_size.Z))
 	, m_chunk_memory_pool(m_max_chunks * config.chunk_memory_pool_buffer)
 	, m_voxel_memory_pool(m_max_chunks * config.voxel_memory_pool_buffer, sizeof(Voxel) * m_voxels_per_chunk)
+	, m_world_file(this, config)
 {
-	m_voxel_face_atlas_texture = TextureFactory::Load("Data/Textures/Voxel_Face_Atlas.png");
+	m_voxel_face_atlas_texture = TextureFactory::Load("Data/Textures/Chunks/Voxel_Face_Atlas.png", (TextureFlags::Type)0);
 	m_voxel_face_atlas = new TextureAtlas(m_voxel_face_atlas_texture, 16, 16);
+	m_voxel_face_atlas_material = new Material(m_voxel_face_atlas_texture, 0.0f, Vector3(0, 0, 0));
+
+	// Access mutexes!
+	m_region_access_mutex = Mutex::Create();
+	DBG_ASSERT(m_region_access_mutex != NULL);
+
+	// Open the world file!
+	bool ret = m_world_file.Open();
+	DBG_ASSERT(ret == true);
 }
 
 ChunkManager::~ChunkManager()
 {
+	m_world_file.Close();
+
+	for (LinkedList<RegionFile*>::Iterator iter = m_region_files.Begin(); iter != m_region_files.End(); iter++)
+	{
+		RegionFile* region = *iter;
+		region->Close();
+
+		SAFE_DELETE(region);
+	}
+	m_region_files.Clear();
+
+	SAFE_DELETE(m_region_access_mutex);
+
 	SAFE_DELETE(m_voxel_face_atlas);
 	SAFE_DELETE(m_voxel_face_atlas_texture);	
+	SAFE_DELETE(m_voxel_face_atlas_material);
 }
 
-Texture* ChunkManager::Get_Voxel_Face_Atlas_Texture()
+const ChunkManagerConfig& ChunkManager::Get_Config()
 {
-	return m_voxel_face_atlas_texture;
+	return m_config;
 }
 
 TextureAtlas* ChunkManager::Get_Voxel_Face_Atlas()
@@ -50,7 +81,7 @@ void ChunkManager::Tick(const FrameTime& time)
 {
 	// Do we have a camera?
 	Renderer* renderer	= Renderer::Get();
-	Camera* camera		= renderer->Get_Active_Camera();
+	Camera* camera		= GameEngine::Get()->Get_RenderPipeline()->Get_Active_Camera();
 	if (camera == NULL)
 	{
 		return;
@@ -111,21 +142,26 @@ void ChunkManager::Tick(const FrameTime& time)
 	Regenerate_Dirty_Chunks();
 }
 
-void ChunkManager::Draw(const FrameTime& time, Renderer* renderer)
+void ChunkManager::Draw(const FrameTime& time, RenderPipeline* pipeline)
 {
 	// Reset stats.
 	m_drawn_voxels = 0;
 
 	// Camera position.
-	Frustum frustum	= renderer->Get_Frustum();
+	Renderer* renderer = Renderer::Get();
+	Frustum frustum	= pipeline->Get_Active_Camera()->Get_Frustum();
 	
 	// Bind terrain texture.
-	renderer->Bind_Texture(m_voxel_face_atlas_texture);
+	renderer->Bind_Material(m_voxel_face_atlas_material);
 
+	// Update shader uniforms.	
+	pipeline->Update_Shader_Uniforms();
+	
 	// Render all visible chunks.
 	for (LinkedList<Chunk*>::Iterator iter = m_visible_chunks.Begin(); iter != m_visible_chunks.End(); iter++)
 	{
 		Chunk* chunk = *iter;
+
 		if (chunk->Get_Status() == ChunkStatus::Loaded &&
 			chunk->Is_Empty() == false &&
 			chunk->Should_Render() == true)
@@ -133,7 +169,7 @@ void ChunkManager::Draw(const FrameTime& time, Renderer* renderer)
 			Sphere chunk_sphere = chunk->Get_Bounding_Sphere();
 			if (frustum.Intersects(chunk_sphere) != Frustum::IntersectionResult::Outside)
 			{
-				chunk->Draw(time, renderer);
+				chunk->Draw(time, pipeline);
 				m_drawn_voxels += chunk->Drawn_Voxels();
 			}
 		}
@@ -143,7 +179,7 @@ void ChunkManager::Draw(const FrameTime& time, Renderer* renderer)
 // DEBUG =======================================================================================
 	static float s_emit_fps_time = 0.0f;
 	s_emit_fps_time += time.Get_Delta();
-	if (s_emit_fps_time > 60.0f)
+	if (s_emit_fps_time > 60.0f || time.Get_Frame_Time() > 5.0f)
 	{
 		printf("[FPS %i, FRAME TIME %0.2f, UPDATE TIME %0.2f, DRAW TIME %0.2f, VOXELS %i, CHUNKS %i, VISIBLE CHUNKS %i, CHUNKS TO GEN %i]\n", time.Get_FPS(), time.Get_Frame_Time(), time.Get_Update_Time(), time.Get_Render_Time(), m_drawn_voxels, m_chunks.Size(), m_visible_chunks.Size(), m_dirty_chunks.Size());	
 		s_emit_fps_time = 0.0f;
@@ -212,7 +248,8 @@ void ChunkManager::Update_Load_List()
 void ChunkManager::Regenerate_Dirty_Chunks()
 {
 	Renderer* renderer = Renderer::Get();
-	Frustum frustum	= renderer->Get_Frustum();
+	RenderPipeline* pipeline = GameEngine::Get()->Get_RenderPipeline();
+	Frustum frustum	= pipeline->Get_Active_Camera()->Get_Frustum();
 
 	// Keep loading while we have time available.
 	for (int i = 0; i < m_config.chunk_regenerations_per_frame; i++)
@@ -279,9 +316,9 @@ void ChunkManager::Add_Chunk(IntVector3 position, Chunk* chunk)
 	m_chunks.Set(position.X, position.Y, position.Z, chunk);
 
 	// Should add to visibility list?
-	float distance_x = abs(position.X - m_last_camera_chunk_position.X);
-	float distance_y = abs(position.Y - m_last_camera_chunk_position.Y);
-	float distance_z = abs(position.Z - m_last_camera_chunk_position.Z);
+	int distance_x = abs(position.X - m_last_camera_chunk_position.X);
+	int distance_y = abs(position.Y - m_last_camera_chunk_position.Y);
+	int distance_z = abs(position.Z - m_last_camera_chunk_position.Z);
 
 	if (distance_x <= m_config.draw_distance.X &&
 		distance_y <= m_config.draw_distance.Y &&
@@ -358,4 +395,27 @@ AABB ChunkManager::Calculate_Chunk_AABB(IntVector3 position)
 				(m_config.chunk_size.Y * m_config.voxel_size.Y),
 				(m_config.chunk_size.Z * m_config.voxel_size.Z)
 				);
+}
+
+WorldFile* ChunkManager::Get_World_File()
+{
+	return &m_world_file;
+}
+
+RegionFile* ChunkManager::Get_Region_File(IntVector3 position)
+{
+	MutexLock lock(m_region_access_mutex);
+
+	RegionFile* region = m_region_files_array.Get(position.X, position.Y, position.Z);
+	if (region == NULL)
+	{
+		region = new RegionFile(position, this, m_config);
+		m_region_files.Add(region);
+		m_region_files_array.Set(position.X, position.Y, position.Z, region);
+		
+		bool ret = region->Open();
+		DBG_ASSERT(ret == true);
+	}
+
+	return region;
 }

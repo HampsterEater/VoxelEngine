@@ -13,10 +13,29 @@ Stream* StreamFactory::Open(const char* url, StreamMode::Type mode)
 		Stream* result = factory->Try_Open(url, mode);
 		if (result != NULL)
 		{
+			//DBG_LOG("Successfully opened stream to: %s", url);
 			return result;
 		}
 	}
+	
+	DBG_LOG("Failed to open stream to: %s", url);
 	return NULL;
+}
+
+s64 StreamFactory::Get_Last_Modified(const char* url)
+{
+	for (LinkedList<StreamFactory*>::Iterator iter = m_factories.Begin(); iter != m_factories.End(); iter++)
+	{
+		StreamFactory* factory = *iter;
+		int result = factory->Try_Get_Last_Modified(url);
+		if (result != 0)
+		{
+			return result;
+		}
+	}
+	
+	DBG_LOG("Failed to get last modified timestamp for: %s", url);
+	return 0;
 }
 
 StreamFactory::StreamFactory()

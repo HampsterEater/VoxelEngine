@@ -6,6 +6,9 @@
 #include "Game\Scene\Voxels\ChunkManager.h"
 
 #include "Engine\Engine\FrameTime.h"
+#include "Engine\Engine\GameEngine.h"
+
+#include "Engine\Scene\Camera.h"
 
 #include "Generic\Threads\Thread.h"
 #include "Generic\Threads\Mutex.h"
@@ -149,7 +152,7 @@ void ChunkLoader::Chunk_Load_Thread(Thread* thread)
 			}
 
 			// Get frustum			
-			Frustum frustum	= Renderer::Get()->Get_Frustum();
+			Frustum frustum	= GameEngine::Get()->Get_RenderPipeline()->Get_Active_Camera()->Get_Frustum();
 
 			// Do we need to update our queue?
 			IntVector3 closest_chunk = IntVector3(0, 0, 0);
@@ -240,8 +243,18 @@ void ChunkLoader::Chunk_Load_Thread(Thread* thread)
 
 void ChunkLoader::Load_Chunk(Chunk* chunk)
 {
-	// TODO: Load from file before generate!
-	m_generator.Generate(chunk);
+	RegionFile* region = m_manager->Get_Region_File(chunk->Get_Region());
+	if (region->Contains_Chunk(chunk))
+	{
+		region->Load_Chunk(chunk);
+	}
+	else
+	{
+		m_generator.Generate(chunk);
+
+		// Save generated result.
+		region->Save_Chunk(chunk);
+	}
 }
 
 Chunk* ChunkLoader::Consume_Chunk()

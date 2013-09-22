@@ -4,18 +4,19 @@
 #ifndef _ENGINE_GAMEENGINECONFIG_
 #define _ENGINE_GAMEENGINECONFIG_
 
-class GameEngineConfig
+#include "Engine\Config\ConfigFile.h"
+
+class GameEngineConfig : public ConfigFile
 {
 public:
 
-	// Tick settings.
-	int				target_frame_rate;
+	// Include settings.
+#define CONFIG_VALUE(type, name, serial_name) type name;
+	#include "Engine\Engine\GameEngineConfig.inc"
+#undef CONFIG_VALUE
 
-	// Display settings.
-	int				display_width;
-	int				display_height;
-	bool			display_fullscreen;
-	const char*		display_title;
+	// Loading methods.
+	void Unpack	(const ConfigFile& file);
 
 };
 

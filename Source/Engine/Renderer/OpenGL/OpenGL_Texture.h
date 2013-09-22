@@ -19,12 +19,13 @@ private:
 	// Constructor!
 	OpenGL_Texture(GLuint texture_id, char* data, int width, int height, int pitch, TextureFormat::Type format);
 
-	GLuint Get_ID();
-
 public:
 
 	// Destructor!
 	~OpenGL_Texture();
+
+	// Binding information.
+	GLuint Get_ID();
 
 };
 

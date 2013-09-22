@@ -10,8 +10,8 @@ TextureAtlas::TextureAtlas(Texture* texture, int cells_u, int cells_v)
 	, m_cell_count_v(cells_v)
 	, m_cell_uv_count(cells_u * cells_v)
 {
-	float texture_width		= m_texture->Get_Width();
-	float texture_height	= m_texture->Get_Height();
+	float texture_width		= (float)m_texture->Get_Width();
+	float texture_height	= (float)m_texture->Get_Height();
 
 	m_cell_uvs				= new float[m_cell_uv_count * 4];
 

@@ -35,6 +35,7 @@ public:
 	virtual void			Write		(const char* buffer, int offset, int length) = 0;
 	virtual void			Read		(char* buffer, int offset, int length) = 0;
 	virtual void			Close		() = 0;
+	virtual void			Flush		() = 0;
 
 	// Member methods.
 	void			WriteLine			(const char* str);

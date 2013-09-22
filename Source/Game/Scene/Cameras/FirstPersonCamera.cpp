@@ -14,7 +14,7 @@ FirstPersonCamera::FirstPersonCamera(float fov, Rect viewport)
 	m_sensitivity_y = 0.002f;
 	m_speed_x       = 0.05f;
 	m_speed_z       = 0.05f;
-	m_first_run		= true;
+	m_display_active_last_frame = false;
 }
 
 void FirstPersonCamera::Tick(const FrameTime& time)
@@ -42,24 +42,31 @@ void FirstPersonCamera::Tick(const FrameTime& time)
 
 	// Camera rotation.
 	{
-		// Work out how far the mouse moved.
-		Point mouse_position = display->Get_Mouse();
-		float mouse_delta_x = mouse_position.X - (display_width / 2);
-		float mouse_delta_y = mouse_position.Y - (display_height / 2);
-
-		// Turn camera if this is not the first run.
-		if (m_first_run == false)
+		if (display->Is_Active())
 		{
-			m_rotation.Y -= (mouse_delta_x * m_sensitivity_x);
-			m_rotation.Z -= mouse_delta_y * m_sensitivity_y;
+			if (m_display_active_last_frame == true)
+			{
+				// Work out how far the mouse moved.
+				Point mouse_position = display->Get_Mouse();
+				float mouse_delta_x = mouse_position.X - (display_width / 2);
+				float mouse_delta_y = mouse_position.Y - (display_height / 2);
 
-			// Don't want any kind of upside down shenanigans.
-			float deg90 = DegToRad(90);
-			m_rotation.Z = Clamp(m_rotation.Z, -deg90, deg90);
+				// Turn camera if this is not the first run.
+				m_rotation.Y -= (mouse_delta_x * m_sensitivity_x);
+				m_rotation.Z -= mouse_delta_y * m_sensitivity_y;
+
+				// Don't want any kind of upside down shenanigans.
+				float deg90 = DegToRad(90);
+				m_rotation.Z = Clamp(m_rotation.Z, -deg90, deg90);
+			}
+
+			display->Set_Mouse(Point(display_width / 2, display_height / 2));
+			m_display_active_last_frame = true;
 		}
-		m_first_run = false;
-	
-		display->Set_Mouse(Point(display_width / 2, display_height / 2));
+		else
+		{
+			m_display_active_last_frame = false;
+		}
 	}
 
 	// Camera movement.

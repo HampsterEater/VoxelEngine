@@ -13,6 +13,7 @@ class Platform;
 class Display;
 class Scene;
 class GameRunner;
+class RenderPipeline;
 
 class GameEngine : public Singleton<GameEngine>
 {
@@ -29,11 +30,14 @@ private:
 	Display*			m_display;
 	Scene*				m_scene;
 
+	RenderPipeline*		m_render_pipeline;
+
 public:
 	~GameEngine();
-	GameEngine(const GameEngineConfig& config, GameRunner* runner);
+	GameEngine(GameRunner* runner);
 
-	Scene* Get_Scene();
+	Scene*			Get_Scene();
+	RenderPipeline* Get_RenderPipeline();
 
 	bool Is_Running();
 	void Stop();

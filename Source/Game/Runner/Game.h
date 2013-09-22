@@ -18,10 +18,12 @@ private:
 	Camera*			m_camera;
 	ChunkManager*	m_chunk_manager;
 	GameConfig		m_config;
+	const char*		m_config_location;
 
 protected:
 	
 	// Base functions.
+	void Preload();
 	void Start();
 	void End();
 	void Tick(const FrameTime& time);
@@ -29,10 +31,12 @@ protected:
 public:
 
 	// Config settings.
-	const GameConfig& GetConfig();
+	const GameConfig&		Get_Config();
+	const GameEngineConfig& Get_Engine_Config();
 
 	// Constructors.
-	Game(const GameConfig& config);
+	Game();
+	void Load_Config();
 
 };
 

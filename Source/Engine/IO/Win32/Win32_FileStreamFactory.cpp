@@ -5,18 +5,44 @@
 #include "Engine\IO\Win32\Win32_FileStream.h"
 
 #include <string>
+#include <Windows.h>
 
 Stream*	Win32_FileStreamFactory::Try_Open(const char* url, StreamMode::Type mode)
 {
-	std::string mode_string = "";
+	// See if file exists.
+	FILE* exists_handle = fopen(url, "r");
 
-	if ((mode & StreamMode::Read) != 0)
+	bool exists = (exists_handle != NULL);
+
+	if (exists_handle != NULL)
 	{
-		mode_string += "r";
+		fclose(exists_handle);
 	}
-	if ((mode & StreamMode::Write) != 0)
+
+	// Work out mode string to use.
+	std::string mode_string = "";
+	if ((mode & StreamMode::Write) != 0 && (mode & StreamMode::Read) != 0)
 	{
-		mode_string += "w";		
+		if (exists == true)
+		{
+			mode_string += "r+";
+
+		}
+		else
+		{
+			mode_string += "w+";
+		}
+	}
+	else
+	{
+		if ((mode & StreamMode::Read) != 0)
+		{
+			mode_string += "r";
+		}
+		if ((mode & StreamMode::Write) != 0)
+		{
+			mode_string += "w";		
+		}
 	}
 	if ((mode & StreamMode::Truncate) != 0)
 	{
@@ -36,3 +62,25 @@ Stream*	Win32_FileStreamFactory::Try_Open(const char* url, StreamMode::Type mode
 
 	return new Win32_FileStream(handle);
 }
+
+s64 Win32_FileStreamFactory::Try_Get_Last_Modified(const char* url)
+{
+	HANDLE handle = CreateFileA(url, GENERIC_READ, FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+	if (handle == INVALID_HANDLE_VALUE)
+	{
+		return 0;
+	}
+
+	FILETIME write_time;
+	BOOL result = GetFileTime(handle, NULL, NULL, &write_time);
+
+	CloseHandle(handle);
+
+	if (result != 0)
+	{
+		return static_cast<s64>(write_time.dwHighDateTime) << 32 | write_time.dwLowDateTime;
+	}
+
+	return 0;
+}
+

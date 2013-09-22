@@ -43,6 +43,8 @@ private:
 	friend class ChunkLoader;
 	friend class ChunkUnloader;
 	friend class ChunkGenerator;
+	friend class WorldFile;
+	friend class RegionFile;
 
 	// This contains information we use when generating a chunk's
 	// mesh from all its voxels. Includes occlusion information and such.
@@ -83,6 +85,10 @@ private:
 	int m_x, m_y, m_z;
 	int m_width, m_height, m_depth;
 	float m_voxel_width, m_voxel_height, m_voxel_depth;
+	
+	// AABB is cached, to speed shit up.
+	AABB m_aabb;
+	bool m_aabb_cached;
 
 	// Rendering information.
 	bool m_is_dirty;
@@ -118,21 +124,22 @@ private:
 	void Regenerate_Voxel			(Renderer* renderer, const Render_Voxel& voxel, int x, int y, int z);
 	void Regenerate_Neighbour_Meshs	(Renderer* renderer);
 
-	bool Has_Hole_Face() { return m_has_hole_face; }
-
 	bool Is_Dirty();
 	void Mark_Dirty(bool dirty = true);
 
-	inline ChunkStatus::Type Get_Status()			 { return m_status; };
-	inline void Set_Status(ChunkStatus::Type status) { m_status = status; };
+	inline ChunkStatus::Type Get_Status()				{ return m_status; };
+	inline void Set_Status(ChunkStatus::Type status)	{ m_status = status; };
+
+	Voxel* Get_Voxel_Buffer()							{ return m_voxels; }
 	
-	int	 Get_Triangle_Count() { return m_triangle_count; }
+	int	 Get_Triangle_Count()							{ return m_triangle_count; }
 
 	void Recalculate_State();
 
-	bool Is_Empty()		{ return m_is_empty; }
-	bool Is_Full ()		{ return m_is_full; }
-	bool Is_Contained() { return m_is_contained; }
+	bool Is_Empty()										{ return m_is_empty; }
+	bool Is_Full ()										{ return m_is_full; }
+	bool Is_Contained()									{ return m_is_contained; }
+	bool Has_Hole_Face()								{ return m_has_hole_face; }
 
 	// Constructors.
 	Chunk();
@@ -143,7 +150,8 @@ public:
 	
 	// General properties.
 	IntVector3 Get_Position() const;
-	AABB Get_AABB() const;
+	IntVector3 Get_Region() const;
+	AABB Get_AABB();
 	Sphere Get_Bounding_Sphere() const;
 	bool Should_Render() const;
 
@@ -162,7 +170,7 @@ public:
 
 	// Updating / Drawing.
 	int  Drawn_Voxels();
-	void Draw(const FrameTime& time, Renderer* renderer);
+	void Draw(const FrameTime& time, RenderPipeline* pipeline);
 	void Tick(const FrameTime& time);
 	
 };

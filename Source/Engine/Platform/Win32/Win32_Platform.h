@@ -14,6 +14,13 @@ public:
 	// Time functions.
 	float Get_Ticks();
 
+	// Path functions.
+	void Crack_Path(const char* path, std::vector<std::string>& segments);
+
+	// Directory functions.
+	bool Is_Directory(const char* path);
+	bool Create_Directory(const char* path, bool recursive);
+
 private:
 	friend class Platform;
 

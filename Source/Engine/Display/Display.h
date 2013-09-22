@@ -33,6 +33,7 @@ public:
 	// TODO: Move this into its own input platform-independent input class.
 	virtual Point Get_Mouse() = 0;
 	virtual void  Set_Mouse(Point pos) = 0;
+	virtual bool  Is_Active() = 0;
 	virtual bool  Is_Key_Down(Key::Type key) = 0;
 	virtual bool  Is_Key_Pressed(Key::Type key) = 0;
 

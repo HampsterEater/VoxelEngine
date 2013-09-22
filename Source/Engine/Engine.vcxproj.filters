@@ -85,6 +85,18 @@
     <Filter Include="Source Files\Renderer\Textures\PNG">
       <UniqueIdentifier>{18fe49c8-f82b-4b7b-95da-58cf86b96c36}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Renderer\Shaders">
+      <UniqueIdentifier>{fabb7666-20cc-4a90-810b-a3752a75d0ac}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Renderer\Shaders">
+      <UniqueIdentifier>{3e03d704-b8a8-4612-917e-c6960d33e85e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Config">
+      <UniqueIdentifier>{daaa0d43-ff90-4be0-8ce9-2356f5a81491}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Config">
+      <UniqueIdentifier>{9d4055ff-ba4f-4de8-b122-6867bd5533b0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Engine\GameEngine.cpp">
@@ -155,6 +167,48 @@
     </ClCompile>
     <ClCompile Include="Renderer\Textures\TextureAtlas.cpp">
       <Filter>Source Files\Renderer\Textures</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Shaders\Shader.cpp">
+      <Filter>Source Files\Renderer\Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Shaders\ShaderFactory.cpp">
+      <Filter>Source Files\Renderer\Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\OpenGL\OpenGL_Shader.cpp">
+      <Filter>Source Files\Renderer\OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\OpenGL\OpenGL_ShaderFactory.cpp">
+      <Filter>Source Files\Renderer\OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Shaders\ShaderProgram.cpp">
+      <Filter>Source Files\Renderer\Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\OpenGL\OpenGL_ShaderProgram.cpp">
+      <Filter>Source Files\Renderer\OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Textures\RenderTarget.cpp">
+      <Filter>Source Files\Renderer\Textures</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\OpenGL\OpenGL_RenderTarget.cpp">
+      <Filter>Source Files\Renderer\OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene\Light.cpp">
+      <Filter>Source Files\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene\Tickable.cpp">
+      <Filter>Source Files\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Material.cpp">
+      <Filter>Source Files\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\RenderPipeline.cpp">
+      <Filter>Source Files\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Config\ConfigFile.cpp">
+      <Filter>Source Files\Config</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\FileWatcher.cpp">
+      <Filter>Source Files\IO</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -230,5 +284,61 @@
     <ClInclude Include="Renderer\Textures\TextureAtlas.h">
       <Filter>Header Files\Renderer\Textures</Filter>
     </ClInclude>
+    <ClInclude Include="Renderer\Shaders\Shader.h">
+      <Filter>Header Files\Renderer\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Shaders\ShaderFactory.h">
+      <Filter>Header Files\Renderer\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\OpenGL\OpenGL_Shader.h">
+      <Filter>Header Files\Renderer\OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\OpenGL\OpenGL_ShaderFactory.h">
+      <Filter>Header Files\Renderer\OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Shaders\ShaderProgram.h">
+      <Filter>Header Files\Renderer\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\OpenGL\OpenGL_ShaderProgram.h">
+      <Filter>Header Files\Renderer\OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Textures\RenderTarget.h">
+      <Filter>Header Files\Renderer\Textures</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\OpenGL\OpenGL_RenderTarget.h">
+      <Filter>Header Files\Renderer\OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\Light.h">
+      <Filter>Header Files\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\Tickable.h">
+      <Filter>Header Files\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Material.h">
+      <Filter>Header Files\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\RenderPipeline.h">
+      <Filter>Header Files\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Config\ConfigFile.h">
+      <Filter>Header Files\Config</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\FileWatcher.h">
+      <Filter>Header Files\IO</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Engine\GameEngineConfig.inc">
+      <Filter>Header Files\Engine</Filter>
+    </None>
+    <None Include="Renderer\RenderPipeline_StateSettingType.inc">
+      <Filter>Header Files\Renderer</Filter>
+    </None>
+    <None Include="Renderer\RenderPipeline_ShaderUniformType.inc">
+      <Filter>Header Files\Renderer</Filter>
+    </None>
+    <None Include="Renderer\Renderer_RenderOptions.inc">
+      <Filter>Header Files\Renderer</Filter>
+    </None>
   </ItemGroup>
 </Project>

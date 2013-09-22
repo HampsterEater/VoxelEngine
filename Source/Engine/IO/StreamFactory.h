@@ -16,6 +16,7 @@ public:
 		
 	// Static methods.
 	static Stream* Open(const char* url, StreamMode::Type mode);
+	static s64     Get_Last_Modified(const char* url);
 
 	// Constructors
 	StreamFactory();	
@@ -23,6 +24,7 @@ public:
 
 	// Derived factory methods.
 	virtual Stream*	Try_Open(const char* url, StreamMode::Type mode) = 0;
+	virtual s64     Try_Get_Last_Modified(const char* url) = 0;
 
 };
 

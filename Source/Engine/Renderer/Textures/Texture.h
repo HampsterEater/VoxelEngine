@@ -9,7 +9,18 @@ struct TextureFormat
 	enum Type
 	{
 		R8G8B8A8,
-		R8G8B8
+		R8G8B8,
+		R32FG32FB32FA32F,
+		DepthFormat,
+		StencilFormat
+	};
+};
+
+struct TextureFlags
+{
+	enum Type
+	{
+		AllowRepeat = 1
 	};
 };
 

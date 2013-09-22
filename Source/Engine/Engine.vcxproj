@@ -11,6 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Config\ConfigFile.h" />
     <ClInclude Include="Display\Display.h" />
     <ClInclude Include="Display\Keys.h" />
     <ClInclude Include="Display\Win32\Win32_Display.h" />
@@ -18,6 +19,7 @@
     <ClInclude Include="Engine\GameEngine.h" />
     <ClInclude Include="Engine\GameEngineConfig.h" />
     <ClInclude Include="Engine\GameRunner.h" />
+    <ClInclude Include="IO\FileWatcher.h" />
     <ClInclude Include="IO\Stream.h" />
     <ClInclude Include="IO\StreamFactory.h" />
     <ClInclude Include="IO\Win32\Win32_FileStream.h" />
@@ -25,24 +27,41 @@
     <ClInclude Include="Platform\Platform.h" />
     <ClInclude Include="Platform\Win32\Win32_Platform.h" />
     <ClInclude Include="Renderer\Drawable.h" />
+    <ClInclude Include="Renderer\Material.h" />
     <ClInclude Include="Renderer\OpenGL\OpenGL_Renderer.h" />
+    <ClInclude Include="Renderer\OpenGL\OpenGL_RenderTarget.h" />
+    <ClInclude Include="Renderer\OpenGL\OpenGL_Shader.h" />
+    <ClInclude Include="Renderer\OpenGL\OpenGL_ShaderFactory.h" />
+    <ClInclude Include="Renderer\OpenGL\OpenGL_ShaderProgram.h" />
     <ClInclude Include="Renderer\OpenGL\OpenGL_Texture.h" />
     <ClInclude Include="Renderer\Renderer.h" />
+    <ClInclude Include="Renderer\RenderPipeline.h" />
+    <None Include="Renderer\RenderPipeline_ShaderUniformType.inc">
+      <FileType>CppHeader</FileType>
+    </None>
+    <ClInclude Include="Renderer\Shaders\Shader.h" />
+    <ClInclude Include="Renderer\Shaders\ShaderFactory.h" />
+    <ClInclude Include="Renderer\Shaders\ShaderProgram.h" />
     <ClInclude Include="Renderer\Textures\PNG\PNGTextureFactory.h" />
+    <ClInclude Include="Renderer\Textures\RenderTarget.h" />
     <ClInclude Include="Renderer\Textures\Texture.h" />
     <ClInclude Include="Renderer\Textures\TextureAtlas.h" />
     <ClInclude Include="Renderer\Textures\TextureFactory.h" />
     <ClInclude Include="Scene\Actor.h" />
     <ClInclude Include="Scene\Camera.h" />
+    <ClInclude Include="Scene\Light.h" />
     <ClInclude Include="Scene\Scene.h" />
+    <ClInclude Include="Scene\Tickable.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Config\ConfigFile.cpp" />
     <ClCompile Include="Display\Display.cpp" />
     <ClCompile Include="Display\Win32\Win32_Display.cpp" />
     <ClCompile Include="Engine\FrameTime.cpp" />
     <ClCompile Include="Engine\GameEngine.cpp" />
     <ClCompile Include="Engine\GameEngineConfig.cpp" />
     <ClCompile Include="Engine\GameRunner.cpp" />
+    <ClCompile Include="IO\FileWatcher.cpp" />
     <ClCompile Include="IO\Stream.cpp" />
     <ClCompile Include="IO\StreamFactory.cpp" />
     <ClCompile Include="IO\Win32\Win32_FileStream.cpp" />
@@ -50,16 +69,35 @@
     <ClCompile Include="Platform\Platform.cpp" />
     <ClCompile Include="Platform\Win32\Win32_Platform.cpp" />
     <ClCompile Include="Renderer\Drawable.cpp" />
+    <ClCompile Include="Renderer\Material.cpp" />
     <ClCompile Include="Renderer\OpenGL\OpenGL_Renderer.cpp" />
+    <ClCompile Include="Renderer\OpenGL\OpenGL_RenderTarget.cpp" />
+    <ClCompile Include="Renderer\OpenGL\OpenGL_Shader.cpp" />
+    <ClCompile Include="Renderer\OpenGL\OpenGL_ShaderFactory.cpp" />
+    <ClCompile Include="Renderer\OpenGL\OpenGL_ShaderProgram.cpp" />
     <ClCompile Include="Renderer\OpenGL\OpenGL_Texture.cpp" />
     <ClCompile Include="Renderer\Renderer.cpp" />
+    <ClCompile Include="Renderer\RenderPipeline.cpp">
+      <PreprocessToFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</PreprocessToFile>
+    </ClCompile>
+    <ClCompile Include="Renderer\Shaders\Shader.cpp" />
+    <ClCompile Include="Renderer\Shaders\ShaderFactory.cpp" />
+    <ClCompile Include="Renderer\Shaders\ShaderProgram.cpp" />
     <ClCompile Include="Renderer\Textures\PNG\PNGTextureFactory.cpp" />
+    <ClCompile Include="Renderer\Textures\RenderTarget.cpp" />
     <ClCompile Include="Renderer\Textures\Texture.cpp" />
     <ClCompile Include="Renderer\Textures\TextureAtlas.cpp" />
     <ClCompile Include="Renderer\Textures\TextureFactory.cpp" />
     <ClCompile Include="Scene\Actor.cpp" />
     <ClCompile Include="Scene\Camera.cpp" />
+    <ClCompile Include="Scene\Light.cpp" />
     <ClCompile Include="Scene\Scene.cpp" />
+    <ClCompile Include="Scene\Tickable.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Engine\GameEngineConfig.inc" />
+    <None Include="Renderer\RenderPipeline_StateSettingType.inc" />
+    <None Include="Renderer\Renderer_RenderOptions.inc" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{BFBA8760-5C55-4D59-A8D1-48AF6499943E}</ProjectGuid>

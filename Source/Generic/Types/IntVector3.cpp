@@ -36,5 +36,5 @@ IntVector3 IntVector3::operator-(const IntVector3 a) const
 	
 float IntVector3::Length_Squared() const
 {
-	return (X * X + Y * Y + Z * Z);
+	return (float)(X * X + Y * Y + Z * Z);
 }

@@ -5,22 +5,65 @@
 #include "Game\Scene\Cameras\FirstPersonCamera.h"
 #include "Game\Scene\Voxels\ChunkManager.h"
 
+#include "Engine\Platform\Platform.h"
+
 #include "Engine\Display\Display.h"
 #include "Engine\Scene\Scene.h"
+#include "Engine\Scene\Light.h"
 #include "Engine\Engine\GameEngine.h"
 
 #include "Engine\Renderer\Textures\TextureFactory.h"
 #include "Engine\Renderer\Textures\PNG\PNGTextureFactory.h"
 
-Game::Game(const GameConfig& config)
+#include "Engine\Renderer\Shaders\Shader.h"
+#include "Engine\Renderer\Shaders\ShaderFactory.h"
+#include "Engine\Renderer\Shaders\ShaderProgram.h"
+
+#include "Generic\Math\Math.h"
+
+Game::Game()
 	: m_camera(NULL)
-	, m_config(config)
+	, m_config_location("Data/Config/Game.xml")
 {
 }
 
-const GameConfig& Game::GetConfig()
+void Game::Load_Config()
+{
+	DBG_LOG("Loading game configuration: %s", m_config_location);
+	{
+		bool result = m_config.Load(m_config_location);
+		DBG_ASSERT(result);
+	}
+
+	// Create save directory structure if it dosen't exist.
+	if (!Platform::Get()->Is_Directory(m_config.chunk_config.save_directory))
+	{
+		DBG_LOG("Creating save directory: %s", m_config.chunk_config.save_directory);
+		bool ret = Platform::Get()->Create_Directory(m_config.chunk_config.save_directory, true);
+		DBG_ASSERT(ret == true);
+	}
+	if (!Platform::Get()->Is_Directory(m_config.chunk_config.region_directory))
+	{
+		DBG_LOG("Creating region directory: %s", m_config.chunk_config.region_directory);
+		bool ret = Platform::Get()->Create_Directory(m_config.chunk_config.region_directory, true);
+		DBG_ASSERT(ret == true);
+	}
+}
+
+const GameConfig& Game::Get_Config()
 {
 	return m_config;
+}
+
+const GameEngineConfig& Game::Get_Engine_Config()
+{
+	return m_config.engine_config;
+}
+
+void Game::Preload()
+{
+	// Load configuration information.
+	Load_Config();
 }
 
 void Game::Start()
@@ -30,10 +73,36 @@ void Game::Start()
 	// Setup camera.
 	m_camera = new FirstPersonCamera(70, Rect(0.0f, 0.0f, (float)display->Get_Width(), (float)display->Get_Height()));
 	GameEngine::Get()->Get_Scene()->Add_Camera(m_camera);
+	GameEngine::Get()->Get_Scene()->Add_Tickable(m_camera);
 
 	// Setup chunk manager.
 	m_chunk_manager = new ChunkManager(m_config.chunk_config);
 	GameEngine::Get()->Get_Scene()->Add_Drawable(m_chunk_manager);
+	GameEngine::Get()->Get_Scene()->Add_Tickable(m_chunk_manager);
+
+	// Random light!
+	Light* light3 = new Light(LightType::Ambient, 0.0f, Color(5, 5, 5, 255));
+	GameEngine::Get()->Get_Scene()->Add_Light(light3);
+	
+	/*
+	Light* light = new Light(LightType::Point, 5.0f, Color::Green);
+	light->Set_Position(Vector3(0.0f, 2.0f, 0.0f));
+	GameEngine::Get()->Get_Scene()->Add_Light(light);
+	
+	Light* light2 = new Light(LightType::Point, 5.0f, Color::White);
+	light2->Set_Position(Vector3(0.0f, 2.0f, -4.0f));
+	GameEngine::Get()->Get_Scene()->Add_Light(light2);
+	
+	Light* light4 = new Light(LightType::Directional, 0.0f, Color::Magenta);
+	light4->Set_Position(Vector3(0.0f, 2.0f, -4.0f));
+	light4->Set_Rotation(Vector3(4.0f, 1.0f, 1.0f));
+	GameEngine::Get()->Get_Scene()->Add_Light(light4);
+	*/
+
+	Light* light5 = new Light(LightType::Spotlight, 5.0f, 10.0f, Color::Yellow);
+	light5->Set_Position(Vector3(0.0f, 4.0f, 0.0f));
+	light5->Set_Rotation(Vector3(0.0f, -DegToRad(90), 0.0f));
+	GameEngine::Get()->Get_Scene()->Add_Light(light5);
 }
 
 void Game::End()
@@ -43,6 +112,4 @@ void Game::End()
 
 void Game::Tick(const FrameTime& time)
 {
-	// Tick the chunk manager.
-	m_chunk_manager->Tick(time);
 }
