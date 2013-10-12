@@ -9,19 +9,13 @@
 #include "Generic\Types\Vector3.h"
 #include "Generic\Types\Plane.h"
 
+#include <vector>
+
 class Frustum
 {
 private:
-	Plane m_planes[6];
-
-	Vector3 m_near_top_left;
-	Vector3 m_near_top_right;
-	Vector3 m_near_bottom_left;
-	Vector3 m_near_bottom_right;
-	Vector3 m_far_top_left;
-	Vector3 m_far_top_right;
-	Vector3 m_far_bottom_left;
-	Vector3 m_far_bottom_right;
+	Plane	m_planes[6];
+	Vector3 m_corners[8];
 
 	float m_near_distance;
 	float m_far_distance;
@@ -61,6 +55,21 @@ public:
 		};
 	};
 
+	struct Corners
+	{
+		enum Type
+		{
+			NearTopLeft,
+			NearTopRight,
+			NearBottomLeft,
+			NearBottomRight,
+			FarTopLeft,
+			FarTopRight,
+			FarBottomLeft,
+			FarBottomRight
+		};
+	};	
+
 	Frustum();
 	Frustum(float angle,
 			float aspect_ratio,
@@ -72,6 +81,9 @@ public:
 
 	IntersectionResult::Type Intersects(const AABB& aabb);
 	IntersectionResult::Type Intersects(const Sphere& sphere);
+
+	Vector3			Get_Centroid();
+	const Vector3*	Get_Corners();
 
 };
 

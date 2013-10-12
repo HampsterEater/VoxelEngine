@@ -11,6 +11,9 @@
 
 class Camera;
 class ChunkManager;
+class Light;
+class FontHandle;
+class FontRenderer;
 
 class Game : public GameRunner, public Singleton<Game>
 {
@@ -19,6 +22,8 @@ private:
 	ChunkManager*	m_chunk_manager;
 	GameConfig		m_config;
 	const char*		m_config_location;
+
+	Light*			m_directional_light;
 
 protected:
 	

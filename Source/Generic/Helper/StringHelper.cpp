@@ -99,3 +99,21 @@ std::string StringHelper::Remove_Whitespace(const char* value)
 	
 	return result;
 }
+
+int StringHelper::Hash(const char* value)
+{
+	unsigned int hash = 0;
+
+	for (; *value; ++value)
+	{
+		hash += *value;
+		hash += (hash << 10);
+		hash ^= (hash >> 6);
+	}
+
+	hash += (hash << 3);
+	hash ^= (hash >> 11);
+	hash += (hash << 15);
+
+	return hash;
+}

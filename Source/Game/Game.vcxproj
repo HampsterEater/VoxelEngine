@@ -74,13 +74,13 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(SolutionDir);$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir);$(SolutionDir)freetype\include\;$(IncludePath)</IncludePath>
     <OutDir>$(SolutionDir)..\Output\$(ProjectName)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)..\Output\$(ProjectName)\$(Configuration)\Temp\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(SolutionDir);$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir);$(SolutionDir)freetype\include\;$(IncludePath)</IncludePath>
     <OutDir>$(SolutionDir)..\Output\$(ProjectName)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)..\Output\$(ProjectName)\$(Configuration)\Temp\</IntDir>
   </PropertyGroup>
@@ -97,7 +97,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>$(SolutionDir)..\Output\Generic\$(Configuration)\Generic.lib;$(SolutionDir)..\Output\Engine\$(Configuration)\Engine.lib;$(SolutionDir)..\Output\libpng\$(Configuration)\libpng.lib;$(SolutionDir)..\Output\zlib\$(Configuration)\zlib.lib;opengl32.lib;glu32.lib;Winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)..\Output\Generic\$(Configuration)\Generic.lib;$(SolutionDir)..\Output\Engine\$(Configuration)\Engine.lib;$(SolutionDir)..\Output\libpng\$(Configuration)\libpng.lib;$(SolutionDir)..\Output\zlib\$(Configuration)\zlib.lib;$(SolutionDir)..\Output\FreeType\$(Configuration)\FreeType.lib;opengl32.lib;glu32.lib;Winmm.lib;$(SolutionDir)Generic\ThirdParty\FMod\Library\fmodex_vc.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -117,7 +117,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>$(SolutionDir)..\Output\Generic\$(Configuration)\Generic.lib;$(SolutionDir)..\Output\Engine\$(Configuration)\Engine.lib;$(SolutionDir)..\Output\libpng\$(Configuration)\libpng.lib;$(SolutionDir)..\Output\zlib\$(Configuration)\zlib.lib;opengl32.lib;glu32.lib;Winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)..\Output\Generic\$(Configuration)\Generic.lib;$(SolutionDir)..\Output\Engine\$(Configuration)\Engine.lib;$(SolutionDir)..\Output\libpng\$(Configuration)\libpng.lib;$(SolutionDir)..\Output\zlib\$(Configuration)\zlib.lib;$(SolutionDir)..\Output\FreeType\$(Configuration)\FreeType.lib;opengl32.lib;glu32.lib;Winmm.lib;$(SolutionDir)Generic\ThirdParty\FMod\Library\fmodex_vc.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <Profile>true</Profile>
     </Link>
   </ItemDefinitionGroup>

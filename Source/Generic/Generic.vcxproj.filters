@@ -82,6 +82,12 @@
     <Filter Include="Source Files\ThirdParty\RapidXML">
       <UniqueIdentifier>{4a5ca7fc-51de-4e6e-b5c3-e1154881582a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\ThirdParty\FMod">
+      <UniqueIdentifier>{c58108a8-076a-46b9-ac9c-ea835871927b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ThirdParty\FMod">
+      <UniqueIdentifier>{3aa616f3-4f69-462f-981b-9a08c8fe073a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Types\String.h">
@@ -201,6 +207,30 @@
     <ClInclude Include="ThirdParty\RapidXML\rapidxml_utils.hpp">
       <Filter>Header Files\ThirdParty\RapidXML</Filter>
     </ClInclude>
+    <ClInclude Include="ThirdParty\FMod\fmod.h">
+      <Filter>Header Files\ThirdParty\FMod</Filter>
+    </ClInclude>
+    <ClInclude Include="ThirdParty\FMod\fmod.hpp">
+      <Filter>Header Files\ThirdParty\FMod</Filter>
+    </ClInclude>
+    <ClInclude Include="ThirdParty\FMod\fmod_codec.h">
+      <Filter>Header Files\ThirdParty\FMod</Filter>
+    </ClInclude>
+    <ClInclude Include="ThirdParty\FMod\fmod_dsp.h">
+      <Filter>Header Files\ThirdParty\FMod</Filter>
+    </ClInclude>
+    <ClInclude Include="ThirdParty\FMod\fmod_errors.h">
+      <Filter>Header Files\ThirdParty\FMod</Filter>
+    </ClInclude>
+    <ClInclude Include="ThirdParty\FMod\fmod_memoryinfo.h">
+      <Filter>Header Files\ThirdParty\FMod</Filter>
+    </ClInclude>
+    <ClInclude Include="ThirdParty\FMod\fmod_output.h">
+      <Filter>Header Files\ThirdParty\FMod</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\RectanglePacker.h">
+      <Filter>Header Files\Math</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Types\String.cpp">
@@ -292,6 +322,9 @@
     </ClCompile>
     <ClCompile Include="Types\Vector4.cpp">
       <Filter>Source Files\Types</Filter>
+    </ClCompile>
+    <ClCompile Include="Math\RectanglePacker.cpp">
+      <Filter>Source Files\Math</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

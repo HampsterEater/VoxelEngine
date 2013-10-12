@@ -37,7 +37,7 @@ void FileWatcher::Entry_Point(Thread* self, void* ptr)
 				{
 					float old = watcher->m_last_change_time;
 					watcher->m_last_change_time = StreamFactory::Get_Last_Modified(watcher->m_path.c_str());
-					watcher->m_has_changed = (old != 0.0f && old != watcher->m_last_change_time);
+					watcher->m_has_changed = (old != -1.0f && old != watcher->m_last_change_time);
 					watcher->m_check_time = Platform::Get()->Get_Ticks();
 				}
 			}
@@ -51,7 +51,7 @@ void FileWatcher::Entry_Point(Thread* self, void* ptr)
 FileWatcher::FileWatcher(const char* path)
 	: m_path(path)
 	, m_has_changed(false)
-	, m_last_change_time(0)
+	, m_last_change_time(-1)
 	, m_check_time(0.0f)
 {
 	if (g_thread == NULL)
@@ -67,6 +67,8 @@ FileWatcher::FileWatcher(const char* path)
 		MutexLock lock(g_mutex);
 		g_file_watchers.push_back(this);
 	}
+
+	DBG_LOG("File watcher created for: %s", path);
 }
 
 FileWatcher::~FileWatcher()

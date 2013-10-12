@@ -7,6 +7,7 @@
 			<depth-function>lower_or_equal</depth-function>
 			<cull-face>back</cull-face>
 			<depth-test>true</depth-test>
+			<alpha-test>false</alpha-test>
 		</state>
 		
 	</defaults>
@@ -41,7 +42,9 @@
 		<!-- Render target textures -->
 		<texture name="diffuse" 			format="R8G8B8A8" 		  width="DISPLAY_WIDTH" height="DISPLAY_HEIGHT" flags="" />
 		<texture name="normal"  			format="R32FG32FB32FA32F" width="DISPLAY_WIDTH" height="DISPLAY_HEIGHT" flags="" />
-		<texture name="light_accumulation" 	format="R8G8B8A8" 		  width="DISPLAY_WIDTH" height="DISPLAY_HEIGHT" flags="" />
+		<texture name="light_accumulation" 	format="R32FG32FB32FA32F" width="DISPLAY_WIDTH" height="DISPLAY_HEIGHT" flags="" />
+		<texture name="shadow_map"			format="R32FG32FB32FA32F" width="DISPLAY_WIDTH" height="DISPLAY_HEIGHT" flags="" />
+		<texture name="shadow_accumulation" format="R32FG32FB32FA32F" width="DISPLAY_WIDTH" height="DISPLAY_HEIGHT" flags="" />
 		<texture name="material" 			format="R8G8B8A8" 		  width="DISPLAY_WIDTH" height="DISPLAY_HEIGHT" flags="" />
 		<texture name="ssao" 				format="R32FG32FB32FA32F" width="DISPLAY_WIDTH" height="DISPLAY_HEIGHT" flags="" />
 		<texture name="position" 			format="R32FG32FB32FA32F" width="DISPLAY_WIDTH" height="DISPLAY_HEIGHT" flags="" />
@@ -58,6 +61,8 @@
 			<attached-texture name="diffuse"				type="color" />
 			<attached-texture name="normal" 				type="color" />
 			<attached-texture name="light_accumulation" 	type="color" />
+			<attached-texture name="shadow_map"			 	type="color" />
+			<attached-texture name="shadow_accumulation" 	type="color" />
 			<attached-texture name="material" 				type="color" />
 			<attached-texture name="ssao" 					type="color" />
 			<attached-texture name="position" 				type="color" />
@@ -106,13 +111,13 @@
 			<vertex>Data/Shaders/combine.vert</vertex>
 			<fragment>Data/Shaders/combine.frag</fragment>
 			<uniforms>
-				<uniform name="g_diffuse" 			 type="texture" value="diffuse" />
-				<uniform name="g_depth" 			 type="texture" value="depth" />
-				<uniform name="g_normal" 			 type="texture" value="normal" />
-				<uniform name="g_material" 		 	 type="texture" value="material" />
-				<uniform name="g_light_accumulation" type="texture" value="light_accumulation" />
-				<uniform name="g_ssao"				 type="texture" value="ssao" />
-				<uniform name="g_position" 			 type="texture" value="position" />
+				<uniform name="g_diffuse" 			  type="texture" value="diffuse" />
+				<uniform name="g_light_accumulation"  type="texture" value="light_accumulation" />
+				<uniform name="g_shadow_accumulation" type="texture" value="shadow_accumulation" />
+				<uniform name="g_shadow_map" 		  type="texture" value="shadow_map" />
+				<uniform name="g_position" 			  type="texture" value="position" />
+				<uniform name="g_ssao"				  type="texture" value="ssao" />
+				<uniform name="g_position" 			  type="texture" value="position" />
 			</uniforms>
 		</shader>
 		<shader name="light">
@@ -129,6 +134,56 @@
 				<uniform name="g_light_color" 			type="vector4" 	value="LIGHT_COLOR" />
 				<uniform name="g_light_radius" 			type="float" 	value="LIGHT_RADIUS" />
 				<uniform name="g_light_type" 			type="int" 		value="LIGHT_TYPE" />
+			</uniforms>
+		</shader>
+		<shader name="shadow_map">
+			<vertex>Data/Shaders/shadow_map.vert</vertex>
+			<fragment>Data/Shaders/shadow_map.frag</fragment>
+			<uniforms>
+				<uniform name="g_position" 								type="texture" 	value="position" />
+				<uniform name="g_depth" 								type="texture" 	value="depth" />
+				<uniform name="g_normal" 								type="texture" 	value="normal" />
+				<uniform name="g_material" 								type="texture" 	value="material" />
+				<uniform name="g_light_view_matrix" 					type="matrix4" 	value="LIGHT_VIEW_MATRIX" />
+				<uniform name="g_light_world_view_projection_matrix" 	type="matrix4" 	value="LIGHT_WORLD_VIEW_PROJECTION_MATRIX" />
+				<uniform name="g_light_position" 						type="vector4" 	value="LIGHT_POSITION" />
+				<uniform name="g_light_direction"	 					type="vector4" 	value="LIGHT_DIRECTION" />
+				<uniform name="g_light_outer_radius" 					type="float" 	value="LIGHT_OUTER_RADIUS" />
+				<uniform name="g_light_color" 							type="vector4" 	value="LIGHT_COLOR" />
+				<uniform name="g_light_radius" 							type="float" 	value="LIGHT_RADIUS" />
+				<uniform name="g_light_type" 							type="int" 		value="LIGHT_TYPE" />
+			</uniforms>
+		</shader>
+		<shader name="shadow_accumulation">
+			<vertex>Data/Shaders/shadow_accumulation.vert</vertex>
+			<fragment>Data/Shaders/shadow_accumulation.frag</fragment>
+			<uniforms>
+				<uniform name="g_position" 								type="texture" 	value="position" />
+				<uniform name="g_depth" 								type="texture" 	value="depth" />
+				<uniform name="g_normal" 								type="texture" 	value="normal" />
+				<uniform name="g_material" 								type="texture" 	value="material" />
+				<uniform name="g_shadow_map" 							type="texture" 	value="shadow_map" />				
+				<uniform name="g_light_view_matrix" 					type="matrix4" 	value="LIGHT_VIEW_MATRIX" />
+				<uniform name="g_light_world_view_projection_matrix" 	type="matrix4" 	value="LIGHT_WORLD_VIEW_PROJECTION_MATRIX" />
+				<uniform name="g_light_position" 						type="vector4" 	value="LIGHT_POSITION" />
+				<uniform name="g_light_direction"	 					type="vector4" 	value="LIGHT_DIRECTION" />
+				<uniform name="g_light_outer_radius" 					type="float" 	value="LIGHT_OUTER_RADIUS" />
+				<uniform name="g_light_color" 							type="vector4" 	value="LIGHT_COLOR" />
+				<uniform name="g_light_radius" 							type="float" 	value="LIGHT_RADIUS" />
+				<uniform name="g_light_type" 							type="int" 		value="LIGHT_TYPE" />
+				<uniform name="g_world_view_matrix" 					type="matrix4" 	value="WORLD_VIEW_MATRIX" />
+				<uniform name="g_inverse_world_view_matrix" 			type="matrix4" 	value="INVERSE_WORLD_VIEW_MATRIX" />
+				<uniform name="g_inverse_world_view_projection_matrix" 	type="matrix4" 	value="INVERSE_WORLD_VIEW_PROJECTION_MATRIX" />
+				<uniform name="g_world_view_projection_matrix" 			type="matrix4" 	value="WORLD_VIEW_PROJECTION_MATRIX" />
+				<uniform name="g_camera_near_clip" 						type="float" 	value="CAMERA_NEAR_CLIP" />
+				<uniform name="g_camera_far_clip" 						type="float" 	value="CAMERA_FAR_CLIP" />
+			</uniforms>
+		</shader>
+		<shader name="distance_field_font">
+			<vertex>Data/Shaders/distance_field_font.vert</vertex>
+			<fragment>Data/Shaders/distance_field_font.frag</fragment>
+			<uniforms>
+				<uniform name="g_world_view_projection_matrix" 			type="matrix4" 	value="WORLD_VIEW_PROJECTION_MATRIX" />
 			</uniforms>
 		</shader>
 		
@@ -152,9 +207,63 @@
 				<output>normal</output>
 				<output>material</output>
 				<output>position</output> 
+				
+				<!-- We don't actually use these, we just want them cleared :) -->
+				<output>shadow_accumulation</output> 
 			</outputs>
 		</pass>	
 	
+		<!-- Shadow map pass. Renders the scene form the pov of all shadow casters, and fills the shadow accumulation buffer. -->
+		<pass name="shadow-mapping" enabled="false">	
+			<foreach>shadow_casting_light</foreach>		
+			<type>container</type>
+			
+			<target>gbuffer</target>
+			
+			<sub-passes>
+				
+				<!-- Render the shadow map -->
+				<pass name="shadow-map" enabled="true">					
+					<type>scene</type>
+
+					<target>gbuffer</target>
+					<shader>shadow_map</shader>
+					
+					<state>
+						<clear>true</clear>
+						<depth-test>true</depth-test>
+					</state>
+					
+					<outputs>
+						<output>shadow_map</output>
+					</outputs>
+					
+					<!-- Actual shadow accumulation passes! -->
+					<sub-passes>
+						
+						<pass name="shadow-map-accumulation" enabled="true">	
+							<type>mesh</type>
+							<mesh>fullscreen_quad</mesh>
+
+							<target>gbuffer</target>
+							<shader>shadow_accumulation</shader>
+									
+							<state>
+								<depth-test>false</depth-test>
+							</state>
+					
+							<outputs>
+								<output>shadow_accumulation</output>
+							</outputs>
+						</pass>
+						
+					</sub-passes>
+					
+				</pass>
+				
+			</sub-passes>
+		</pass>	
+			
 		<!-- Lighting pass, fills the light accumulation buffer based on the gbuffer from the previous step. -->
 		<pass name="lighting" enabled="true">	
 			<foreach>light</foreach>
@@ -223,6 +332,25 @@
 				<output>BACK_BUFFER</output>
 			</outputs>
 		</pass>	
+				
+		<!-- UI pass on top. -->
+		<!--
+		<pass name="ui" enabled="true">	
+			<type>ui</type>
 			
+			<target></target>
+			<shader></shader>
+			
+			<state>
+				<clear>false</clear>
+				<depth-test>false</depth-test>				
+			</state>
+						
+			<outputs>
+				<output>BACK_BUFFER</output>
+			</outputs>
+		</pass>	
+		-->
+		
 	</passes>
 </xml>

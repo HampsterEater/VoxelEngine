@@ -120,7 +120,7 @@ private:
 	Matrix4					m_view_matrix;
 	Matrix4					m_projection_matrix;
 
-	OpenGL_Texture*			m_binded_textures[MAX_BINDED_TEXTURES];
+	const OpenGL_Texture*	m_binded_textures[MAX_BINDED_TEXTURES];
 	OpenGL_RenderTarget*	m_binded_render_target;
 	OpenGL_ShaderProgram*	m_binded_shader_program;
 	Material*				m_binded_material;
@@ -130,6 +130,7 @@ private:
 	RendererOption::Type	m_cull_face;
 	RendererOption::Type	m_depth_function;
 	bool					m_depth_test;
+	bool					m_alpha_test;
 	Rect					m_viewport;
 	RendererOption::Type	m_blend_function;
 	bool					m_blend;
@@ -158,7 +159,7 @@ public:
 	bool Set_Display(Display* display);
 	
 	// Rendering.		
-	void Bind_Texture(Texture* texture, int index);
+	void Bind_Texture(const Texture* texture, int index);
 	void Bind_Material(Material* material);
 	void Bind_Shader_Program(ShaderProgram* texture);
 	void Bind_Render_Target(RenderTarget* texture);
@@ -183,6 +184,8 @@ public:
 	RendererOption::Type	Get_Depth_Function			();
 	void					Set_Depth_Test				(bool depth);
 	bool					Get_Depth_Test				();
+	void					Set_Alpha_Test				(bool depth);
+	bool					Get_Alpha_Test				();
 	void					Set_Blend_Function			(RendererOption::Type option);
 	RendererOption::Type	Get_Blend_Function			();
 	void					Set_Blend					(bool blend);
@@ -208,10 +211,9 @@ public:
 	int  Add_Mesh_Triangle(int id, int vertex1, int vertex2, int vertex3);
 
 	// Immediate rendering.	
-	void Draw_Wireframe_Cube(float w, float h, float d);
-	void Draw_Wireframe_Sphere(float r);
-	void Draw_Line(float x1, float y1, float z1, float x2, float y2, float z2);
-	void Draw_Quad(float x, float y, float w, float h);
+	void Draw_Line(float x1, float y1, float z1, float x2, float y2, float z2, float size = 1.0f);
+	void Draw_Quad(Rect bounds, Rect uv);
+
 };
 
 #endif

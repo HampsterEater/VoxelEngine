@@ -19,7 +19,7 @@ public:
 	ChunkManagerConfig	chunk_config;
 
 	// Loading methods.
-	void Unpack(const ConfigFile& file);
+	void Unpack(ConfigFile& file);
 
 };
 

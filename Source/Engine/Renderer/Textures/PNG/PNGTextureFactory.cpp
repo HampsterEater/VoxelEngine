@@ -16,6 +16,113 @@ void PNGTextureFactory::libpng_read_function(png_structp png_ptr, png_bytep data
 	((Stream*)ptr)->Read((char*)data, 0, length);
 }
 
+void PNGTextureFactory::libpng_write_function(png_structp png_ptr, png_bytep data, png_size_t length)
+{
+	png_voidp ptr = png_get_io_ptr(png_ptr);
+	((Stream*)ptr)->Write((char*)data, 0, length);
+}
+
+bool PNGTextureFactory::Try_Save(const char* url, Texture* texture, TextureFlags::Type flags)
+{
+	// Can we open this path as a file?
+	Stream* stream = StreamFactory::Open(url, (StreamMode::Type)(StreamMode::Write|StreamMode::Truncate));
+	if (stream == NULL)
+	{
+		return NULL;
+	}
+
+	// Calculate format specifications for saving.
+	int color_type		= 0;
+	int width			= texture->Get_Width();
+	int pitch			= texture->Get_Pitch();
+	int height			= texture->Get_Height();
+	int bpp				= 0;
+	const char* buffer	= texture->Get_Data();
+
+	switch (texture->Get_Format())
+	{
+	// Greyscale
+	case TextureFormat::Luminosity:
+        color_type = PNG_COLOR_TYPE_GRAY;
+		bpp = 1;
+		break;
+
+	// RGB
+	case TextureFormat::R8G8B8:
+        color_type = PNG_COLOR_TYPE_RGB;
+		bpp = 3;
+		break;
+
+	// RGBA
+	case TextureFormat::R8G8B8A8:
+        color_type = PNG_COLOR_TYPE_RGB_ALPHA;
+		bpp = 4;
+		break;
+
+	default:
+		{
+		delete stream;
+		return NULL;
+		}
+	}
+	
+	// Create textures required for saving.	
+    png_structp png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+	if (png_ptr == NULL) 
+	{
+		delete stream;
+		return NULL;
+	}
+    png_infop info_ptr = png_create_info_struct (png_ptr);
+	if (info_ptr == NULL) 
+	{
+		delete stream;
+		return NULL;
+	}
+	
+	// Setup error handler.
+	if (setjmp(png_jmpbuf(png_ptr)))
+	{
+        png_destroy_write_struct(&png_ptr, &info_ptr);
+
+		delete stream;
+		return NULL;
+	}
+
+	// Set image attributes.
+    png_set_IHDR (png_ptr,
+                  info_ptr,
+                  width,
+                  height,
+                  8,
+                  color_type,
+                  PNG_INTERLACE_NONE,
+                  PNG_COMPRESSION_TYPE_DEFAULT,
+                  PNG_FILTER_TYPE_DEFAULT);
+	
+	// Create memory
+    int bytes_per_row = width * bpp;
+    png_bytep* image_data = (png_bytep*)platform_malloc(height * sizeof(png_byte*));
+
+    for (int y = 0; y < height; ++y) 
+	{
+    	image_data[height - (y + 1)] = (png_byte*)buffer + (y * (pitch * bpp));
+    }
+
+	// Setup custom writing.
+	png_set_write_fn(png_ptr, (png_voidp)stream, libpng_write_function, NULL);
+    png_set_rows(png_ptr, info_ptr, image_data);
+    png_write_png(png_ptr, info_ptr, PNG_TRANSFORM_IDENTITY, NULL);
+	
+	// Cleanup.	
+	platform_free(image_data);
+    png_destroy_write_struct(&png_ptr, &info_ptr);
+	delete stream;
+
+	// Return texture.
+	return texture;
+}
+
 Texture* PNGTextureFactory::Try_Load(const char* url, TextureFlags::Type flags)
 {
 	// Can we open this path as a file?
@@ -156,6 +263,7 @@ Texture* PNGTextureFactory::Try_Load(const char* url, TextureFlags::Type flags)
 	}
 
 	// Cleanup.	
+	platform_free(row_pointers);
     png_destroy_read_struct(&png_ptr, &info_ptr, &end_info);
 	delete stream;
 

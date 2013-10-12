@@ -49,3 +49,7 @@ SHADER_UNIFORM(Matrix4,		"INVERSE_PROJECTION_MATRIX",				InverseProjectionMatrix
 SHADER_UNIFORM(Matrix4,		"INVERSE_WORLD_VIEW_MATRIX",				InverseWorldViewMatrix)
 SHADER_UNIFORM(Matrix4,		"INVERSE_WORLD_VIEW_PROJECTION_MATRIX",		InverseWorldViewProjectionMatrix)
 SHADER_UNIFORM(Matrix4,		"INVERSE_NORMAL_MATRIX",					InverseNormalMatrix)
+
+SHADER_UNIFORM(Matrix4,		"LIGHT_VIEW_MATRIX",						LightViewMatrix)
+SHADER_UNIFORM(Matrix4,		"LIGHT_PROJECTION_MATRIX",					LightProjectionMatrix)
+SHADER_UNIFORM(Matrix4,		"LIGHT_WORLD_VIEW_PROJECTION_MATRIX",		LightWorldViewProjectionMatrix)

@@ -93,9 +93,17 @@
     <ClInclude Include="Math\Noise\NoiseSampler3D.h" />
     <ClInclude Include="Math\Noise\SimplexNoise.h" />
     <ClInclude Include="Math\Random.h" />
+    <ClInclude Include="Math\RectanglePacker.h" />
     <ClInclude Include="Memory\Memory.h" />
     <ClInclude Include="Memory\Win32\Win32_Memory.h" />
     <ClInclude Include="Patterns\Singleton.h" />
+    <ClInclude Include="ThirdParty\FMod\fmod.h" />
+    <ClInclude Include="ThirdParty\FMod\fmod.hpp" />
+    <ClInclude Include="ThirdParty\FMod\fmod_codec.h" />
+    <ClInclude Include="ThirdParty\FMod\fmod_dsp.h" />
+    <ClInclude Include="ThirdParty\FMod\fmod_errors.h" />
+    <ClInclude Include="ThirdParty\FMod\fmod_memoryinfo.h" />
+    <ClInclude Include="ThirdParty\FMod\fmod_output.h" />
     <ClInclude Include="ThirdParty\RapidXML\rapidxml.hpp" />
     <ClInclude Include="ThirdParty\RapidXML\rapidxml_iterators.hpp" />
     <ClInclude Include="ThirdParty\RapidXML\rapidxml_print.hpp" />
@@ -133,6 +141,7 @@
     <ClCompile Include="Math\Noise\NoiseSampler3D.cpp" />
     <ClCompile Include="Math\Noise\SimplexNoise.cpp" />
     <ClCompile Include="Math\Random.cpp" />
+    <ClCompile Include="Math\RectanglePacker.cpp" />
     <ClCompile Include="Memory\Memory.cpp" />
     <ClCompile Include="Memory\Win32\Win32_Memory.cpp" />
     <ClCompile Include="Patterns\Singleton.cpp" />

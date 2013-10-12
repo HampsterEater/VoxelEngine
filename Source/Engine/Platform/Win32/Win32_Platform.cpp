@@ -49,6 +49,62 @@ void Win32_Platform::Crack_Path(const char* path, std::vector<std::string>& segm
 	StringHelper::Split(path, '/', segments);
 }
 
+std::string Win32_Platform::Join_Path(std::string a, std::string b)
+{
+	if (a[a.size() - 1] == '/' || a[a.size() - 1] == '\\' ||
+		b[0]			== '/' || b[0]			  == '\\')
+	{
+		return a + b;
+	}
+	else
+	{
+		return a + "/" + b;
+	}
+}
+
+std::string Win32_Platform::Extract_Directory(std::string a)
+{
+	int index = a.find_last_of("/\\");
+	if (index == std::string::npos)
+	{
+		return a;
+	}
+	else
+	{
+		return a.substr(0, index);
+	}
+}
+
+std::string Win32_Platform::Extract_Filename(std::string a)
+{
+	int index = a.find_last_of("/\\");
+	if (index == std::string::npos)
+	{
+		return a;
+	}
+	else
+	{
+		return a.substr(index + 1);
+	}
+}
+
+bool Win32_Platform::Is_File(const char* path)
+{
+	DWORD flags = GetFileAttributesA(path);
+
+	if (flags == INVALID_FILE_ATTRIBUTES)
+	{
+		return false;
+	}
+
+	if ((flags & FILE_ATTRIBUTE_DIRECTORY) != 0)
+	{
+		return false;
+	}
+
+	return true;
+}
+
 bool Win32_Platform::Is_Directory(const char* path)
 {
 	DWORD flags = GetFileAttributesA(path);

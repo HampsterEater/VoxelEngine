@@ -36,8 +36,8 @@ ChunkUnloader::ChunkUnloader(ChunkManager* manager, const ChunkManagerConfig& co
 	DBG_ASSERT(m_thread != NULL);
 	
 	// Boot up threads.
-	m_thread->Set_Affinity(1 << (1 % m_thread->Get_Core_Count()));
-	m_thread->Set_Priority(ThreadPriority::Low);
+	//m_thread->Set_Affinity(1 << (1 % m_thread->Get_Core_Count()));
+	//m_thread->Set_Priority(ThreadPriority::Low);
 	m_thread->Start();
 }
 

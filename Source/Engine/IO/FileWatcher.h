@@ -11,7 +11,7 @@ class Thread;
 class Mutex;
 class Thread;
 
-#define FILE_WATCHER_INTERVAL	2000.0f
+#define FILE_WATCHER_INTERVAL	10 * 1000.0f
 #define FILE_WATCHER_YIELD_TIME	1.0f
 
 class FileWatcher
@@ -22,7 +22,7 @@ private:
 	static std::vector<FileWatcher*> g_file_watchers;
 
 	std::string m_path;
-	s64			m_last_change_time;
+	u64			m_last_change_time;
 	bool		m_has_changed;
 	float		m_check_time;
 

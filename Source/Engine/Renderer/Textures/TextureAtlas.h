@@ -5,11 +5,12 @@
 #define _ENGINE_RENDERER_TEXTURES_TEXTUREATLAS_
 
 class Texture;
+class TextureHandle;
 
 class TextureAtlas
 {
 private:
-	Texture*			m_texture;
+	TextureHandle*			m_texture;
 
 	int					m_cell_count_u;
 	int					m_cell_count_v;
@@ -23,7 +24,7 @@ private:
 public:
 	
 	// Constructor!
-	TextureAtlas(Texture* texture, int cells_u, int cells_v);
+	TextureAtlas(TextureHandle* texture, int cells_u, int cells_v);
 
 	// Destructor!
 	~TextureAtlas();

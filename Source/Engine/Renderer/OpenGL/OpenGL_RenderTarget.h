@@ -19,9 +19,9 @@ private:
 
 	GLuint m_target_id;
 
-	std::vector<OpenGL_Texture*>	m_color_textures;
-	OpenGL_Texture*					m_depth_texture;
-	OpenGL_Texture*					m_stencil_texture;
+	std::vector<const OpenGL_Texture*>	m_color_textures;
+	const OpenGL_Texture*				m_depth_texture;
+	const OpenGL_Texture*				m_stencil_texture;
 
 private:
 	// Constructor!
@@ -32,7 +32,7 @@ private:
 public:
 		
 	// Binding support.
-	void Bind_Texture(RenderTargetBufferType::Type type, Texture* texture);
+	void Bind_Texture(const RenderTargetBufferType::Type type, const Texture* texture);
 	void Validate();
 
 	// Destructor!

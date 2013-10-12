@@ -17,6 +17,8 @@
 
 // Min/Max/Clamp etc
 #define Clamp(x, min, max) ((x) < (min) ? (min) : ((x) > (max) ? (max) : (x)))  
+#define Min(x, y) ((x) < (y) ? (x) : (y))
+#define Max(x, y) ((x) > (y) ? (x) : (y))
 
 // Speedy stuff.
 #define FastSign(x)	 ((0 < (x)) - ((x) < 0))

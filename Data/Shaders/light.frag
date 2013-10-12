@@ -24,12 +24,21 @@ uniform int   g_light_type;
 //		3 = Spotlight
 
 // ===================================================================
+//		Specular stuff.
+// ===================================================================
+vec4 calculate_output(float intensity, vec3 normal, vec3 l, vec3 v, vec3 h, vec3 specular, float shininess, vec4 light_color)
+{
+	vec4  spec = clamp(pow(dot(h, normal), shininess), 0.0, 1.0) * vec4(specular, 1.0) * light_color;
+	vec4  diff = clamp(dot(l, normal), 0.0, 1.0) * light_color;
+	
+	return vec4((intensity * clamp(diff + spec, 0.0, 1.0)).xyz, 1.0);
+}
+
+// ===================================================================
 //		POINT LIGHT
 // ===================================================================
 vec4 point_light(vec3 normal, vec3 position, vec3 specular, float shininess)
 {
-	vec3	specular_output = vec3(0.0);
-	
 	// Calculate vectors.
 	vec3 l = g_light_position.xyz - position;		// light vector
 	vec3 v = normalize(position);					// view vector
@@ -39,12 +48,8 @@ vec4 point_light(vec3 normal, vec3 position, vec3 specular, float shininess)
 	float att = clamp(1.0 - length(l) / g_light_radius, 0.0, 1.0);
 	l = normalize(l);
 	
-	// diffuse and specular terms
-	vec3 Idiff = clamp(dot(l, normal), 0.0, 1.0) * g_light_color.rgb;
-	vec3 Ispec = clamp(pow(dot(h, normal), shininess), 0.0, 1.0) * specular * g_light_color.rgb;
-	
-	// Final output
-	return vec4(att * clamp(Idiff + Ispec, 0.0, 1.0), 1.0);
+	// Calculate output.
+	return calculate_output(att, normal, l, v, h, specular, shininess, g_light_color);
 }
 
 // ===================================================================
@@ -60,22 +65,16 @@ vec4 ambient_light(vec3 normal, vec3 position, vec3 specular, float shininess)
 // ===================================================================
 vec4 directional_light(vec3 normal, vec3 position, vec3 specular, float shininess)
 {
-	vec3	specular_output = vec3(0.0);
-	
 	// Calculate factors.
-	vec3 light_vector 	= normalize(g_light_direction.xyz);
+	vec3 l 	= normalize(g_light_direction.xyz);
+	vec3 v 	= normalize(position);					// view vector
+	vec3 h 	= normalize(v + l);						// half vector
 	
 	// Intensity
-	float intensity = max(dot(normal, light_vector), 0.0);
-	if (intensity > 0.0)
-	{
-		vec3 half = normalize(light_vector + position);		
-		float specular_intensity = max(dot(half, normal), 0.0);
-		specular_output = clamp(specular * pow(specular_intensity, shininess), 0.0, 1.0);
-	}
+	float intensity = max(dot(normal, l), 0.0);
 	
-	// Final output
-	return vec4(vec3(intensity * (g_light_color.xyz + specular_output)), 1.0);
+	// Calculate output.
+	return calculate_output(intensity, normal, l, v, h, specular, shininess, g_light_color);
 }
 
 // ===================================================================
@@ -87,27 +86,22 @@ vec4 spotlight_light(vec3 normal, vec3 position, vec3 specular, float shininess)
 
 	// Calculate factors.
 	vec3 light_direction 	= normalize(g_light_direction.xyz);
-	vec3 source_vector 		= normalize(g_light_position.xyz - position);
-	vec3 position_vector	= normalize(position.xyz);
-	vec3 half_vector		= normalize(position_vector + source_vector);
-	float angle				= acos(dot(-source_vector, light_direction));
+	vec3 l 					= normalize(g_light_position.xyz - position);	// light vector
+	vec3 v 					= normalize(position);							// view vector
+	vec3 h 					= normalize(v + l);								// half vector
+	float angle				= acos(dot(-l, light_direction));
 	float cutoff			= radians(g_light_radius);
 	float outer_cutoff		= radians(g_light_outer_radius);
 	float intensity			= 0.0;
-		
+	
 	// In spotlight?
 	if (angle < outer_cutoff)
 	{
 		intensity = 1.0 - clamp((angle - cutoff) / (outer_cutoff - cutoff), 0.0, 1.0);
-		
-		if (intensity > 0.0)
-		{	
-			float specular_intensity = max(dot(half_vector, normal), 0.0);
-			specular_output = clamp(specular * pow(specular_intensity, shininess), 0.0, 1.0);
-		}		
 	}
-
-	return vec4(vec3(intensity * (g_light_color.xyz + specular_output)), 1.0);
+	
+	// Calculate output.
+	return calculate_output(intensity, normal, l, v, h, specular, shininess, g_light_color);
 }
 
 // ===================================================================

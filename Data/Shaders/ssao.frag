@@ -85,7 +85,7 @@ void main(void)
     vec3 	normal 			= get_normal(uv);	
 	vec3 	position		= get_position(uv);	
 	vec2	random			= get_random(uv);
-	float	depth			= get_depth(uv);
+	//float	depth			= get_depth(uv);
 	
 	float	radius			= g_sample_radius;// * (1.0 - depth);
 	float 	occlusion 		= 0;

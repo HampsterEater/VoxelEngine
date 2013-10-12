@@ -25,7 +25,7 @@ public:
 	
 	// Constructor!
 	Stream();
-	~Stream();
+	virtual ~Stream();
 
 	// Members that have to be overidden.
 	virtual bool			IsEOF		() = 0;

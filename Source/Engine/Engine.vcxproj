@@ -11,6 +11,15 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Audio\AudioRenderer.h" />
+    <ClInclude Include="Audio\FMod\FMod_AudioRenderer.h" />
+    <ClInclude Include="Audio\FMOD\FMod_SoundChannel.h" />
+    <ClInclude Include="Audio\FMod\FMod_Sound.h" />
+    <ClInclude Include="Audio\FMod\FMod_SoundFactory.h" />
+    <ClInclude Include="Audio\Sounds\Sound.h" />
+    <ClInclude Include="Audio\Sounds\SoundChannel.h" />
+    <ClInclude Include="Audio\Sounds\SoundFactory.h" />
+    <ClInclude Include="Audio\Sounds\SoundHandle.h" />
     <ClInclude Include="Config\ConfigFile.h" />
     <ClInclude Include="Display\Display.h" />
     <ClInclude Include="Display\Keys.h" />
@@ -24,6 +33,7 @@
     <ClInclude Include="IO\StreamFactory.h" />
     <ClInclude Include="IO\Win32\Win32_FileStream.h" />
     <ClInclude Include="IO\Win32\Win32_FileStreamFactory.h" />
+    <ClInclude Include="Localise\Locale.h" />
     <ClInclude Include="Platform\Platform.h" />
     <ClInclude Include="Platform\Win32\Win32_Platform.h" />
     <ClInclude Include="Renderer\Drawable.h" />
@@ -36,6 +46,20 @@
     <ClInclude Include="Renderer\OpenGL\OpenGL_Texture.h" />
     <ClInclude Include="Renderer\Renderer.h" />
     <ClInclude Include="Renderer\RenderPipeline.h" />
+    <ClInclude Include="Renderer\Text\Font.h" />
+    <ClInclude Include="Renderer\Text\FontFactory.h" />
+    <ClInclude Include="Renderer\Text\FontHandle.h" />
+    <ClInclude Include="Renderer\Text\FontRenderer.h" />
+    <ClInclude Include="Renderer\Text\FreeType\FreeType_Font.h" />
+    <ClInclude Include="Renderer\Text\FreeType\FreeType_FontFactory.h" />
+    <ClInclude Include="Renderer\Text\FreeType\FreeType_ResourceCompiler.h" />
+    <ClInclude Include="Resources\Reloadable.h" />
+    <ClInclude Include="Resources\ResourceCompiler.h" />
+    <ClInclude Include="UI\UIElement.h" />
+    <ClInclude Include="UI\UILayout.h" />
+    <ClInclude Include="UI\UIManager.h" />
+    <ClInclude Include="UI\UIScene.h" />
+    <ClInclude Include="UI\UITransition.h" />
     <None Include="Renderer\RenderPipeline_ShaderUniformType.inc">
       <FileType>CppHeader</FileType>
     </None>
@@ -47,6 +71,7 @@
     <ClInclude Include="Renderer\Textures\Texture.h" />
     <ClInclude Include="Renderer\Textures\TextureAtlas.h" />
     <ClInclude Include="Renderer\Textures\TextureFactory.h" />
+    <ClInclude Include="Renderer\Textures\TextureHandle.h" />
     <ClInclude Include="Scene\Actor.h" />
     <ClInclude Include="Scene\Camera.h" />
     <ClInclude Include="Scene\Light.h" />
@@ -54,6 +79,15 @@
     <ClInclude Include="Scene\Tickable.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Audio\AudioRenderer.cpp" />
+    <ClCompile Include="Audio\FMod\FMod_AudioRenderer.cpp" />
+    <ClCompile Include="Audio\FMod\FMod_Sound.cpp" />
+    <ClCompile Include="Audio\FMod\FMod_SoundChannel.cpp" />
+    <ClCompile Include="Audio\FMod\FMod_SoundFactory.cpp" />
+    <ClCompile Include="Audio\Sounds\SoundChannel.cpp" />
+    <ClCompile Include="Audio\Sounds\SoundFactory.cpp" />
+    <ClCompile Include="Audio\Sounds\SoundHandle.cpp" />
+    <ClCompile Include="Audio\Sounds\Sound.cpp" />
     <ClCompile Include="Config\ConfigFile.cpp" />
     <ClCompile Include="Display\Display.cpp" />
     <ClCompile Include="Display\Win32\Win32_Display.cpp" />
@@ -66,6 +100,7 @@
     <ClCompile Include="IO\StreamFactory.cpp" />
     <ClCompile Include="IO\Win32\Win32_FileStream.cpp" />
     <ClCompile Include="IO\Win32\Win32_FileStreamFactory.cpp" />
+    <ClCompile Include="Localise\Locale.cpp" />
     <ClCompile Include="Platform\Platform.cpp" />
     <ClCompile Include="Platform\Win32\Win32_Platform.cpp" />
     <ClCompile Include="Renderer\Drawable.cpp" />
@@ -88,11 +123,26 @@
     <ClCompile Include="Renderer\Textures\Texture.cpp" />
     <ClCompile Include="Renderer\Textures\TextureAtlas.cpp" />
     <ClCompile Include="Renderer\Textures\TextureFactory.cpp" />
+    <ClCompile Include="Renderer\Textures\TextureHandle.cpp" />
+    <ClCompile Include="Renderer\Text\Font.cpp" />
+    <ClCompile Include="Renderer\Text\FontFactory.cpp" />
+    <ClCompile Include="Renderer\Text\FontHandle.cpp" />
+    <ClCompile Include="Renderer\Text\FontRenderer.cpp" />
+    <ClCompile Include="Renderer\Text\FreeType\FreeType_Font.cpp" />
+    <ClCompile Include="Renderer\Text\FreeType\FreeType_FontFactory.cpp" />
+    <ClCompile Include="Renderer\Text\FreeType\FreeType_ResourceCompiler.cpp" />
+    <ClCompile Include="Resources\Reloadable.cpp" />
+    <ClCompile Include="Resources\ResourceCompiler.cpp" />
     <ClCompile Include="Scene\Actor.cpp" />
     <ClCompile Include="Scene\Camera.cpp" />
     <ClCompile Include="Scene\Light.cpp" />
     <ClCompile Include="Scene\Scene.cpp" />
     <ClCompile Include="Scene\Tickable.cpp" />
+    <ClCompile Include="UI\UIElement.cpp" />
+    <ClCompile Include="UI\UILayout.cpp" />
+    <ClCompile Include="UI\UIManager.cpp" />
+    <ClCompile Include="UI\UIScene.cpp" />
+    <ClCompile Include="UI\UITransition.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Engine\GameEngineConfig.inc" />
@@ -131,13 +181,13 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(SolutionDir);$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir);$(SolutionDir)freetype\include\;$(IncludePath)</IncludePath>
     <OutDir>$(SolutionDir)..\Output\$(ProjectName)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)..\Output\$(ProjectName)\$(Configuration)\Temp\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(SolutionDir);$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir);$(SolutionDir)freetype\include\;$(IncludePath)</IncludePath>
     <OutDir>$(SolutionDir)..\Output\$(ProjectName)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)..\Output\$(ProjectName)\$(Configuration)\Temp\</IntDir>
   </PropertyGroup>

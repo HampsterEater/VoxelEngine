@@ -36,7 +36,7 @@
 			printf("====== ASSERT FAILED ======\n"); \
 			printf("%s:%i\n", __FILE__, __LINE__); \
 			printf("%s\n", #cond); \
-			printf(format "\n", __VA_ARGS__); \
+			printf("Message: " format "\n", __VA_ARGS__); \
 			__debugbreak(); \
 		}
 
@@ -51,6 +51,7 @@
 
 	#define DBG_LOG(format, ...) \
 		printf(format "\n", __VA_ARGS__); 
+	//"[" __FUNCTION__  ":%i] " 
 #else
 	#error "Unsupported platform."
 #endif
@@ -83,6 +84,7 @@
 
 // Special types.
 #define s64 long long int
+#define u64 unsigned long long int
 
 // Include memory function overrides.
 #include "Generic\Memory\Memory.h"

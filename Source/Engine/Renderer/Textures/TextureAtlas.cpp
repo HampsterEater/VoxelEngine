@@ -3,15 +3,16 @@
 // ===================================================================
 #include "Engine\Renderer\Textures\TextureAtlas.h"
 #include "Engine\Renderer\Textures\Texture.h"
+#include "Engine\Renderer\Textures\TextureHandle.h"
 
-TextureAtlas::TextureAtlas(Texture* texture, int cells_u, int cells_v)
+TextureAtlas::TextureAtlas(TextureHandle* texture, int cells_u, int cells_v)
 	: m_texture(texture)
 	, m_cell_count_u(cells_u)
 	, m_cell_count_v(cells_v)
 	, m_cell_uv_count(cells_u * cells_v)
 {
-	float texture_width		= (float)m_texture->Get_Width();
-	float texture_height	= (float)m_texture->Get_Height();
+	float texture_width		= (float)m_texture->Get()->Get_Width();
+	float texture_height	= (float)m_texture->Get()->Get_Height();
 
 	m_cell_uvs				= new float[m_cell_uv_count * 4];
 

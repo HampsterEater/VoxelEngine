@@ -15,9 +15,18 @@
 #include "Engine\Renderer\Textures\TextureFactory.h"
 #include "Engine\Renderer\Textures\PNG\PNGTextureFactory.h"
 
+#include "Engine\Audio\AudioRenderer.h"
+#include "Engine\Audio\Sounds\Sound.h"
+#include "Engine\Audio\Sounds\SoundChannel.h"
+#include "Engine\Audio\Sounds\SoundFactory.h"
+
 #include "Engine\Renderer\Shaders\Shader.h"
 #include "Engine\Renderer\Shaders\ShaderFactory.h"
 #include "Engine\Renderer\Shaders\ShaderProgram.h"
+
+#include "Engine\Renderer\Text\Font.h"
+#include "Engine\Renderer\Text\FontFactory.h"
+#include "Engine\Renderer\Text\FontRenderer.h"
 
 #include "Generic\Math\Math.h"
 
@@ -85,6 +94,21 @@ void Game::Start()
 	GameEngine::Get()->Get_Scene()->Add_Light(light3);
 	
 	/*
+	m_directional_light = new Light(LightType::Directional, 0.0f, Color::White);
+	m_directional_light->Set_Position(Vector3(0.0f, 2.0f, -4.0f));
+	m_directional_light->Set_Rotation(Vector3(1.0f, 1.0f, 3.0f));
+	m_directional_light->Set_Shadow_Caster(true);
+	GameEngine::Get()->Get_Scene()->Add_Light(m_directional_light);
+	*/
+
+	m_directional_light = new Light(LightType::Spotlight, 10.0f, 13.0f, Color::Yellow);
+	m_directional_light->Set_Position(Vector3(0.0f, 4.0f, 0.0f));
+	m_directional_light->Set_Rotation(Vector3(0.0f, -DegToRad(90), 0.0f));
+	m_directional_light->Set_Shadow_Caster(true);
+	GameEngine::Get()->Get_Scene()->Add_Light(m_directional_light);
+	
+	/*
+	
 	Light* light = new Light(LightType::Point, 5.0f, Color::Green);
 	light->Set_Position(Vector3(0.0f, 2.0f, 0.0f));
 	GameEngine::Get()->Get_Scene()->Add_Light(light);
@@ -92,24 +116,26 @@ void Game::Start()
 	Light* light2 = new Light(LightType::Point, 5.0f, Color::White);
 	light2->Set_Position(Vector3(0.0f, 2.0f, -4.0f));
 	GameEngine::Get()->Get_Scene()->Add_Light(light2);
-	
-	Light* light4 = new Light(LightType::Directional, 0.0f, Color::Magenta);
-	light4->Set_Position(Vector3(0.0f, 2.0f, -4.0f));
-	light4->Set_Rotation(Vector3(4.0f, 1.0f, 1.0f));
-	GameEngine::Get()->Get_Scene()->Add_Light(light4);
+
 	*/
 
-	Light* light5 = new Light(LightType::Spotlight, 5.0f, 10.0f, Color::Yellow);
-	light5->Set_Position(Vector3(0.0f, 4.0f, 0.0f));
-	light5->Set_Rotation(Vector3(0.0f, -DegToRad(90), 0.0f));
-	GameEngine::Get()->Get_Scene()->Add_Light(light5);
+	/*
+	SoundHandle* sound = SoundFactory::Load("Data/Sounds/Music/zombroni.it", SoundFlags::Loop);
+
+	SoundChannel* channel = sound->Get()->Allocate_Channel();
+	sound->Get()->Play(channel, true);
+	channel->Resume();
+	*/
 }
 
 void Game::End()
 {
 	SAFE_DELETE(m_camera);
+	SAFE_DELETE(m_chunk_manager);
 }
 
 void Game::Tick(const FrameTime& time)
 {
+	float angle = (Platform::Get()->Get_Ticks() / 1000.0f) * 1.0f;
+	m_directional_light->Set_Rotation(Vector3(0.0f, angle, -DegToRad(75.0f)));
 }

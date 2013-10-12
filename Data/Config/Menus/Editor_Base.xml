@@ -1,0 +1,12 @@
+<xml>
+	<images>
+		<image name="new-file-icon" file="" />
+	</images>
+	<layout>
+		<element name="menu" type="MenuBar" position="1,2,3" size="2,3,4">
+			<element name="file-menu" type="MenuItem" value="STRING_EDITOR_MENU_FILE">
+				<element name="new-file-menu" type="MenuItem" value="STRING_EDITOR_MENU_NEW_FILE" icon="">
+			</element>
+		</element>
+	</layout>
+</xml>

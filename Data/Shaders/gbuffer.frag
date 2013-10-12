@@ -18,6 +18,7 @@ uniform vec3  g_material_specular;
 varying vec4 g_vertex_position;
 varying vec3 g_vertex_normal;
 varying float g_vertex_depth;
+varying float g_vertex_depth_nonlinear;
 
 void main()
 {

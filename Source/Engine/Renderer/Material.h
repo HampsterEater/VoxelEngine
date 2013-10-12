@@ -7,22 +7,23 @@
 #include "Generic\Types\Vector3.h"
 
 class Texture;
+class TextureHandle;
 
 // Defines the properties of a material being taken as an input to the renderer.
 class Material
 {
 private:
-	Texture*	m_texture;
-	float		m_shininess;
-	Vector3		m_specular;
+	TextureHandle*	m_texture;
+	float			m_shininess;
+	Vector3			m_specular;
 
 public:
-	Material(Texture* texture);
-	Material(Texture* texture, float shininess);
-	Material(Texture* texture, float shininess, Vector3 specular);
+	Material(TextureHandle* texture);
+	Material(TextureHandle* texture, float shininess);
+	Material(TextureHandle* texture, float shininess, Vector3 specular);
 
-	Texture* Get_Texture();
-	void Set_Texture(Texture* texture);
+	TextureHandle* Get_Texture();
+	void Set_Texture(TextureHandle* texture);
 
 	float Get_Shininess();
 	void Set_Shininess(float shininess);

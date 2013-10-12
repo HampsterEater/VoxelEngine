@@ -24,6 +24,7 @@ public:
 	virtual void	Set_Position(Vector3 position);
 	virtual Vector3 Get_Rotation();
 	virtual void	Set_Rotation(Vector3 rotation);
+	virtual Vector3 Get_Direction();
 
 };
 

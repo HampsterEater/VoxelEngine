@@ -46,7 +46,7 @@ void Matrix4::Display(const char* name)
 	printf("==== %s ====\n", name);
 	for (int i = 0; i < 16; i += 4)
 	{
-		printf("%+2.2f %+2.2f %+2.2f %+2.2f\n", Elements[i], Elements[i + 1], Elements[i + 2], Elements[i + 3]);
+		printf("%+4.4f %+4.4f %+4.4f %+4.4f\n", Elements[i], Elements[i + 1], Elements[i + 2], Elements[i + 3]);
 	}
 }
 
@@ -282,6 +282,37 @@ Matrix4 Matrix4::Perspective(float fov, float aspect_ratio, float z_near, float 
 
 	return Frustum(xmin, xmax, ymin, ymax, z_near, z_far);
 }	
+
+Matrix4 Matrix4::Orthographic(float xleft, float xright, float ybottom, float ytop, float znear, float zfar)
+{
+    float a =  2.0f / (xright - xleft);
+    float b =  2.0f / (ytop - ybottom);
+    float c = -2.0f / (zfar - znear);
+
+    float tx = - ((xright + xleft)	/ (xright - xleft));
+    float ty = - ((ytop + ybottom)	/ (ytop - ybottom));
+    float tz = - ((zfar + znear)	/ (zfar - znear));
+
+	Matrix4 m2;
+	m2.SetColumn(0, a, 0, 0, 0);
+	m2.SetColumn(1, 0, b, 0, 0);
+	m2.SetColumn(2, 0, 0, c, 0);
+	m2.SetColumn(3,tx,ty,tz, 1);
+
+	/*
+	GLfloat mat[16];
+	glMatrixMode(GL_PROJECTION_MATRIX);
+	glLoadIdentity();
+	glOrtho(xleft, xright, ybottom, ytop, znear, zfar);
+	glGetFloatv(GL_MODELVIEW_MATRIX, mat);
+	
+	Matrix4 mat4(mat);
+	mat4.Display("OpenGL Implementation");
+	m2.Display("Our Implementation");
+	*/
+
+	return m2;
+}
 
 Matrix4 Matrix4::LookAt(Vector3 eyeVector, Vector3 centerVector, Vector3 upVector)
 {

@@ -27,6 +27,85 @@ private:
 		HashTableValue*	Next;
 	};
 
+public:
+
+	struct Iterator
+	{
+	private:
+		HashTable<ValueType, KeyType>* m_hash_table;
+		HashTableValue* m_node;
+		int m_bucket_index;
+
+	public:
+		Iterator(HashTable<ValueType, KeyType>* table, int bucket_index, HashTableValue* node)
+			: m_hash_table(table)
+			, m_bucket_index(bucket_index)
+			, m_node(node)
+		{
+		}
+
+		Iterator()
+			: m_bucket_index(-1)
+			, m_node(NULL)
+			, m_hash_table(NULL)
+		{
+		}
+
+		void operator++() 
+		{ 
+			// Next node in current bucket?
+			if (m_node->Next != NULL)
+			{
+				m_node = m_node->Next;
+				return;
+			}
+
+			// Look for next bucket?
+			m_bucket_index++;
+			for (; m_bucket_index < m_hash_table->m_allocated; m_bucket_index++)
+			{
+				HashTableValue* bucket = m_hash_table->m_data[m_bucket_index];
+				if (bucket != NULL)
+				{
+					m_node = bucket;
+					return;
+				}
+			}
+
+			// Nothing left :(
+			m_bucket_index	= -1;
+			m_node			= NULL;
+			m_hash_table	= NULL;
+		}
+
+		void operator++(int value) 
+		{ 
+			operator++();
+		}
+		
+		bool operator!=(Iterator& iter) const 
+		{ 
+			return m_bucket_index != iter.m_bucket_index || m_node != iter.m_node; 
+		} 
+
+		ValueType operator*() const
+		{
+			return m_node->Value;
+		}
+
+		KeyType Get_Key() const
+		{
+			return m_node->Key;
+		}
+
+		ValueType Get_Value() const
+		{
+			return m_node->Value;
+		}
+	};
+
+private:
+
 	HashTableValue**					m_data;
 	int									m_size;
 	int									m_allocated;
@@ -38,9 +117,9 @@ private:
 protected:
 	
 	// Gets the bucket a hash should be in.
-	int Get_Bucket(KeyType hash) const
+	unsigned int Get_Bucket(KeyType hash) const
 	{
-		return hash % m_allocated;
+		return ((unsigned int)hash) % m_allocated;
 	}
 
 	// Gets a value from a hash.
@@ -169,13 +248,36 @@ public:
 				HashTableValue* next = bucket->Next;
 				
 				//delete next;
-				m_memory_pool.Release(next);
+				if (next != NULL)
+				{
+					m_memory_pool.Release(next);
+				}
 
 				bucket = next;
 			}
 		}
 
 		SAFE_DELETE_ARRAY(m_data);
+	}
+	
+	// Iterator stuff!
+	Iterator Begin()
+	{
+		for (int i = 0; i < m_allocated; i++)
+		{	
+			HashTableValue* bucket = m_data[i];
+			if (bucket != NULL)
+			{
+				return Iterator(this, i, bucket);			
+			}
+		}
+		
+		return Iterator();
+	}
+
+	Iterator End()
+	{
+		return Iterator();
 	}
 
 	// Returns true if we contain the given hash.
@@ -185,7 +287,7 @@ public:
 
 		return Get_Value(hash) != NULL;
 	}
-	
+
 	// Returns the size of the hash table.
 	int Size() const
 	{
@@ -206,8 +308,11 @@ public:
 			{
 				HashTableValue* next = bucket->Next;
 			
-				//delete next;
-				m_memory_pool.Release(next);
+				if (next != NULL)
+				{
+					//delete next;
+					m_memory_pool.Release(next);
+				}
 
 				bucket = next;
 			}
@@ -224,7 +329,7 @@ public:
 		MutexLock lock(m_mutex);
 
 		// Figure out bucket index.
-		int bucket_index = Get_Bucket(hash);
+		unsigned int bucket_index = Get_Bucket(hash);
 		
 		// Find end of current bucket chain.
 		// TODO: Double linked list, faster.
@@ -293,13 +398,27 @@ public:
 		return val == NULL ? NULL : val->Value;
 	}
 
+	// Gets the value for the given hash.
+	bool Get(KeyType hash, ValueType& val_out) const
+	{
+		MutexLock lock(m_mutex);
+
+		HashTableValue* val = Get_Value(hash);
+		if (val != NULL)
+		{
+			val_out = val->Value;
+		}
+
+		return val != NULL;
+	}
+
 	// Sets the value for the given hash.
 	void Set(KeyType hash, ValueType value)
 	{
 		MutexLock lock(m_mutex);
 
 		// Figure out bucket index.
-		int bucket_index = Get_Bucket(hash);
+		unsigned int bucket_index = Get_Bucket(hash);
 		
 		// Find end of current bucket chain.
 		// TODO: Double linked list, faster.

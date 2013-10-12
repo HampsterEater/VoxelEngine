@@ -16,7 +16,7 @@ public:
 #undef CONFIG_VALUE
 
 	// Loading methods.
-	void Unpack	(const ConfigFile& file);
+	void Unpack	(ConfigFile& file);
 
 };
 

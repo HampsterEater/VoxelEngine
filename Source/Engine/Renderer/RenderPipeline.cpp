@@ -15,7 +15,6 @@
 #include "Engine\Engine\GameEngine.h"
 
 #include "Generic\Helper\StringHelper.h"
-#include "Engine\IO\FileWatcher.h"
 
 #include "Generic\ThirdParty\RapidXML\rapidxml.hpp"
 
@@ -43,12 +42,14 @@ RenderPipeline_Mesh::~RenderPipeline_Mesh()
 
 RenderPipeline_Texture::RenderPipeline_Texture()
 	: Texture(NULL)
+	, RawTexture(NULL)
 {
 }
 
 RenderPipeline_Texture::~RenderPipeline_Texture()
 {
-	SAFE_DELETE(Texture);
+	//SAFE_DELETE(Texture);
+	SAFE_DELETE(RawTexture);
 }
 
 RenderPipeline_Target::RenderPipeline_Target()
@@ -131,11 +132,8 @@ RenderPipeline::~RenderPipeline()
 void RenderPipeline::Reset()
 {
 	SAFE_DELETE(m_default_state);
-	
-	for (std::vector<FileWatcher*>::iterator iter = m_file_watchers.begin(); iter != m_file_watchers.end(); iter++)
-	{
-		delete *iter;
-	}		
+
+	Reset_Reload_Trigger_Files();
 
 	for (std::vector<RenderPipeline_Mesh*>::iterator iter = m_meshes.begin(); iter != m_meshes.end(); iter++)
 	{
@@ -163,7 +161,6 @@ void RenderPipeline::Reset()
 	m_targets.clear();
 	m_shaders.clear();
 	m_passes.clear();
-	m_file_watchers.clear();
 }
 
 bool RenderPipeline::Load_Config(const char* path)
@@ -208,7 +205,7 @@ bool RenderPipeline::Load_Config(const char* path)
 	
 	// Store config path for reloading later on.
 	m_config_path = path;
-	m_file_watchers.push_back(new FileWatcher(path));
+	Add_Reload_Trigger_File(path);
 
 	// Find root node.	
 	rapidxml::xml_node<>* root = document->first_node("xml", 0, false);
@@ -345,6 +342,8 @@ void RenderPipeline::Draw(const FrameTime& time)
 		m_active_camera = *cameras.begin();
 	}
 
+	Rect viewport = m_active_camera->Get_Viewport();
+
 	// Apply the default state.
 	if (m_default_state != NULL)
 	{
@@ -356,6 +355,16 @@ void RenderPipeline::Draw(const FrameTime& time)
 	{
 		Draw_Pass(time, *iter);
 	}
+
+	// Remove some temp state variables we no longer need.
+	m_active_light = NULL;
+
+	// Render the UI in orthographic projection.
+	UIManager* ui = GameEngine::Get()->Get_UIManager();
+	m_renderer->Set_Projection_Matrix(Matrix4::Orthographic(0, viewport.Width, viewport.Height, 0, -1.0f, 1.0f));
+	m_renderer->Set_View_Matrix(Matrix4::Identity());
+	m_renderer->Set_World_Matrix(Matrix4::Identity());
+	ui->Draw(time);
 
 	// Flip buffers.
 	m_renderer->Flip(time);
@@ -373,6 +382,7 @@ void RenderPipeline::Apply_State(const FrameTime& time, RenderPipeline_State* st
 		case RenderPipeline_StateSettingType::CullFace:			m_renderer->Set_Cull_Face(setting->EnumValue);			break;
 		case RenderPipeline_StateSettingType::DepthFunction:	m_renderer->Set_Depth_Function(setting->EnumValue);		break;
 		case RenderPipeline_StateSettingType::DepthTest:		m_renderer->Set_Depth_Test(setting->BoolValue);			break;
+		case RenderPipeline_StateSettingType::AlphaTest:		m_renderer->Set_Alpha_Test(setting->BoolValue);			break;
 		case RenderPipeline_StateSettingType::Clear:			
 			{
 				if (setting->BoolValue == true)
@@ -405,6 +415,17 @@ void RenderPipeline::Update_Shader_Uniforms()
 	Matrix4 world_view_projection_matrix	= projection_matrix * world_view_matrix;
 	Matrix4 normal_matrix					= world_view_matrix.Inverse().Transpose();
 
+	Matrix4 light_projection_matrix;
+	Matrix4 light_view_matrix;
+
+	if (m_active_light != NULL && m_active_light->Get_Shadow_Caster() == true)
+	{
+		light_projection_matrix = m_active_light->Get_Projection_Matrix();
+		light_view_matrix = m_active_light->Get_View_Matrix();
+	}
+
+	Matrix4 light_world_view_projection_matrix	= light_projection_matrix * (light_view_matrix * world_matrix);
+
 	Material* material						= m_renderer->Get_Material();
 
 	int display_width						= (int)m_active_camera->Get_Viewport().Width;
@@ -424,7 +445,9 @@ void RenderPipeline::Update_Shader_Uniforms()
 			// Samplers
 			case RenderPipeline_ShaderUniformType::Texture:								
 				{
-					m_renderer->Bind_Texture(uniform->Texture->Texture, binded_texture_index);
+					const Texture* tex = uniform->Texture->Texture != NULL ? uniform->Texture->Texture->Get() : uniform->Texture->RawTexture;
+
+					m_renderer->Bind_Texture(tex, binded_texture_index);
 					prog->Bind_Texture(uniform->Name.c_str(), binded_texture_index);
 					binded_texture_index++;
 					break;
@@ -432,7 +455,7 @@ void RenderPipeline::Update_Shader_Uniforms()
 			case RenderPipeline_ShaderUniformType::MaterialTexture:			
 				{
 					DBG_ASSERT(material != NULL && material->Get_Texture() != NULL);
-					m_renderer->Bind_Texture(material->Get_Texture(), binded_texture_index);
+					m_renderer->Bind_Texture(material->Get_Texture()->Get(), binded_texture_index);
 					prog->Bind_Texture(uniform->Name.c_str(), binded_texture_index);
 					binded_texture_index++;
 					break;
@@ -450,12 +473,12 @@ void RenderPipeline::Update_Shader_Uniforms()
 			case RenderPipeline_ShaderUniformType::LightType:							prog->Bind_Int(uniform->Name.c_str(), m_active_light->Get_Type());					break;
 
 			// Vector3's
-			case RenderPipeline_ShaderUniformType::MaterialSpecular:					prog->Bind_Vector(uniform->Name.c_str(), material->Get_Specular());					break;
-			case RenderPipeline_ShaderUniformType::CameraPosition:						prog->Bind_Vector(uniform->Name.c_str(), m_active_camera->Get_Position());			break;
-			case RenderPipeline_ShaderUniformType::Resolution:							prog->Bind_Vector(uniform->Name.c_str(), Vector3((float)display_width, (float)display_height, 1.0f)); break;
-			case RenderPipeline_ShaderUniformType::LightPosition:						prog->Bind_Vector(uniform->Name.c_str(), world_view_matrix * m_active_light->Get_Position().To_Vector4());			break;
-			case RenderPipeline_ShaderUniformType::LightDirection:						prog->Bind_Vector(uniform->Name.c_str(), normal_matrix * m_active_light->Get_Rotation().To_Vector4());			break;
-			case RenderPipeline_ShaderUniformType::LightColor:							prog->Bind_Vector(uniform->Name.c_str(), m_active_light->Get_Color().To_Vector4());	break;
+			case RenderPipeline_ShaderUniformType::MaterialSpecular:					prog->Bind_Vector(uniform->Name.c_str(), material->Get_Specular());												break;
+			case RenderPipeline_ShaderUniformType::CameraPosition:						prog->Bind_Vector(uniform->Name.c_str(), m_active_camera->Get_Position());										break;
+			case RenderPipeline_ShaderUniformType::Resolution:							prog->Bind_Vector(uniform->Name.c_str(), Vector3((float)display_width, (float)display_height, 1.0f));			break;
+			case RenderPipeline_ShaderUniformType::LightPosition:						prog->Bind_Vector(uniform->Name.c_str(), world_view_matrix * Vector4(m_active_light->Get_Position(), 1.0f));	break;
+			case RenderPipeline_ShaderUniformType::LightDirection:						prog->Bind_Vector(uniform->Name.c_str(), normal_matrix * Vector4(m_active_light->Get_Direction(), 1.0f));		break;
+			case RenderPipeline_ShaderUniformType::LightColor:							prog->Bind_Vector(uniform->Name.c_str(), m_active_light->Get_Color().To_Vector4());								break;
 
 			// Matrix4's
 			case RenderPipeline_ShaderUniformType::WorldMatrix:							prog->Bind_Matrix(uniform->Name.c_str(), world_matrix);								break;
@@ -470,11 +493,14 @@ void RenderPipeline::Update_Shader_Uniforms()
 			case RenderPipeline_ShaderUniformType::InverseWorldViewMatrix:				prog->Bind_Matrix(uniform->Name.c_str(), world_view_matrix.Inverse());				break;
 			case RenderPipeline_ShaderUniformType::InverseWorldViewProjectionMatrix:	prog->Bind_Matrix(uniform->Name.c_str(), world_view_projection_matrix.Inverse());	break;
 			case RenderPipeline_ShaderUniformType::InverseNormalMatrix:					prog->Bind_Matrix(uniform->Name.c_str(), normal_matrix.Inverse());					break;
+			case RenderPipeline_ShaderUniformType::LightWorldViewProjectionMatrix:		prog->Bind_Matrix(uniform->Name.c_str(), light_world_view_projection_matrix);		break;
+			case RenderPipeline_ShaderUniformType::LightProjectionMatrix:				prog->Bind_Matrix(uniform->Name.c_str(), light_projection_matrix);					break;
+			case RenderPipeline_ShaderUniformType::LightViewMatrix:						prog->Bind_Matrix(uniform->Name.c_str(), light_view_matrix);						break;
 
 			// Special ones!
 			case RenderPipeline_ShaderUniformType::TextureSize:
 				{
-					prog->Bind_Vector(uniform->Name.c_str(), Vector3((float)uniform->Texture->Texture->Get_Width(), (float)uniform->Texture->Texture->Get_Height(), 0.0f));	break;
+					prog->Bind_Vector(uniform->Name.c_str(), Vector3((float)uniform->Texture->Texture->Get()->Get_Width(), (float)uniform->Texture->Texture->Get()->Get_Height(), 0.0f));	break;
 					break;
 				}
 
@@ -540,60 +566,43 @@ void RenderPipeline::Draw_Scene(const FrameTime& time)
 
 		m_active_camera = camera;
 
-		Rect	  viewport		= camera->Get_Viewport();
-		Vector3   rotation		= camera->Get_Rotation();
-		Vector3   position		= camera->Get_Position();
-		float	  near_clip		= camera->Get_Near_Clip();
-		float	  far_clip		= camera->Get_Far_Clip();
+		// Calculate matricies.
+		Matrix4 projection_matrix = camera->Get_Projection_Matrix();
+		Matrix4 view_matrix       = camera->Get_View_Matrix();
+		Matrix4 world_matrix	  = Matrix4::Identity();
 
-		// Calculate projection matrix.
-		Matrix4 projection_matrix = Matrix4::Perspective(camera->Get_FOV(), viewport.Width / viewport.Height, near_clip, far_clip);
+		Draw_Scene_With_Matrices(time, projection_matrix, view_matrix, world_matrix);
+	}
+}
 
-		// Calculate view matrix.
-		float horizontal = rotation.Y;
-		float vertical   = rotation.Z;
-		Vector3 direction
-		(
-			cos(vertical) * sin(horizontal),
-			sin(vertical),
-			cos(vertical) * cos(horizontal)
-		);
-		Vector3	right
-		(
-			sin(horizontal - 3.14f / 2.0f),
-			0,
-			cos(horizontal - 3.14f / 2.0f)
-		);
-		Vector3 center = position + direction;
-		Vector3 up = right.Cross(direction);
-		Matrix4 view_matrix = Matrix4::LookAt(position, center, up);
+void RenderPipeline::Draw_Scene_With_Matrices(const FrameTime& time, Matrix4& projection_matrix, Matrix4& view_matrix, Matrix4& world_matrix)
+{
+	// Shader uniforms will need updating!
+	m_renderer->Set_Projection_Matrix(projection_matrix);
+	m_renderer->Set_View_Matrix(view_matrix);
+	m_renderer->Set_World_Matrix(world_matrix);
 
-		// Apply world matrix.
-		Matrix4 world_matrix = Matrix4::Identity();
+	// Render all drawables.
+	std::vector<Drawable*>& drawable = GameEngine::Get()->Get_Scene()->Get_Drawables();
+	for (auto iter = drawable.begin(); iter != drawable.end(); iter++)
+	{
+		Drawable* drawable = *iter;
+		drawable->Draw(time, this);
+	}
 
-		// Shader uniforms will need updating!
-		m_renderer->Set_Projection_Matrix(projection_matrix);
-		m_renderer->Set_View_Matrix(view_matrix);
-		m_renderer->Set_World_Matrix(world_matrix);
+	// Render all lights.
+	std::vector<Light*>& lights = GameEngine::Get()->Get_Scene()->Get_Lights();
+	for (auto iter = lights.begin(); iter != lights.end(); iter++)
+	{
+		Light* light = *iter;
 
-		// Render all drawables.
-		std::vector<Drawable*>& drawable = GameEngine::Get()->Get_Scene()->Get_Drawables();
-		for (auto iter = drawable.begin(); iter != drawable.end(); iter++)
-		{
-			Drawable* drawable = *iter;
-			drawable->Draw(time, this);
-		}
+		// Move to lights position.
+		m_renderer->Set_World_Matrix(world_matrix * Matrix4::Translate(light->Get_Position()));
+		Update_Shader_Uniforms();
 
-		
-		std::vector<Light*>& lights = GameEngine::Get()->Get_Scene()->Get_Lights();
-		for (std::vector<Light*>::iterator iter = lights.begin(); iter != lights.end(); iter++)
-		{
-			Light* light = *iter;
-			m_renderer->Set_World_Matrix(Matrix4::Translate(light->Get_Position()) * m_renderer->Get_World_Matrix());
-			Update_Shader_Uniforms();
-
-			m_renderer->Draw_Wireframe_Sphere(0.2f);
-		}
+		// Draw sphere.
+		m_renderer->Draw_Wireframe_Sphere(0.1f);
+		m_renderer->Draw_Arrow(light->Get_Direction());
 	}
 }
 
@@ -646,6 +655,12 @@ void RenderPipeline::Draw_Pass(const FrameTime& time, RenderPipeline_Pass* pass)
 		{
 			DBG_ASSERT(false);
 		}
+
+		// Do any defined sub-passes.
+		for (std::vector<RenderPipeline_Pass*>::iterator passiter = pass->SubPasses.begin(); passiter != pass->SubPasses.end(); passiter++)
+		{
+			Draw_Pass(time, *passiter);
+		}
 	}
 
 	// Enumerating over lights.
@@ -663,7 +678,26 @@ void RenderPipeline::Draw_Pass(const FrameTime& time, RenderPipeline_Pass* pass)
 			}
 		}
 	}
+	
+	// Enumerating over shadow casting lights.
+	else if (pass->Foreach == RenderPipeline_PassForEachType::Shadow_Casting_Light)
+	{
+		std::vector<Light*> lights = GameEngine::Get()->Get_Scene()->Get_Lights();
+	
+		for (std::vector<Light*>::iterator iter = lights.begin(); iter != lights.end(); iter++)
+		{
+			m_active_light = *iter;
 
+			if (m_active_light->Get_Shadow_Caster() == true)
+			{
+				for (std::vector<RenderPipeline_Pass*>::iterator passiter = pass->SubPasses.begin(); passiter != pass->SubPasses.end(); passiter++)
+				{
+					Draw_Pass(time, *passiter);
+				}
+			}
+		}
+	}
+	
 	// Wut
 	else
 	{
@@ -671,23 +705,9 @@ void RenderPipeline::Draw_Pass(const FrameTime& time, RenderPipeline_Pass* pass)
 	}
 }
 
-void RenderPipeline::Tick(const FrameTime& time)
+void RenderPipeline::Reload()
 {
-	// Have any files changed? Do we need to reload?
-	bool reload = false;
-	for (std::vector<FileWatcher*>::iterator iter = m_file_watchers.begin(); iter != m_file_watchers.end(); iter++)
-	{
-		FileWatcher* watcher = *iter;
-		if (watcher->Has_Changed())
-		{
-			reload = true;
-		}
-	}
-
-	if (reload == true)
-	{		
-		Load_Config(m_config_path.c_str());
-	}
+	Load_Config(m_config_path.c_str());
 }
 
 std::string RenderPipeline::Get_Attribute_Value(rapidxml::xml_node<>* node, const char* name, const char* def)
@@ -1076,8 +1096,8 @@ RenderPipeline_Texture*	RenderPipeline::Load_Texture(rapidxml::xml_node<>* node)
 	if (file_string != "")
 	{
 		state->Texture = TextureFactory::Load(file_string.c_str(), flags);
-		m_file_watchers.push_back(new FileWatcher(file_string.c_str()));
-		
+		Add_Reload_Trigger_File(file_string.c_str());
+
 		DBG_ASSERT_STR(state->Texture != NULL,  "Failed to load texture '%s'.", file_string.c_str())
 	}
 	else
@@ -1098,7 +1118,7 @@ RenderPipeline_Texture*	RenderPipeline::Load_Texture(rapidxml::xml_node<>* node)
 		int width  = atoi(width_string.c_str());
 		int height = atoi(height_string.c_str());
 
-		state->Texture = m_renderer->Create_Texture(width, height, width, format, flags);
+		state->RawTexture = m_renderer->Create_Texture(width, height, width, format, flags);
 	}
 
 	return state;
@@ -1123,15 +1143,15 @@ RenderPipeline_Target* RenderPipeline::Load_Target(rapidxml::xml_node<>* node)
 
 		if (stricmp(type.c_str(), "color") == 0)
 		{
-			state->Target->Bind_Texture(RenderTargetBufferType::Color, texture->Texture);
+			state->Target->Bind_Texture(RenderTargetBufferType::Color, texture->Texture != NULL ? texture->Texture->Get() : texture->RawTexture);
 		}
 		else if (stricmp(type.c_str(), "depth") == 0)		
 		{
-			state->Target->Bind_Texture(RenderTargetBufferType::Depth, texture->Texture);
+			state->Target->Bind_Texture(RenderTargetBufferType::Depth,  texture->Texture != NULL ? texture->Texture->Get() : texture->RawTexture);
 		}
 		else if (stricmp(type.c_str(), "stencil") == 0)	
 		{
-			state->Target->Bind_Texture(RenderTargetBufferType::Depth, texture->Texture);
+			state->Target->Bind_Texture(RenderTargetBufferType::Depth,  texture->Texture != NULL ? texture->Texture->Get() : texture->RawTexture);
 		}
 		else
 		{
@@ -1165,7 +1185,7 @@ RenderPipeline_Shader* RenderPipeline::Load_Shader(rapidxml::xml_node<>* node)
 		DBG_ASSERT_STR(state->Vertex_Shader != NULL, "Failed to load vertex shader '%s'.", vertex_shader_filename.c_str());
 		shaders.push_back(state->Vertex_Shader);
 
-		m_file_watchers.push_back(new FileWatcher(vertex_shader_filename.c_str()));
+		Add_Reload_Trigger_File(vertex_shader_filename.c_str());
 	}
 	if (fragment_shader_filename != "")
 	{
@@ -1173,7 +1193,7 @@ RenderPipeline_Shader* RenderPipeline::Load_Shader(rapidxml::xml_node<>* node)
 		DBG_ASSERT_STR(state->Fragment_Shader != NULL, "Failed to load fragment shader '%s'.", vertex_shader_filename.c_str());
 		shaders.push_back(state->Fragment_Shader);
 
-		m_file_watchers.push_back(new FileWatcher(fragment_shader_filename.c_str()));
+		Add_Reload_Trigger_File(fragment_shader_filename.c_str());
 	}
 
 	// Create shader program.
@@ -1332,24 +1352,28 @@ RenderPipeline_Pass* RenderPipeline::Load_Pass(rapidxml::xml_node<>* node)
 		{
 			state->Foreach = RenderPipeline_PassForEachType::Light;
 		}
+		else if (stricmp(foreach_name.c_str(), "shadow_casting_light") == 0)
+		{
+			state->Foreach = RenderPipeline_PassForEachType::Shadow_Casting_Light;
+		}
 		else
 		{
 			DBG_ASSERT_STR(state->Shader != NULL, "Unknown foreach value '%s' in pass '%s'.", foreach_name.c_str(), state->Name.c_str());	
 		}
+	}
 
-		// Load in passes.
-		rapidxml::xml_node<>* passes = node->first_node("sub-passes", 0, false);
-		if (passes != NULL)
+	// Load in passes.
+	rapidxml::xml_node<>* passes = node->first_node("sub-passes", 0, false);
+	if (passes != NULL)
+	{
+		rapidxml::xml_node<>* sub_pass = passes->first_node("pass", 0, false);
+		while (sub_pass != NULL)
 		{
-			rapidxml::xml_node<>* sub_pass = passes->first_node("pass", 0, false);
-			while (sub_pass != NULL)
-			{
-				RenderPipeline_Pass* spass = Load_Pass(sub_pass);
-				state->SubPasses.push_back(spass);
+			RenderPipeline_Pass* spass = Load_Pass(sub_pass);
+			state->SubPasses.push_back(spass);
 			
-				sub_pass = sub_pass->next_sibling("pass", 0, false);
-				DBG_LOG("Loaded pipeline sub-pass: %s", spass->Name.c_str());
-			}
+			sub_pass = sub_pass->next_sibling("pass", 0, false);
+			DBG_LOG("Loaded pipeline sub-pass: %s", spass->Name.c_str());
 		}
 	}
 

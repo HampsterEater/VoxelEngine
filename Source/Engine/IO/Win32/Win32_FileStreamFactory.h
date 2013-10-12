@@ -10,7 +10,7 @@ class Win32_FileStreamFactory : public StreamFactory
 {
 public:
 	Stream*	Try_Open(const char* url, StreamMode::Type mode);
-	s64   Try_Get_Last_Modified(const char* url);
+	u64   Try_Get_Last_Modified(const char* url);
 
 };
 

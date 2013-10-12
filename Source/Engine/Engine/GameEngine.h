@@ -6,14 +6,17 @@
 
 #include "Engine\Engine\FrameTime.h"
 #include "Engine\Engine\GameEngineConfig.h"
+#include "Engine\UI\UIManager.h"
 #include "Generic\Patterns\Singleton.h"
 
 class Renderer;
+class AudioRenderer;
 class Platform;
 class Display;
 class Scene;
 class GameRunner;
 class RenderPipeline;
+class Locale;
 
 class GameEngine : public Singleton<GameEngine>
 {
@@ -27,17 +30,22 @@ private:
 
 	Platform*			m_platform;
 	Renderer*			m_renderer;
+	AudioRenderer*		m_audio_renderer;
 	Display*			m_display;
 	Scene*				m_scene;
+	UIManager*			m_ui_manager;
+	Locale*				m_locale;
 
 	RenderPipeline*		m_render_pipeline;
 
 public:
 	~GameEngine();
 	GameEngine(GameRunner* runner);
-
-	Scene*			Get_Scene();
-	RenderPipeline* Get_RenderPipeline();
+	
+	const GameEngineConfig*	Get_Config();
+	Scene*					Get_Scene();
+	RenderPipeline*			Get_RenderPipeline();
+	UIManager*				Get_UIManager();
 
 	bool Is_Running();
 	void Stop();

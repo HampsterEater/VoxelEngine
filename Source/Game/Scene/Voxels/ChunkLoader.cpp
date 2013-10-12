@@ -40,8 +40,8 @@ ChunkLoader::ChunkLoader(ChunkManager* manager, const ChunkManagerConfig& config
 	DBG_ASSERT(m_thread != NULL);
 	
 	// Boot up threads.
-	m_thread->Set_Affinity(1 << (1 % m_thread->Get_Core_Count()));
-	m_thread->Set_Priority(ThreadPriority::Low);
+	//m_thread->Set_Affinity(1 << (1 % m_thread->Get_Core_Count()));
+	//m_thread->Set_Priority(ThreadPriority::Low);
 	m_thread->Start();
 }
 
@@ -100,6 +100,16 @@ void ChunkLoader::Refresh_Queue()
 		{
 			for (int z = camera_chunk.Z - m_config.load_distance.Z; z < camera_chunk.Z + m_config.load_distance.Z; z++)
 			{
+				// Check chunk is in extents.
+				if ((m_config.extents_min.X != 0 && x < m_config.extents_min.X) ||
+					(m_config.extents_max.X != 0 && x > m_config.extents_max.X) ||
+					(m_config.extents_min.Y != 0 && y < m_config.extents_min.Y) ||
+					(m_config.extents_max.Y != 0 && y > m_config.extents_max.Y) ||
+					(m_config.extents_min.Z != 0 && z < m_config.extents_min.Z) ||
+					(m_config.extents_max.Z != 0 && z > m_config.extents_max.Z))
+					continue;
+
+				// Load chunk info!
 				IntVector3 chunk_position = IntVector3(x, y, z);
 				Chunk*	   chunk		  = m_manager->Get_Chunk(chunk_position); 
 
@@ -235,7 +245,7 @@ void ChunkLoader::Chunk_Load_Thread(Thread* thread)
 			//yield_counter++;
 			//if ((yield_counter % 5) == 0)
 			//{
-			//	m_thread->Sleep(0.005f);
+				m_thread->Sleep(0.005f);
 			//}
 		}
 	}

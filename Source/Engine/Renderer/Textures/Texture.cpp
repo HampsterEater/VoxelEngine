@@ -17,27 +17,27 @@ Texture::~Texture()
 	SAFE_DELETE(m_data);
 }
 
-int	Texture::Get_Width()
+int	Texture::Get_Width() const
 {
 	return m_width;
 }
 
-int	Texture::Get_Height()
+int	Texture::Get_Height() const
 {
 	return m_height;
 }
 
-int	Texture::Get_Pitch()
+int	Texture::Get_Pitch() const
 {
 	return m_pitch;
 }
 
-const char* Texture::Get_Data()
+const char* Texture::Get_Data() const
 {
 	return m_data;
 }
 
-TextureFormat::Type	Texture::Get_Format()
+TextureFormat::Type	Texture::Get_Format() const
 {
 	return m_format;
 }

@@ -12,6 +12,7 @@
 #include "Generic\Types\Frustum.h"
 #include "Generic\Types\Color.h"
 
+#include "Engine\Renderer\Textures\TextureHandle.h"
 #include "Engine\Renderer\Textures\Texture.h"
 #include "Engine\Renderer\Shaders\Shader.h"
 #include "Engine\Renderer\Textures\RenderTarget.h"
@@ -20,6 +21,8 @@
 #include "Generic\ThirdParty\RapidXML\rapidxml.hpp"
 #include "Generic\ThirdParty\RapidXML\rapidxml_iterators.hpp"
 
+#include "Engine\Resources\Reloadable.h"
+
 #include <vector>
 
 class Display;
@@ -27,7 +30,7 @@ class Camera;
 class RenderTarget;
 class ShaderProgram;
 class Light;
-class FileWatcher;
+class Texture;
 
 struct RenderPipeline_StateSettingType
 {
@@ -99,7 +102,8 @@ struct RenderPipeline_Texture
 	~RenderPipeline_Texture();
 
 	std::string							Name;
-	Texture*							Texture;
+	Texture*							RawTexture;
+	TextureHandle*						Texture;
 };
 
 struct RenderPipeline_Target
@@ -163,7 +167,8 @@ struct RenderPipeline_PassForEachType
 	enum Type
 	{
 		None,
-		Light
+		Light,
+		Shadow_Casting_Light
 	};
 };
 
@@ -204,7 +209,7 @@ struct RenderPipeline_Pass
 	std::vector<RenderPipeline_Pass*>			SubPasses;
 };
 
-class RenderPipeline
+class RenderPipeline : public Singleton<RenderPipeline>, public Reloadable
 {
 private:
 	RenderPipeline_State*					m_default_state;
@@ -222,18 +227,15 @@ private:
 	Light*									m_active_light;
 
 	std::string								m_config_path;
-	std::vector<FileWatcher*>				m_file_watchers;
 
 protected:
 	std::string Get_Attribute_Value(rapidxml::xml_node<>* node, const char* name, const char* def);
 	std::string Get_Node_Value	   (rapidxml::xml_node<>* node, const char* name, const char* def);
 
 	// Drawing functions.
-	void Apply_State(const FrameTime& time, RenderPipeline_State* state);
 	void Draw_Pass(const FrameTime& time, RenderPipeline_Pass* pass);
-	void Apply_Shader(const FrameTime& time, RenderPipeline_Shader* shader);
-	void Apply_Outputs(const FrameTime& time, RenderPipeline_Pass* pass);
 	void Draw_Scene(const FrameTime& time);
+	void Draw_Scene_With_Matrices(const FrameTime& time, Matrix4& projection_matrix, Matrix4& view_matrix, Matrix4& world_matrix);
 
 	// Loading functions.
 	void Load_Defaults	(rapidxml::xml_node<>* node);
@@ -263,7 +265,7 @@ public:
 
 	// Base functions.	
 	void Draw(const FrameTime& time);
-	void Tick(const FrameTime& time);
+	void Reload();
 
 	// Get/Set method.
 	Camera*					Get_Active_Camera		();
@@ -274,6 +276,10 @@ public:
 	RenderPipeline_Target*  Get_Target_From_Name	(const char* name);
 	RenderPipeline_Shader*  Get_Shader_From_Name	(const char* name);
 	RenderPipeline_Pass*	Get_Pass_From_Name		(const char* name);
+
+	void Apply_Outputs(const FrameTime& time, RenderPipeline_Pass* pass);
+	void Apply_State(const FrameTime& time, RenderPipeline_State* state);
+	void Apply_Shader(const FrameTime& time, RenderPipeline_Shader* shader);
 };
 
 #endif

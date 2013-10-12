@@ -6,6 +6,7 @@
 
 #include "Generic\Types\Rectangle.h"
 #include "Generic\Types\Color.h"
+#include "Generic\Types\Matrix4.h"
 
 #include "Engine\Engine\FrameTime.h"
 #include "Engine\Scene\Actor.h"
@@ -28,6 +29,7 @@ protected:
 	float			m_radius;
 	float			m_outer_radius;
 	Color			m_color;
+	bool			m_shadow_caster;
 
 public:
 
@@ -46,9 +48,15 @@ public:
 	
 	virtual float Get_Outer_Radius();
 	virtual void Set_Outer_Radius(float radius);
+	
+	virtual bool Get_Shadow_Caster();
+	virtual void Set_Shadow_Caster(bool caster);
 
 	virtual Color Get_Color();
 	virtual void Set_Color(Color color);
+	
+	virtual Matrix4 Get_Projection_Matrix();
+	virtual Matrix4 Get_View_Matrix();
 
 };
 

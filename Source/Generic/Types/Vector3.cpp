@@ -34,6 +34,11 @@ Vector3 Vector3::operator/ (const Vector3 a) const
 	return Vector3(X / a.X, Y / a.Y, Z / a.Z);
 }
 
+Vector3 Vector3::operator/ (const float a) const
+{
+	return Vector3(X / a, Y / a, Z / a);
+}
+
 Vector3 Vector3::operator- (const Vector3 a) const
 {
 	return Vector3(X - a.X, Y - a.Y, Z - a.Z);
@@ -42,6 +47,11 @@ Vector3 Vector3::operator- (const Vector3 a) const
 Vector3 Vector3::operator- (const IntVector3 a) const
 {
 	return Vector3(X - a.X, Y - a.Y, Z - a.Z);
+}
+
+Vector3 Vector3::operator- () const
+{
+	return Vector3(-X, -Y, -Z);
 }
 
 Vector3 Vector3::Cross(Vector3 a) const
@@ -75,7 +85,22 @@ float Vector3::Length_Squared() const
 	return X * X + Y * Y + Z * Z;
 }
 
-Vector4 Vector3::To_Vector4() const
+Vector3 Vector3::Direction() const
 {
-	return Vector4(X, Y, Z, 1.0f);
+	return Vector3
+		(
+			cos(Z) * sin(Y),
+			sin(Z),
+			cos(Z) * cos(Y)
+		);
+}
+
+Vector3 Vector3::Right() const
+{
+	return Vector3
+		(
+			sin(Y - 3.14f / 2.0f),
+			0,
+			cos(Y - 3.14f / 2.0f)
+		);
 }

@@ -25,7 +25,9 @@ public:
 	~OpenGL_Texture();
 
 	// Binding information.
-	GLuint Get_ID();
+	GLuint Get_ID() const;
+	
+	void Set_Data(char* buffer);
 
 };
 

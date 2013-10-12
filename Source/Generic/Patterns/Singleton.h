@@ -28,6 +28,17 @@ public:
 		return m_pointer;
 	}
 
+	static T* Create()
+	{
+		DBG_ASSERT(m_pointer == NULL);
+		return new T();
+	}
+
+	static void Destroy()
+	{
+		SAFE_DELETE(m_pointer);		
+	}
+
 };
 
 template<typename T>

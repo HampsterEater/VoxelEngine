@@ -40,7 +40,6 @@ bool ConfigFile::Resize_Buffer(int size)
 	return true;
 }
 
-/*
 bool ConfigFile::Save(const char* path)
 {
 	Stream* stream = StreamFactory::Open(path, (StreamMode::Type)(StreamMode::Write | StreamMode::Truncate));
@@ -53,14 +52,15 @@ bool ConfigFile::Save(const char* path)
 	Unpack(*this);
 
 	// Save data.
-	const char* value = m_xml_document.value();
-	stream->WriteString(value);
+	std::string output;
+	rapidxml::print(back_inserter(output), *m_xml_document, 0);
+
+	stream->WriteString(output.c_str());
 
 	// Clean up and return.
 	delete stream;
 	return true;
 }
-*/
 
 bool ConfigFile::Load(const char* path)
 {
@@ -106,12 +106,11 @@ bool ConfigFile::Load(const char* path)
 	return true;
 }
 	
-void ConfigFile::Unpack(const ConfigFile& file)
+void ConfigFile::Unpack(ConfigFile& file)
 {
 }
 
-/*
 void ConfigFile::Pack(ConfigFile& file)
 {
 }
-*/
+

@@ -386,9 +386,9 @@ RenderTarget* OpenGL_Renderer::Create_Render_Target()
 	}
 }
 
-void OpenGL_Renderer::Bind_Texture(Texture* texture, int index)
+void OpenGL_Renderer::Bind_Texture(const Texture* texture, int index)
 {
-	OpenGL_Texture* glTexture = dynamic_cast<OpenGL_Texture*>(texture);
+	const OpenGL_Texture* glTexture = dynamic_cast<const OpenGL_Texture*>(texture);
 
 	DBG_ASSERT(index >= 0 && index < MAX_BINDED_TEXTURES);
 
@@ -413,7 +413,7 @@ void OpenGL_Renderer::Bind_Material(Material* material)
 {
 	//if (m_binded_material != material)
 	//{
-		Bind_Texture(material->Get_Texture(), 0);
+		Bind_Texture(material->Get_Texture()->Get(), 0);
 
 		m_binded_material = material;
 	//}
@@ -527,13 +527,32 @@ bool OpenGL_Renderer::Get_Depth_Test()
 	return m_depth_test;
 }
 
+void OpenGL_Renderer::Set_Alpha_Test(bool depth)
+{
+	if (depth)
+	{
+		glEnable(GL_ALPHA_TEST);
+	}
+	else
+	{
+		glDisable(GL_ALPHA_TEST);
+	}
+
+	m_alpha_test = depth;
+}
+
+bool OpenGL_Renderer::Get_Alpha_Test()
+{
+	return m_alpha_test;
+}
 
 void OpenGL_Renderer::Set_Blend_Function(RendererOption::Type option)
 {
 	switch (option)
 	{
-		case RendererOption::One_One:	glBlendFunc(GL_ONE, GL_ONE);	break;
-		default:						DBG_ASSERT(false);				break;
+		case RendererOption::One_One:							glBlendFunc(GL_ONE, GL_ONE);						break;
+		case RendererOption::Src_Alpha_One_Minus_Src_Alpha:		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);	break;
+		default:												DBG_ASSERT(false);									break;
 	}
 	m_blend_function = option;
 }
@@ -582,7 +601,7 @@ Texture* OpenGL_Renderer::Create_Texture(int width, int height, int pitch, Textu
 {
 	GLuint texture_id;	
 
-	OpenGL_Texture* previous_texture = m_binded_textures[0];
+	const OpenGL_Texture* previous_texture = m_binded_textures[0];
 
 	// Generate and bind texture.
 	glActiveTexture(0);
@@ -594,17 +613,27 @@ Texture* OpenGL_Renderer::Create_Texture(int width, int height, int pitch, Textu
 	{
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_REPEAT);
 	}
 	else
 	{
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP);
 	}
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR); 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); 
+	if ((flags & TextureFlags::LinearFilter) != 0)
+	{
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR); 
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); 
+	}
+	else
+	{
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR); 
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); 
+	}
 	glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_FALSE); 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
-
+	
 	// Upload data to GPU.
 	switch (format)
 	{
@@ -633,6 +662,12 @@ Texture* OpenGL_Renderer::Create_Texture(int width, int height, int pitch, Textu
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_STENCIL_INDEX, width, height, 0, GL_STENCIL_INDEX, GL_FLOAT, 0);
 			break;
 		}
+	case TextureFormat::Luminosity:
+		{
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, 0);
+			break;
+		}
+
 	default:
 		{
 			// Format not supported.
@@ -654,7 +689,7 @@ Texture* OpenGL_Renderer::Create_Texture(char* data, int width, int height, int 
 {
 	GLuint texture_id;	
 	
-	OpenGL_Texture* previous_texture = m_binded_textures[0];
+	const OpenGL_Texture* previous_texture = m_binded_textures[0];
 
 	// Generate and bind texture.
 	glGenTextures(1, &texture_id);
@@ -666,14 +701,24 @@ Texture* OpenGL_Renderer::Create_Texture(char* data, int width, int height, int 
 	{
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_REPEAT);
 	}
 	else
 	{
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP);
 	}
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR); 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); 
+	if ((flags & TextureFlags::LinearFilter) != 0)
+	{
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR); 
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); 
+	}
+	else
+	{
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR); 
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); 
+	}
 	glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE); 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 4);
 
@@ -705,6 +750,12 @@ Texture* OpenGL_Renderer::Create_Texture(char* data, int width, int height, int 
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_STENCIL_INDEX, width, height, 0, GL_STENCIL_INDEX, GL_FLOAT, data);
 			break;
 		}
+	case TextureFormat::Luminosity:
+		{
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, data);
+			break;
+		}
+
 	default:
 		{
 			// Format not supported.
@@ -964,61 +1015,9 @@ int OpenGL_Renderer::Add_Mesh_Triangle(int id, int vertex1, int vertex2, int ver
 	return mesh.triangle_counter++;
 }
 
-void OpenGL_Renderer::Draw_Wireframe_Sphere(float r)
+void OpenGL_Renderer::Draw_Line(float x1, float y1, float z1, float x2, float y2, float z2, float size)
 {
-	int lats  = 12;
-	int longs = 12;
-
-	for (int i = 0; i <= lats; i++) 
-	{
-		double lat0 = PI * (-0.5 + (double) (i - 1) / lats);
-		double z0   = sin(lat0);
-		double zr0  =  cos(lat0);
-    
-		double lat1 = PI * (-0.5 + (double) i / lats);
-		double z1   = sin(lat1);
-		double zr1  = cos(lat1);
-    
-		glBegin(GL_LINE_STRIP);
-		for (int j = 0; j <= longs; j++) 
-		{
-			double lng = 2 * PI * (double) (j - 1) / longs;
-			double x = cos(lng);
-			double y = sin(lng);
-    
-			glNormal3f((x * zr0) * r, (y * zr0) * r, z0 * r);
-			glVertex3f((x * zr0) * r, (y * zr0) * r, z0 * r);
-			glNormal3f((x * zr1) * r, (y * zr1) * r, z1 * r);
-			glVertex3f((x * zr1) * r, (y * zr1) * r, z1 * r);
-		}
-		glEnd();
-	}
-}
-
-void OpenGL_Renderer::Draw_Wireframe_Cube(float w, float h, float d)
-{
-	// Top
-	Draw_Line(0, 0, 0,   w, 0, 0);
-	Draw_Line(0, 0, 0,   0, 0, d);
-	Draw_Line(0, 0, d,   w, 0, d);
-	Draw_Line(w, 0, 0,   w, 0, d);
-
-	// Bottom
-	Draw_Line(0, h, 0,   w, h, 0);
-	Draw_Line(0, h, 0,   0, h, d);
-	Draw_Line(0, h, d,   w, h, d);
-	Draw_Line(w, h, 0,   w, h, d);
-
-	// Connectors.
-	Draw_Line(0, 0, 0,   0, h, 0);
-	Draw_Line(0, 0, d,   0, h, d);
-	Draw_Line(w, 0, d,   w, h, d);
-	Draw_Line(w, 0, 0,   w, h, 0);
-}
-
-void OpenGL_Renderer::Draw_Line(float x1, float y1, float z1, float x2, float y2, float z2)
-{
-	glLineWidth(2.5f); 
+	glLineWidth(size); 
 	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 	glBegin(GL_LINES);
 	glVertex3f(x1, y1, z1);
@@ -1026,20 +1025,30 @@ void OpenGL_Renderer::Draw_Line(float x1, float y1, float z1, float x2, float y2
 	glEnd();
 }
 
-void OpenGL_Renderer::Draw_Quad(float x, float y, float w, float h)
+void OpenGL_Renderer::Draw_Quad(Rect bounds, Rect uv)
 {
+	float left = bounds.X;
+	float top = bounds.Y;
+	float right = left + bounds.Width;
+	float bottom = top + bounds.Height;
+
+	float uv_left	= uv.X;
+	float uv_right	= uv.X + uv.Width;
+	float uv_top	= 1.0 - uv.Y;
+	float uv_bottom = uv_top - uv.Height;
+
 	glBegin(GL_QUADS);
-		glTexCoord2f(0.0f, 0.0f);
-		glVertex3f(x - w, y - h, 0.0f);
+		glTexCoord2f(uv_left, uv_top);
+		glVertex3f(left, top, 0.0f);
+				
+		glTexCoord2f(uv_left, uv_bottom);
+		glVertex3f(left, bottom, 0.0f);
 
-		glTexCoord2f(1.0f, 0.0f);
-		glVertex3f(x + w, y - h, 0.0f);
+		glTexCoord2f(uv_right, uv_bottom);
+		glVertex3f(right, bottom, 0.0f);
 
-		glTexCoord2f(1.0f, 1.0f);
-		glVertex3f(x + w, y + h, 0.0f);
-		
-		glTexCoord2f(0.0f, 1.0f);
-		glVertex3f(x - w, y + h, 0.0f);
-
+		glTexCoord2f(uv_right, uv_top);
+		glVertex3f(right, top, 0.0f);
 	glEnd();
 }
+

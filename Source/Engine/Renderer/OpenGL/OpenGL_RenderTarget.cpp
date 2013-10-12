@@ -21,9 +21,9 @@ GLuint OpenGL_RenderTarget::Get_ID()
 	return m_target_id;
 }
 
-void OpenGL_RenderTarget::Bind_Texture(RenderTargetBufferType::Type type, Texture* texture)
+void OpenGL_RenderTarget::Bind_Texture(RenderTargetBufferType::Type type, const Texture* texture)
 {
-	OpenGL_Texture* glTexture = dynamic_cast<OpenGL_Texture*>(texture);
+	const OpenGL_Texture* glTexture = dynamic_cast<const OpenGL_Texture*>(texture);
 	DBG_ASSERT(glTexture != NULL);
 
 	Renderer::Get()->Bind_Render_Target(this);

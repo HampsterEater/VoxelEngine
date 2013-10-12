@@ -5,6 +5,7 @@
 #define _GENERIC_MATRIX4_
 
 #include "Vector3.h"
+#include "Vector4.h"
 
 // Matrix's are alwyas in column-major order.
 // Matrix's should be considered immutable (though you can use SetColumn etc to initialize)
@@ -34,11 +35,12 @@ public:
 	void SetRow(int column, float e1, float e2, float e3, float e4);
 
 	// Perspective functions.
-	static Matrix4 Identity	  ();
-	static Matrix4 Frustum	  (float l, float r, float b, float t, float n, float f);
-	static Matrix4 Perspective(float fov, float aspect_ratio, float z_near, float z_far);
-	static Matrix4 LookAt	  (Vector3 eye, Vector3 center, Vector3 up);
-	static Matrix4 Translate  (Vector3 vector);
+	static Matrix4 Identity		();
+	static Matrix4 Frustum		(float l, float r, float b, float t, float n, float f);
+	static Matrix4 Perspective	(float fov, float aspect_ratio, float z_near, float z_far);
+	static Matrix4 Orthographic (float x_n, float x_f, float y_n, float y_f, float z_n, float z_f);
+	static Matrix4 LookAt		(Vector3 eye, Vector3 center, Vector3 up);
+	static Matrix4 Translate	(Vector3 vector);
 
 };
 

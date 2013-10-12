@@ -49,7 +49,7 @@ public:
 	// Rendering! What we are all here for.
 	virtual void			Bind_Render_Target			(RenderTarget* texture) = 0;
 	virtual void			Bind_Material				(Material* material) = 0;
-	virtual void			Bind_Texture				(Texture* texture, int slot) = 0;
+	virtual void			Bind_Texture				(const Texture* texture, int slot) = 0;
 	virtual void			Bind_Shader_Program			(ShaderProgram* program) = 0;
 
 	virtual Texture*		Create_Texture				(char* data, int width, int height, int pitch, TextureFormat::Type format, TextureFlags::Type flags) = 0;
@@ -72,7 +72,9 @@ public:
 	virtual void					Set_Depth_Function			(RendererOption::Type option) = 0;
 	virtual RendererOption::Type	Get_Depth_Function			() = 0;
 	virtual void					Set_Depth_Test				(bool depth) = 0;
-	virtual bool					Get_Depth_Test				() = 0;
+	virtual bool					Get_Depth_Test				() = 0;	
+	virtual void					Set_Alpha_Test				(bool depth) = 0;
+	virtual bool					Get_Alpha_Test				() = 0;
 	virtual void					Set_Blend_Function			(RendererOption::Type option) = 0;
 	virtual RendererOption::Type	Get_Blend_Function			() = 0;
 	virtual void					Set_Blend					(bool blend) = 0;
@@ -98,9 +100,13 @@ public:
 	virtual int				Add_Mesh_Triangle			(int id, int vertex1, int vertex2, int vertex3) = 0;
 
 	// Immediate rendering (mainly used for debugging).
-	virtual void			Draw_Wireframe_Cube			(float w, float h, float d) = 0;
-	virtual void			Draw_Wireframe_Sphere		(float r) = 0;
-	virtual void			Draw_Line					(float x1, float y1, float z1, float x2, float y2, float z2) = 0;
+	virtual void			Draw_Line					(float x1, float y1, float z1, float x2, float y2, float z2, float size = 1.0f) = 0;
+	virtual void			Draw_Quad					(Rect bounds, Rect uv) = 0;
+	
+	// Build in debug primitives.
+	void					Draw_Wireframe_Cube			(float w, float h, float d);
+	void					Draw_Wireframe_Sphere		(float r);
+	void					Draw_Arrow					(Vector3 direction, float line_length = 0.2f, float pip_length = 0.04f);
 
 };
 

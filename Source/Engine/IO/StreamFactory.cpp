@@ -22,19 +22,19 @@ Stream* StreamFactory::Open(const char* url, StreamMode::Type mode)
 	return NULL;
 }
 
-s64 StreamFactory::Get_Last_Modified(const char* url)
+u64 StreamFactory::Get_Last_Modified(const char* url)
 {
 	for (LinkedList<StreamFactory*>::Iterator iter = m_factories.Begin(); iter != m_factories.End(); iter++)
 	{
 		StreamFactory* factory = *iter;
-		int result = factory->Try_Get_Last_Modified(url);
+		u64 result = factory->Try_Get_Last_Modified(url);
 		if (result != 0)
 		{
 			return result;
 		}
 	}
 	
-	DBG_LOG("Failed to get last modified timestamp for: %s", url);
+//	DBG_LOG("Failed to get last modified timestamp for: %s", url);
 	return 0;
 }
 

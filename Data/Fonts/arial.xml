@@ -1,0 +1,12 @@
+<xml>
+	<generation>
+		<ttf>Data/Fonts/arial.ttf</ttf>
+		<sdf-spread>64</sdf-spread>
+		<sdf-downscale>64</sdf-downscale>
+		<sdf-threshold>128</sdf-threshold>
+		<texture-size>1024</texture-size>
+		<max-textures>8</max-textures>
+		<glyph-size>64</glyph-size>
+		<glyph-spacing>2</glyph-spacing>
+	</generation> 
+</xml> 

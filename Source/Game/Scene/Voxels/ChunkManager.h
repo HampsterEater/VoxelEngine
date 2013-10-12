@@ -50,8 +50,8 @@ private:
 	int							m_max_chunks;
 	int							m_voxels_per_chunk;
 
-	ChunkLoader					m_chunk_loader;
-	ChunkUnloader				m_chunk_unloader;
+	ChunkLoader*				m_chunk_loader;
+	ChunkUnloader*				m_chunk_unloader;
 		
 	FixedMemoryPool<Chunk>		m_chunk_memory_pool;
 	FixedMemoryPool<Voxel>		m_voxel_memory_pool;
@@ -61,11 +61,11 @@ private:
 
 	int							m_seed;
 
-	Texture*					m_voxel_face_atlas_texture;
+	TextureHandle*				m_voxel_face_atlas_texture;
 	TextureAtlas*				m_voxel_face_atlas;
 	Material*					m_voxel_face_atlas_material;
 
-	WorldFile					m_world_file;
+	WorldFile*					m_world_file;
 	VirtualArray3<RegionFile*>	m_region_files_array;
 	LinkedList<RegionFile*>		m_region_files;
 

@@ -24,4 +24,5 @@ STATE_SETTING("ALWAYS",				Always)
 STATE_SETTING("BACK",				Back)
 STATE_SETTING("FRONT",				Front)
 
-STATE_SETTING("ONE_ONE",			One_One)
+STATE_SETTING("ONE_ONE",						One_One)
+STATE_SETTING("SRC_ALPHA_ONE_MINUS_SRC_ALPHA",	Src_Alpha_One_Minus_Src_Alpha) // TODO: gross

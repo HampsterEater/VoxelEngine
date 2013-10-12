@@ -4,11 +4,19 @@
 #include "Engine\Engine\GameEngine.h"
 #include "Engine\Renderer\Renderer.h"
 #include "Engine\Renderer\RenderPipeline.h"
+#include "Engine\Audio\AudioRenderer.h"
 #include "Engine\Platform\Platform.h"
 #include "Engine\Display\Display.h"
 #include "Engine\Scene\Scene.h"
+#include "Engine\Localise\Locale.h"
+
+#include "Engine\Renderer\Textures\TextureFactory.h"
+#include "Engine\Renderer\Text\FontFactory.h"
+#include "Engine\Audio\Sounds\SoundFactory.h"
 
 #include "Engine\Engine\GameRunner.h"
+
+#include "Engine\Resources\Reloadable.h"
 
 GameEngine::GameEngine(GameRunner* runner)
 	: m_is_running(true)
@@ -16,12 +24,10 @@ GameEngine::GameEngine(GameRunner* runner)
 	, m_frame_time(0)
 	, m_render_pipeline(NULL)
 {
-	DBG_LOG("=============================================================");
-	DBG_LOG(" Voxel Engine Test");
-	DBG_LOG("=============================================================");
-	DBG_LOG(" Copyright (C) 2013 Tim Leonard");
-	DBG_LOG(" All Rights Reserved");
-	DBG_LOG("=============================================================");
+	DBG_LOG("-------------------------------------------------------------");
+	DBG_LOG(" Voxel Engine, Compiled " __TIMESTAMP__);
+	DBG_LOG(" Copyright (C) 2013-2014 Tim Leonard");
+	DBG_LOG("-------------------------------------------------------------");
 
 	DBG_LOG("Initialising platform singleton.");
 	{
@@ -65,25 +71,74 @@ GameEngine::GameEngine(GameRunner* runner)
 		bool result = m_render_pipeline->Load_Config(m_config.render_pipeline_file);
 		DBG_ASSERT(result);
 	}
+	
+	DBG_LOG("Initialising audio renderer.");
+	{
+		m_audio_renderer = AudioRenderer::Create();
+		DBG_ASSERT(m_audio_renderer != NULL);
+	}
+		
+	DBG_LOG("Loading languages.");
+	{
+		m_locale = Locale::Create();
+		
+		for (std::vector<const char*>::iterator iter = m_config.languages.begin(); iter != m_config.languages.end(); iter++)
+		{
+			const char* path = *iter;
+			DBG_LOG("Loading language: %s", path);
+
+			bool result = m_locale->Load_Language(path);
+			DBG_ASSERT_STR(result, "Failed to load language: %s", path);
+		}
+	}
+	
+	DBG_LOG("Selecting default language: %s", m_config.language_default);
+	{
+		bool result = m_locale->Change_Language(m_config.language_default);
+		DBG_ASSERT_STR(result, "Failed to set default language to: %s", m_config.language_default);
+	}
 
 	DBG_LOG("Setting up scene.");
 	{
 		m_scene = new Scene();
 		DBG_ASSERT(m_scene != NULL);
 	}
+
+	DBG_LOG("Setting up UI manager.");
+	{
+		m_ui_manager = new UIManager();
+		DBG_ASSERT(m_ui_manager != NULL);
+	}
 }
 
 GameEngine::~GameEngine()
 {
+	// Destroy instances.
 	SAFE_DELETE(m_scene);
-	SAFE_DELETE(m_display);
-	SAFE_DELETE(m_renderer);
-	SAFE_DELETE(m_platform);
+	SAFE_DELETE(m_ui_manager);
+
+	// Destroy singletons.
+	Locale::Destroy();
+	RenderPipeline::Destroy();
+	AudioRenderer::Destroy();
+	Display::Destroy();
+	Renderer::Destroy();
+	Platform::Destroy();
 }
 
 Scene* GameEngine::Get_Scene()
 {
 	return m_scene;
+}
+
+UIManager* GameEngine::Get_UIManager()
+{
+	return m_ui_manager;
+}
+
+const GameEngineConfig*	GameEngine::Get_Config()
+{
+	return &m_config;
 }
 
 RenderPipeline* GameEngine::Get_RenderPipeline()
@@ -123,10 +178,14 @@ void GameEngine::Run()
 
 void GameEngine::Tick(const FrameTime& time)
 {
-	// Tick everything.
+	// Check for resource reloads.
+	Reloadable::Check_For_Reloads();
+
+	// Tick all the main elements.
 	m_scene->Tick(time);
 	m_display->Tick(time);
-	m_render_pipeline->Tick(time);
+	m_audio_renderer->Tick(time);
+	m_ui_manager->Tick(time);
 
 	// Tick game runner.
 	m_runner->Tick(time);

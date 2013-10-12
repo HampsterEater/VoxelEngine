@@ -20,3 +20,11 @@ Vector4::Vector4(float x, float y, float z, float w)
 	, W(w)
 {
 }
+
+Vector4::Vector4(Vector3 v, float w)
+	: X(v.X)
+	, Y(v.Y)
+	, Z(v.Z)
+	, W(w)
+{
+}

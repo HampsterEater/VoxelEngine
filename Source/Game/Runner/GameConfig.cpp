@@ -3,7 +3,7 @@
 // ===================================================================
 #include "Game\Runner\GameConfig.h"
 
-void GameConfig::Unpack(const ConfigFile& file)
+void GameConfig::Unpack(ConfigFile& file)
 {
 	engine_config.Unpack(file);
 	chunk_config.Unpack(file);

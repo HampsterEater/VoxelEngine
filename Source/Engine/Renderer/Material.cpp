@@ -3,34 +3,35 @@
 // ===================================================================
 #include "Engine\Renderer\Material.h"
 #include "Engine\Renderer\Textures\Texture.h"
+#include "Engine\Renderer\Textures\TextureHandle.h"
 
-Material::Material(Texture* texture)
+Material::Material(TextureHandle* texture)
 	: m_texture(texture)
 	, m_shininess(0)
 	, m_specular(0, 0, 0)
 {
 }
 
-Material::Material(Texture* texture, float shininess)
+Material::Material(TextureHandle* texture, float shininess)
 	: m_texture(texture)
 	, m_shininess(shininess)
 	, m_specular(0, 0, 0)
 {
 }
 
-Material::Material(Texture* texture, float shininess, Vector3 specular)
+Material::Material(TextureHandle* texture, float shininess, Vector3 specular)
 	: m_texture(texture)
 	, m_shininess(shininess)
 	, m_specular(specular)
 {
 }
 
-Texture* Material::Get_Texture()
+TextureHandle* Material::Get_Texture()
 {
 	return m_texture;
 }
 
-void Material::Set_Texture(Texture* texture)
+void Material::Set_Texture(TextureHandle* texture)
 {
 	m_texture = texture;
 }

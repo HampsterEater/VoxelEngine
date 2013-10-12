@@ -12,7 +12,8 @@ struct TextureFormat
 		R8G8B8,
 		R32FG32FB32FA32F,
 		DepthFormat,
-		StencilFormat
+		StencilFormat,
+		Luminosity
 	};
 };
 
@@ -20,13 +21,15 @@ struct TextureFlags
 {
 	enum Type
 	{
-		AllowRepeat = 1
+		None = 0,
+		AllowRepeat = 1,
+		LinearFilter = 2
 	};
 };
 
 class Texture
 {
-private:
+protected:
 	char*				m_data;
 	int					m_width;
 	int					m_height;
@@ -44,11 +47,15 @@ public:
 	virtual ~Texture();
 
 	// Members that have to be overidden.
-	int						Get_Width	 ();
-	int						Get_Height	 ();
-	int						Get_Pitch	 ();
-	const char*				Get_Data	 ();
-	TextureFormat::Type		Get_Format	 ();
+	int						Get_Width	 () const;
+	int						Get_Height	 () const;
+	int						Get_Pitch	 () const;
+	const char*				Get_Data	 () const;
+	TextureFormat::Type		Get_Format	 () const;
+	
+	// Note: When setting data ownership of the buffer is transfered to the texture 
+	//		 object which will deal with deallocation.
+	virtual void			Set_Data	 (char* buffer) = 0;
 
 };
 

@@ -28,3 +28,18 @@ void Actor::Set_Rotation(Vector3 rotation)
 {
 	m_rotation = rotation;
 }
+
+Vector3 Actor::Get_Direction()
+{	
+	float horizontal = m_rotation.Y;
+	float vertical   = m_rotation.Z;
+	
+	Vector3 direction
+	(
+		cos(vertical) * sin(horizontal),
+		sin(vertical),
+		cos(vertical) * cos(horizontal)
+	);
+
+	return direction;
+}

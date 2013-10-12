@@ -9,6 +9,11 @@ class Point
 public:
 	float X, Y;
 
+	Point()
+		: X(0)
+		, Y(0)
+	{
+	}
 	Point(float x, float y)
 	{
 		X = x;

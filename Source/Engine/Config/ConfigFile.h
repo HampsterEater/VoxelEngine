@@ -6,13 +6,18 @@
 
 #include "Generic\Types\IntVector3.h"
 #include "Generic\Types\Vector3.h"
+#include "Generic\Types\Point.h"
+#include "Generic\Types\Rectangle.h"
 
 #include "Generic\Helper\StringHelper.h"
 
 #include "Generic\ThirdParty\RapidXML\rapidxml.hpp"
 #include "Generic\ThirdParty\RapidXML\rapidxml_iterators.hpp"
 #include "Generic\ThirdParty\RapidXML\rapidxml_utils.hpp"
+#include "Generic\ThirdParty\RapidXML\rapidxml_print.hpp"
  
+typedef rapidxml::xml_node<>* ConfigFileNode;
+
 class ConfigFile
 {
 private:
@@ -32,24 +37,31 @@ public:
 	~ConfigFile();
 
 	// Save & load options.
-	//bool Save(const char* path);
+	bool Save(const char* path);
 	bool Load(const char* path);
 	
 	// Used by derived classes to unpack and repack data members for saving/loading.
-	//virtual void Pack  (ConfigFile& file);
-	virtual void Unpack(const ConfigFile& file);
-
-	// ==============================================================
-	// Get functions
-	// ==============================================================
-	template<typename T>
-	T Get(const char* name) const;
+	virtual void Pack  (ConfigFile& file);
+	virtual void Unpack(ConfigFile& file);
 	
-	template<>
-	const char* Get<const char*>(const char* name) const
+	// ==============================================================
+	// Node functions
+	// ==============================================================
+	ConfigFileNode Get_Node(const char* name, bool create = false, bool force_create_last = false)
 	{
-		const rapidxml::xml_node<>* element = m_xml_document->first_node("xml");
-		DBG_ASSERT(element != NULL);
+		rapidxml::xml_node<>* element = m_xml_document->first_node("xml");
+		if (element == NULL)
+		{
+			if (create == true)
+			{
+				element = m_xml_document->allocate_node(rapidxml::node_element, m_xml_document->allocate_string("xml"), NULL);
+				m_xml_document->append_node(element);
+			}
+			else
+			{
+				DBG_ASSERT_STR(false, "Expecting config node '%s'.", "xml");
+			}
+		}
 
 		const int name_len = strlen(name);
 		std::string node_name = "";
@@ -59,9 +71,21 @@ public:
 			char chr = name[i];
 			if (chr == '\\' || chr == '/')
 			{
-				element = element->first_node(node_name.c_str(), 0, false);
-				DBG_ASSERT(element != NULL);
+				rapidxml::xml_node<>* new_element = element->first_node(node_name.c_str(), 0, false);
+				if (new_element == NULL)
+				{
+					if (create == true)
+					{
+						new_element = m_xml_document->allocate_node(rapidxml::node_element, m_xml_document->allocate_string(node_name.c_str()), NULL);
+						element->append_node(new_element);
+					}
+					else
+					{
+						DBG_ASSERT_STR(false, "Expecting config node '%s'.", node_name.c_str());
+					}
+				}
 
+				element = new_element;
 				node_name = "";
 			}
 			else
@@ -72,36 +96,77 @@ public:
 
 		if (node_name != "")
 		{
-			element = element->first_node(node_name.c_str(), 0, false);
-			DBG_ASSERT(element != NULL);
+			rapidxml::xml_node<>* new_element = NULL;
+
+			if (force_create_last == true)
+			{
+				new_element = m_xml_document->allocate_node(rapidxml::node_element, m_xml_document->allocate_string(node_name.c_str()), NULL);
+				element->append_node(new_element);
+			}
+			else
+			{
+				new_element = element->first_node(node_name.c_str(), 0, false);
+				if (new_element == NULL)
+				{
+					if (create == true)
+					{
+						new_element = m_xml_document->allocate_node(rapidxml::node_element, m_xml_document->allocate_string(node_name.c_str()), NULL);
+						element->append_node(new_element);
+					}
+					else
+					{
+						DBG_ASSERT_STR(false, "Expecting config node '%s'.", node_name.c_str());
+					}
+				}
+			}
+
+			element = new_element;
 		}
 
-		return element->value();
+		return element;
+	}
+	
+	ConfigFileNode New_Node(const char* name)
+	{
+		return Get_Node(name, true, true);
+	}
+
+	// ==============================================================
+	// Get functions
+	// ==============================================================
+	template<typename T>
+	T Get(const char* name);
+	
+	template<>
+	const char* Get<const char*>(const char* name)
+	{
+		ConfigFileNode node = Get_Node(name);
+		return node->value();
 	}
 
 	template<>
-	int Get<int>(const char* name) const
+	int Get<int>(const char* name)
 	{
 		const char* source = Get<const char*>(name);
 		return atoi(source);
 	}
 	
 	template<>
-	bool Get<bool>(const char* name) const
+	bool Get<bool>(const char* name)
 	{
 		const char* source = Get<const char*>(name);
 		return (stricmp(source, "0") == 0 || stricmp(source, "false") == 0) ? false : true;
 	}
 
 	template<>
-	float Get<float>(const char* name) const
+	float Get<float>(const char* name)
 	{
 		const char* source = Get<const char*>(name);
 		return (float)atof(source);
 	}
 	
 	template<>
-	IntVector3 Get<IntVector3>(const char* name) const
+	IntVector3 Get<IntVector3>(const char* name)
 	{
 		const char* source = Get<const char*>(name);
 
@@ -118,7 +183,7 @@ public:
 	}
 	
 	template<>
-	Vector3 Get<Vector3>(const char* name) const
+	Vector3 Get<Vector3>(const char* name)
 	{
 		const char* source = Get<const char*>(name);
 
@@ -133,18 +198,13 @@ public:
 					(float)atof(segments.at(2).c_str())
 			   );
 	}
-
-	// ==============================================================
-	// Set functions
-	// ==============================================================
-	/*
-	template<typename T>
-	void Set(const char* name, T value);
-
+	
 	template<>
-	void Set<const char*>(const char* name, const char* value)
+	std::vector<const char*> Get<std::vector<const char*>>(const char* name)
 	{
-		rapidxml::xml_node<>* element = m_xml_document.first_node("xml");
+		std::vector<const char*> result;
+
+		const rapidxml::xml_node<>* element = m_xml_document->first_node("xml");
 		DBG_ASSERT(element != NULL);
 
 		const int name_len = strlen(name);
@@ -156,7 +216,7 @@ public:
 			if (chr == '\\' || chr == '/')
 			{
 				element = element->first_node(node_name.c_str(), 0, false);
-				DBG_ASSERT(element != NULL);
+				DBG_ASSERT(element != NULL, "Expecting config node '%s'.", node_name.c_str());
 
 				node_name = "";
 			}
@@ -166,45 +226,94 @@ public:
 			}
 		}
 
-		if (node_name != "")
-		{
-			element = element->first_node(node_name.c_str(), 0, false);
-			DBG_ASSERT(element != NULL);
-		}
+		// Iterate over results.
+		DBG_ASSERT(node_name != "");
 
-		element->value(value);
+		element = element->first_node(node_name.c_str(), 0, false);
+		while (element != NULL)
+		{
+			result.push_back(element->value());
+			element = element->next_sibling(node_name.c_str(), 0, false);
+		}
+	
+		return result;		
+	}
+
+	// ==============================================================
+	// Set functions
+	// ==============================================================
+	template<typename T>
+	void Set(const char* name, T value, ConfigFileNode node = NULL, bool as_attribute = false);
+
+	template<>
+	void Set<const char*>(const char* name, const char* value, ConfigFileNode node, bool as_attribute)
+	{
+		if (node == NULL)
+		{
+			node = Get_Node(name, true);
+		}
+		/*else
+		{
+			DBG_ASSERT(as_attribute == true);
+		}*/
+
+		if (as_attribute == true)
+		{
+			rapidxml::xml_attribute<>* attr = node->first_attribute(name, 0, false);
+			if (attr == NULL)
+			{
+				attr = m_xml_document->allocate_attribute(m_xml_document->allocate_string(name), m_xml_document->allocate_string(value));
+				node->append_attribute(attr);
+			}
+			attr->value(m_xml_document->allocate_string(value));
+		}
+		else
+		{
+			node->value(m_xml_document->allocate_string(value));
+		}
 	}
 
 	template<>
-	void Set<int>(const char* name, int value)
+	void Set<int>(const char* name, int value, ConfigFileNode node, bool as_attribute)
 	{
-		(value);
+		Set(name, StringHelper::To_String(value).c_str(), node, as_attribute);
 	}
 	
 	template<>
-	void Set<bool>(const char* name, bool value)
+	void Set<bool>(const char* name, bool value, ConfigFileNode node, bool as_attribute)
 	{
-		(value);
+		Set(name, value == true ? "true" : "false", node, as_attribute);
 	}
 
 	template<>
-	void Set<float>(const char* name, float value)
+	void Set<float>(const char* name, float value, ConfigFileNode node, bool as_attribute)
 	{
-		(value);
+		Set(name, StringHelper::To_String(value).c_str(), node, as_attribute);
 	}
 
 	template<>
-	void Set<IntVector3>(const char* name, IntVector3 value)
+	void Set<IntVector3>(const char* name, IntVector3 value, ConfigFileNode node, bool as_attribute)
 	{
-		(value);
+		Set(name, (StringHelper::To_String(value.X) + "," + StringHelper::To_String(value.Y) + "," + StringHelper::To_String(value.Z)).c_str(), node, as_attribute);
 	}
 
 	template<>
-	void Set<Vector3>(const char* name, Vector3 value)
+	void Set<Vector3>(const char* name, Vector3 value, ConfigFileNode node, bool as_attribute)
 	{
-		(value);
+		Set(name, (StringHelper::To_String(value.X) + "," + StringHelper::To_String(value.Y) + "," + StringHelper::To_String(value.Z)).c_str(), node, as_attribute);
 	}
-	*/
+
+	template<>
+	void Set<Point>(const char* name, Point value, ConfigFileNode node, bool as_attribute)
+	{
+		Set(name, (StringHelper::To_String(value.X) + "," + StringHelper::To_String(value.Y)).c_str(), node, as_attribute);
+	}
+	
+	template<>
+	void Set<Rect>(const char* name, Rect value, ConfigFileNode node, bool as_attribute)
+	{
+		Set(name, (StringHelper::To_String(value.X) + "," + StringHelper::To_String(value.Y) + "," + StringHelper::To_String(value.Width) + "," + StringHelper::To_String(value.Height)).c_str(), node, as_attribute);
+	}
 
 };
 

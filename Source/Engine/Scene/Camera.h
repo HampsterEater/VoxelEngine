@@ -6,6 +6,7 @@
 
 #include "Generic\Types\Rectangle.h"
 #include "Generic\Types\Frustum.h"
+#include "Generic\Types\Matrix4.h"
 
 #include "Engine\Engine\FrameTime.h"
 #include "Engine\Scene\Actor.h"
@@ -38,6 +39,9 @@ public:
 
 	virtual float Get_Far_Clip();
 	virtual void  Set_Far_Clip(float clip);
+
+	virtual Matrix4 Get_Projection_Matrix();
+	virtual Matrix4 Get_View_Matrix();
 
 };
 

@@ -22,8 +22,8 @@ ChunkManager::ChunkManager(const ChunkManagerConfig& config)
 	: m_config(config)
 	, m_last_camera_chunk_position(-9999, -9999, -9999)
 	, m_last_camera_position(-9999, -9999, -9999)
-	, m_chunk_loader(this, config)					// TODO: Not going to be deterministically destructed, will mess with destructor of ChunkManager, fix.
-	, m_chunk_unloader(this, config)
+	, m_chunk_loader(new ChunkLoader(this, config))					// TODO: Not going to be deterministically destructed, will mess with destructor of ChunkManager, fix.
+	, m_chunk_unloader(new ChunkUnloader(this, config))
 	, m_max_chunks((m_config.unload_distance.X * 2) * 
 				   (m_config.unload_distance.Y * 2) * 
 				   (m_config.unload_distance.Z * 2))
@@ -32,7 +32,7 @@ ChunkManager::ChunkManager(const ChunkManagerConfig& config)
 						 (m_config.chunk_size.Z))
 	, m_chunk_memory_pool(m_max_chunks * config.chunk_memory_pool_buffer)
 	, m_voxel_memory_pool(m_max_chunks * config.voxel_memory_pool_buffer, sizeof(Voxel) * m_voxels_per_chunk)
-	, m_world_file(this, config)
+	, m_world_file(new WorldFile(this, config))
 {
 	m_voxel_face_atlas_texture = TextureFactory::Load("Data/Textures/Chunks/Voxel_Face_Atlas.png", (TextureFlags::Type)0);
 	m_voxel_face_atlas = new TextureAtlas(m_voxel_face_atlas_texture, 16, 16);
@@ -43,13 +43,18 @@ ChunkManager::ChunkManager(const ChunkManagerConfig& config)
 	DBG_ASSERT(m_region_access_mutex != NULL);
 
 	// Open the world file!
-	bool ret = m_world_file.Open();
+	bool ret = m_world_file->Open();
 	DBG_ASSERT(ret == true);
 }
 
 ChunkManager::~ChunkManager()
 {
-	m_world_file.Close();
+	// Close threads down before we start disposing of things ;)
+	SAFE_DELETE(m_chunk_loader);
+	SAFE_DELETE(m_chunk_unloader);
+	
+	m_world_file->Close();
+	SAFE_DELETE(m_world_file);
 
 	for (LinkedList<RegionFile*>::Iterator iter = m_region_files.Begin(); iter != m_region_files.End(); iter++)
 	{
@@ -63,7 +68,7 @@ ChunkManager::~ChunkManager()
 	SAFE_DELETE(m_region_access_mutex);
 
 	SAFE_DELETE(m_voxel_face_atlas);
-	SAFE_DELETE(m_voxel_face_atlas_texture);	
+	//SAFE_DELETE(m_voxel_face_atlas_texture);	
 	SAFE_DELETE(m_voxel_face_atlas_material);
 }
 
@@ -96,18 +101,16 @@ void ChunkManager::Tick(const FrameTime& time)
 		m_last_camera_position		 = position;
 		m_last_camera_chunk_position = chunk_position;
 
-		printf("Moved to chunk: %i,%i,%i\n", chunk_position.X, chunk_position.Y, chunk_position.Z);
-
 		Update_Chunk_Lists();
 	}
 
 	// Remove newly unloaded chunks.
 	int counter = 0;		
-	if (m_chunk_unloader.Get_Mutex()->Try_Lock())
+	if (m_chunk_unloader->Get_Mutex()->Try_Lock())
 	{
 		while ((counter++) < m_config.chunk_unloads_per_frame)
 		{
-			Chunk* chunk = m_chunk_unloader.Consume_Chunk();
+			Chunk* chunk = m_chunk_unloader->Consume_Chunk();
 			if (chunk == NULL)
 			{
 				break;
@@ -117,15 +120,15 @@ void ChunkManager::Tick(const FrameTime& time)
 			m_chunk_memory_pool.Release(chunk);		
 		}
 
-		m_chunk_unloader.Get_Mutex()->Unlock();
+		m_chunk_unloader->Get_Mutex()->Unlock();
 	}
 
 	// Insert newly loaded chunks.
-	if (m_chunk_loader.Get_Mutex()->Try_Lock())
+	if (m_chunk_loader->Get_Mutex()->Try_Lock())
 	{
 		while (true)
 		{
-			Chunk* chunk = m_chunk_loader.Consume_Chunk();
+			Chunk* chunk = m_chunk_loader->Consume_Chunk();
 			if (chunk == NULL)
 			{
 				break;
@@ -135,7 +138,7 @@ void ChunkManager::Tick(const FrameTime& time)
 			chunk->Mark_Dirty(true);
 		}
 
-		m_chunk_loader.Get_Mutex()->Unlock();
+		m_chunk_loader->Get_Mutex()->Unlock();
 	}
 
 	// Regenerate dirty chunk meshes.
@@ -179,7 +182,7 @@ void ChunkManager::Draw(const FrameTime& time, RenderPipeline* pipeline)
 // DEBUG =======================================================================================
 	static float s_emit_fps_time = 0.0f;
 	s_emit_fps_time += time.Get_Delta();
-	if (s_emit_fps_time > 60.0f || time.Get_Frame_Time() > 5.0f)
+	if (s_emit_fps_time > 60.0f)// || time.Get_Frame_Time() > 10.0f)
 	{
 		printf("[FPS %i, FRAME TIME %0.2f, UPDATE TIME %0.2f, DRAW TIME %0.2f, VOXELS %i, CHUNKS %i, VISIBLE CHUNKS %i, CHUNKS TO GEN %i]\n", time.Get_FPS(), time.Get_Frame_Time(), time.Get_Update_Time(), time.Get_Render_Time(), m_drawn_voxels, m_chunks.Size(), m_visible_chunks.Size(), m_dirty_chunks.Size());	
 		s_emit_fps_time = 0.0f;
@@ -237,12 +240,12 @@ int ChunkManager::Visible_List_Sort_Comparer(Chunk* a, Chunk* b, void* extra)
 
 void ChunkManager::Update_Unload_List()
 {
-	m_chunk_unloader.Refresh();
+	m_chunk_unloader->Refresh();
 }
 
 void ChunkManager::Update_Load_List()
 {
-	m_chunk_loader.Refresh();
+	m_chunk_loader->Refresh();
 }
 
 void ChunkManager::Regenerate_Dirty_Chunks()
@@ -399,7 +402,7 @@ AABB ChunkManager::Calculate_Chunk_AABB(IntVector3 position)
 
 WorldFile* ChunkManager::Get_World_File()
 {
-	return &m_world_file;
+	return m_world_file;
 }
 
 RegionFile* ChunkManager::Get_Region_File(IntVector3 position)

@@ -97,6 +97,66 @@
     <Filter Include="Source Files\Config">
       <UniqueIdentifier>{9d4055ff-ba4f-4de8-b122-6867bd5533b0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Audio">
+      <UniqueIdentifier>{5416ff20-7cf3-4230-974d-387b87ce0996}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Audio">
+      <UniqueIdentifier>{ca6255cc-2b8f-46d7-993e-8788d3edec81}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\UI">
+      <UniqueIdentifier>{4836d302-6fe7-45e1-ab6b-75c2aa84a290}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\UI">
+      <UniqueIdentifier>{e8789e45-addf-4def-a6a1-c992d414f087}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Audio\FMod">
+      <UniqueIdentifier>{ebd2cda5-eb0d-4b67-ad82-c670cd1b13f8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Audio\FMod">
+      <UniqueIdentifier>{f27effcc-bbfa-4f9d-9748-00c55896c94d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Audio\Sounds">
+      <UniqueIdentifier>{3daf3a64-923a-4300-adde-8bed5bc8bd61}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Audio\Sounds">
+      <UniqueIdentifier>{3c271b21-09f5-404b-977a-0040b9c5cab3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\UI\Elements">
+      <UniqueIdentifier>{45a3ee46-a34f-4dc8-a1f3-0fd3d6b24df5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\UI\Elements">
+      <UniqueIdentifier>{8252e1b9-1692-4d41-aa0c-2a9affd6d827}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\UI\Transitions">
+      <UniqueIdentifier>{f7d508d0-34e1-44db-a348-6b8640efec18}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\UI\Transitions">
+      <UniqueIdentifier>{f82a92b1-0642-45be-852c-a08c19c0db59}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Localise">
+      <UniqueIdentifier>{925d0210-31e3-416e-b81d-9e982692ec44}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Localise">
+      <UniqueIdentifier>{d2df3b89-a808-450c-aa74-a6f574ecca37}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Renderer\Text">
+      <UniqueIdentifier>{d6bef05f-497c-4ea7-a5a5-cb24ad3cd097}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Renderer\Text">
+      <UniqueIdentifier>{7103e34d-b475-4245-9c98-edf367049298}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Renderer\Text\FreeType">
+      <UniqueIdentifier>{49723d0a-3126-44b7-b269-03ca84c63389}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Renderer\Text\FreeType">
+      <UniqueIdentifier>{c51d6312-2108-49ad-b9aa-c9393aa9a835}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Resources">
+      <UniqueIdentifier>{4c0cd3e2-8ffc-416a-81a8-9446ce7a7228}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Resources">
+      <UniqueIdentifier>{4db05f78-c544-4401-9d25-c2a817b26255}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Engine\GameEngine.cpp">
@@ -209,6 +269,81 @@
     </ClCompile>
     <ClCompile Include="IO\FileWatcher.cpp">
       <Filter>Source Files\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="Audio\FMod\FMod_AudioRenderer.cpp">
+      <Filter>Source Files\Audio\FMod</Filter>
+    </ClCompile>
+    <ClCompile Include="Audio\FMod\FMod_Sound.cpp">
+      <Filter>Source Files\Audio\FMod</Filter>
+    </ClCompile>
+    <ClCompile Include="Audio\FMod\FMod_SoundFactory.cpp">
+      <Filter>Source Files\Audio\FMod</Filter>
+    </ClCompile>
+    <ClCompile Include="Audio\AudioRenderer.cpp">
+      <Filter>Source Files\Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="Audio\FMod\FMod_SoundChannel.cpp">
+      <Filter>Source Files\Audio\FMod</Filter>
+    </ClCompile>
+    <ClCompile Include="Audio\Sounds\SoundFactory.cpp">
+      <Filter>Source Files\Audio\Sounds</Filter>
+    </ClCompile>
+    <ClCompile Include="Audio\Sounds\SoundChannel.cpp">
+      <Filter>Source Files\Audio\Sounds</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Textures\TextureHandle.cpp">
+      <Filter>Source Files\Renderer\Textures</Filter>
+    </ClCompile>
+    <ClCompile Include="Audio\Sounds\SoundHandle.cpp">
+      <Filter>Source Files\Audio\Sounds</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\UIManager.cpp">
+      <Filter>Source Files\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\UIScene.cpp">
+      <Filter>Source Files\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\UIElement.cpp">
+      <Filter>Source Files\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\UITransition.cpp">
+      <Filter>Source Files\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\UILayout.cpp">
+      <Filter>Source Files\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Localise\Locale.cpp">
+      <Filter>Source Files\Localise</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Text\Font.cpp">
+      <Filter>Source Files\Renderer\Text</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Text\FontHandle.cpp">
+      <Filter>Source Files\Renderer\Text</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Text\FontFactory.cpp">
+      <Filter>Source Files\Renderer\Text</Filter>
+    </ClCompile>
+    <ClCompile Include="Audio\Sounds\Sound.cpp">
+      <Filter>Source Files\Audio\Sounds</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Text\FreeType\FreeType_FontFactory.cpp">
+      <Filter>Source Files\Renderer\Text\FreeType</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Text\FreeType\FreeType_Font.cpp">
+      <Filter>Source Files\Renderer\Text\FreeType</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Text\FontRenderer.cpp">
+      <Filter>Source Files\Renderer\Text</Filter>
+    </ClCompile>
+    <ClCompile Include="Resources\Reloadable.cpp">
+      <Filter>Source Files\Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="Resources\ResourceCompiler.cpp">
+      <Filter>Source Files\Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Text\FreeType\FreeType_ResourceCompiler.cpp">
+      <Filter>Source Files\Renderer\Text\FreeType</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -325,6 +460,81 @@
     </ClInclude>
     <ClInclude Include="IO\FileWatcher.h">
       <Filter>Header Files\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="Audio\AudioRenderer.h">
+      <Filter>Header Files\Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="Audio\FMod\FMod_AudioRenderer.h">
+      <Filter>Header Files\Audio\FMod</Filter>
+    </ClInclude>
+    <ClInclude Include="Audio\Sounds\Sound.h">
+      <Filter>Header Files\Audio\Sounds</Filter>
+    </ClInclude>
+    <ClInclude Include="Audio\Sounds\SoundFactory.h">
+      <Filter>Header Files\Audio\Sounds</Filter>
+    </ClInclude>
+    <ClInclude Include="Audio\FMod\FMod_Sound.h">
+      <Filter>Header Files\Audio\FMod</Filter>
+    </ClInclude>
+    <ClInclude Include="Audio\FMod\FMod_SoundFactory.h">
+      <Filter>Header Files\Audio\FMod</Filter>
+    </ClInclude>
+    <ClInclude Include="Audio\FMOD\FMod_SoundChannel.h">
+      <Filter>Header Files\Audio\FMod</Filter>
+    </ClInclude>
+    <ClInclude Include="Audio\Sounds\SoundChannel.h">
+      <Filter>Header Files\Audio\Sounds</Filter>
+    </ClInclude>
+    <ClInclude Include="Audio\Sounds\SoundHandle.h">
+      <Filter>Header Files\Audio\Sounds</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Textures\TextureHandle.h">
+      <Filter>Header Files\Renderer\Textures</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\UIManager.h">
+      <Filter>Header Files\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\UIScene.h">
+      <Filter>Header Files\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\UIElement.h">
+      <Filter>Header Files\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\UITransition.h">
+      <Filter>Header Files\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\UILayout.h">
+      <Filter>Header Files\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Localise\Locale.h">
+      <Filter>Header Files\Localise</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Text\FontFactory.h">
+      <Filter>Header Files\Renderer\Text</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Text\Font.h">
+      <Filter>Header Files\Renderer\Text</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Text\FontHandle.h">
+      <Filter>Header Files\Renderer\Text</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Text\FreeType\FreeType_FontFactory.h">
+      <Filter>Header Files\Renderer\Text\FreeType</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Text\FreeType\FreeType_Font.h">
+      <Filter>Header Files\Renderer\Text\FreeType</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Text\FontRenderer.h">
+      <Filter>Header Files\Renderer\Text</Filter>
+    </ClInclude>
+    <ClInclude Include="Resources\Reloadable.h">
+      <Filter>Header Files\Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="Resources\ResourceCompiler.h">
+      <Filter>Header Files\Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Text\FreeType\FreeType_ResourceCompiler.h">
+      <Filter>Header Files\Renderer\Text\FreeType</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

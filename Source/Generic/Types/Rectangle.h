@@ -9,6 +9,14 @@ class Rect
 public:
 	float X, Y, Width, Height;
 
+	Rect()
+		: X(0)
+		, Y(0)
+		, Width(0)
+		, Height(0)
+	{
+	}
+
 	Rect(float x, float y, float w, float h)
 	{
 		X = x;

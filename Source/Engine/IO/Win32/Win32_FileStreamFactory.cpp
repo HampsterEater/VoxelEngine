@@ -10,7 +10,7 @@
 Stream*	Win32_FileStreamFactory::Try_Open(const char* url, StreamMode::Type mode)
 {
 	// See if file exists.
-	FILE* exists_handle = fopen(url, "r");
+	FILE* exists_handle = fopen(url, "r+");
 
 	bool exists = (exists_handle != NULL);
 
@@ -26,7 +26,6 @@ Stream*	Win32_FileStreamFactory::Try_Open(const char* url, StreamMode::Type mode
 		if (exists == true)
 		{
 			mode_string += "r+";
-
 		}
 		else
 		{
@@ -38,6 +37,11 @@ Stream*	Win32_FileStreamFactory::Try_Open(const char* url, StreamMode::Type mode
 		if ((mode & StreamMode::Read) != 0)
 		{
 			mode_string += "r";
+
+			if (exists == false)
+			{
+				return NULL;
+			}
 		}
 		if ((mode & StreamMode::Write) != 0)
 		{
@@ -63,9 +67,9 @@ Stream*	Win32_FileStreamFactory::Try_Open(const char* url, StreamMode::Type mode
 	return new Win32_FileStream(handle);
 }
 
-s64 Win32_FileStreamFactory::Try_Get_Last_Modified(const char* url)
+u64 Win32_FileStreamFactory::Try_Get_Last_Modified(const char* url)
 {
-	HANDLE handle = CreateFileA(url, GENERIC_READ, FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+	HANDLE handle = CreateFileA(url, GENERIC_READ, FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 	if (handle == INVALID_HANDLE_VALUE)
 	{
 		return 0;
@@ -78,7 +82,7 @@ s64 Win32_FileStreamFactory::Try_Get_Last_Modified(const char* url)
 
 	if (result != 0)
 	{
-		return static_cast<s64>(write_time.dwHighDateTime) << 32 | write_time.dwLowDateTime;
+		return static_cast<u64>(write_time.dwHighDateTime) << 32 | write_time.dwLowDateTime;
 	}
 
 	return 0;

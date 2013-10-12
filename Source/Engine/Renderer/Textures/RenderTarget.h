@@ -49,7 +49,7 @@ public:
 	virtual ~RenderTarget();
 	
 	// Binding support.
-	virtual void Bind_Texture(RenderTargetBufferType::Type type, Texture* texture) = 0;
+	virtual void Bind_Texture(RenderTargetBufferType::Type type, const Texture* texture) = 0;
 	virtual void Validate() = 0;
 
 	// Create shader programs.

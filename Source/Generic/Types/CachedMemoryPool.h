@@ -98,7 +98,7 @@ public:
 	}
 
 	void Release(void* obj)
-	{		
+	{	
 		// Invoke destructor.	
 		((T*)obj)->~T();
 

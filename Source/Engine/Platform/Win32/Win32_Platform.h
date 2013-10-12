@@ -16,8 +16,12 @@ public:
 
 	// Path functions.
 	void Crack_Path(const char* path, std::vector<std::string>& segments);
+	std::string Join_Path(std::string a, std::string b);
+	std::string Extract_Directory(std::string a);
+	std::string Extract_Filename(std::string a);
 
 	// Directory functions.
+	bool Is_File(const char* path);
 	bool Is_Directory(const char* path);
 	bool Create_Directory(const char* path, bool recursive);
 

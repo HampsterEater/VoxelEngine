@@ -21,6 +21,8 @@ public:
 	static std::string Trim(const char* value);
 	static std::string Remove_Whitespace(const char* value);
 
+	static int Hash(const char* value);
+
 	template<typename T>
 	static std::string To_String(T value)
 	{		

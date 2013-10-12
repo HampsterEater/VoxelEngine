@@ -22,6 +22,9 @@ CONFIG_VALUE(IntVector3,		load_distance,						"voxels/load_distance")
 CONFIG_VALUE(IntVector3,		unload_distance,					"voxels/unload_distance")
 CONFIG_VALUE(float,				unload_timeout,						"voxels/unload_timeout")
 
+CONFIG_VALUE(IntVector3,		extents_min,						"voxels/extents_min")
+CONFIG_VALUE(IntVector3,		extents_max,						"voxels/extents_max")
+
 // Mesh regeneration settings.
 CONFIG_VALUE(int,				chunk_regenerations_per_frame,		"voxels/chunk_regenerations_per_frame")
 

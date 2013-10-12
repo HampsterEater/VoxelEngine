@@ -21,7 +21,7 @@ public:
 
 	// Constructors
 	ShaderFactory();	
-	~ShaderFactory();	
+	virtual ~ShaderFactory();	
 
 	// Derived factory methods.
 	virtual Shader* Try_Load(const char* url, ShaderType::Type type) = 0;

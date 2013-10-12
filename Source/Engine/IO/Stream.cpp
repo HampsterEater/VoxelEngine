@@ -27,32 +27,32 @@ void Stream::WriteString(const char* str)
 
 void Stream::WriteInt32(int val)
 {
-	Write(reinterpret_cast<char*>(val), 0, sizeof(int));
+	Write(reinterpret_cast<char*>(&val), 0, sizeof(int));
 }
 
 void Stream::WriteUInt32(unsigned int val)
 {
-	Write(reinterpret_cast<char*>(val), 0, sizeof(unsigned int));
+	Write(reinterpret_cast<char*>(&val), 0, sizeof(unsigned int));
 }
 
 void Stream::WriteInt16(short val)
 {
-	Write(reinterpret_cast<char*>(val), 0, sizeof(short));
+	Write(reinterpret_cast<char*>(&val), 0, sizeof(short));
 }
 
 void Stream::WriteUInt16(unsigned short val)
 {	
-	Write(reinterpret_cast<char*>(val), 0, sizeof(unsigned short));
+	Write(reinterpret_cast<char*>(&val), 0, sizeof(unsigned short));
 }
 
 void Stream::WriteInt8(char val)
 {
-	Write(reinterpret_cast<char*>(val), 0, sizeof(char));
+	Write(reinterpret_cast<char*>(&val), 0, sizeof(char));
 }
 
 void Stream::WriteUInt8(unsigned char val)
 {
-	Write(reinterpret_cast<char*>(val), 0, sizeof(unsigned char));
+	Write(reinterpret_cast<char*>(&val), 0, sizeof(unsigned char));
 }
 
 const char*	Stream::ReadLine()
@@ -127,7 +127,7 @@ int	Stream::ReadInt32()
 {
 	char buffer[sizeof(int)];
 	Read(buffer, 0, sizeof(int));
-	int val = reinterpret_cast<int>(buffer);
+	int val = *reinterpret_cast<int*>(buffer);
 	return val;
 }
 
@@ -135,7 +135,7 @@ unsigned int Stream::ReadUInt32()
 {
 	char buffer[sizeof(unsigned int)];
 	Read(buffer, 0, sizeof(unsigned int));
-	unsigned int val = reinterpret_cast<unsigned int>(buffer);
+	unsigned int val = *reinterpret_cast<unsigned int*>(buffer);
 	return val;
 }
 
@@ -143,7 +143,7 @@ short Stream::ReadInt16()
 {
 	char buffer[sizeof(short)];
 	Read(buffer, 0, sizeof(short));
-	short val = reinterpret_cast<short>(buffer);
+	short val = *reinterpret_cast<short*>(buffer);
 	return val;
 }
 
@@ -151,7 +151,7 @@ unsigned short Stream::ReadUInt16()
 {
 	char buffer[sizeof(unsigned short)];
 	Read(buffer, 0, sizeof(unsigned short));
-	unsigned short val = reinterpret_cast<unsigned short>(buffer);
+	unsigned short val = *reinterpret_cast<unsigned short*>(buffer);
 	return val;
 }
 
@@ -159,7 +159,7 @@ char Stream::ReadInt8()
 {
 	char buffer[sizeof(char)];
 	Read(buffer, 0, sizeof(char));
-	char val = reinterpret_cast<char>(buffer);
+	char val = *reinterpret_cast<char*>(buffer);
 	return val;
 }
 
@@ -167,7 +167,7 @@ unsigned char Stream::ReadUInt8()
 {
 	char buffer[sizeof(unsigned char)];
 	Read(buffer, 0, sizeof(unsigned char));
-	unsigned char val = reinterpret_cast<unsigned char>(buffer);
+	unsigned char val = *reinterpret_cast<unsigned char*>(buffer);
 	return val;
 }
 

@@ -52,26 +52,26 @@ Frustum::Frustum(float angle,
 	fc = pos - z * m_far_distance;
 
 	// compute the 4 corners of the frustum on the near plane
-	m_near_top_left		= nc + y * m_near_height - x * m_near_width;
-	m_near_top_right	= nc + y * m_near_height + x * m_near_width;
-	m_near_bottom_left	= nc - y * m_near_height - x * m_near_width;
-	m_near_bottom_right = nc - y * m_near_height + x * m_near_width;
+	m_corners[Corners::NearTopLeft]		= nc + y * m_near_height - x * m_near_width;
+	m_corners[Corners::NearTopRight]	= nc + y * m_near_height + x * m_near_width;
+	m_corners[Corners::NearBottomLeft]	= nc - y * m_near_height - x * m_near_width;
+	m_corners[Corners::NearBottomRight]	= nc - y * m_near_height + x * m_near_width;
 
 	// compute the 4 corners of the frustum on the far plane
-	m_far_top_left		= fc + y * m_far_height - x * m_far_width;
-	m_far_top_right		= fc + y * m_far_height + x * m_far_width;
-	m_far_bottom_left	= fc - y * m_far_height - x * m_far_width;
-	m_far_bottom_right	= fc - y * m_far_height + x * m_far_width;
+	m_corners[Corners::FarTopLeft]		= fc + y * m_far_height - x * m_far_width;
+	m_corners[Corners::FarTopRight]		= fc + y * m_far_height + x * m_far_width;
+	m_corners[Corners::FarBottomLeft]	= fc - y * m_far_height - x * m_far_width;
+	m_corners[Corners::FarBottomRight]	= fc - y * m_far_height + x * m_far_width;
 
 	// compute the six planes
 	// the function set3Points assumes that the points
 	// are given in counter clockwise order
-	m_planes[Planes::Top]		= Plane(m_near_top_right,		m_near_top_left,		m_far_top_left);
-	m_planes[Planes::Bottom]	= Plane(m_near_bottom_left,		m_near_bottom_right,	m_far_bottom_right);
-	m_planes[Planes::Left]		= Plane(m_near_top_left,		m_near_bottom_left,		m_far_bottom_left);
-	m_planes[Planes::Right]		= Plane(m_near_bottom_right,	m_near_top_right,		m_far_bottom_right);
-	m_planes[Planes::Near]		= Plane(m_near_top_left,		m_near_top_right,		m_near_bottom_right);
-	m_planes[Planes::Far]		= Plane(m_far_top_right,		m_far_top_left,			m_far_bottom_left);
+	m_planes[Planes::Top]		= Plane(m_corners[Corners::NearTopRight],		m_corners[Corners::NearTopLeft],		m_corners[Corners::FarTopLeft]);
+	m_planes[Planes::Bottom]	= Plane(m_corners[Corners::NearBottomLeft],		m_corners[Corners::NearBottomRight],	m_corners[Corners::FarBottomRight]);
+	m_planes[Planes::Left]		= Plane(m_corners[Corners::NearTopLeft],		m_corners[Corners::NearBottomLeft],		m_corners[Corners::FarBottomLeft]);
+	m_planes[Planes::Right]		= Plane(m_corners[Corners::NearBottomRight],	m_corners[Corners::NearTopRight],		m_corners[Corners::FarBottomRight]);
+	m_planes[Planes::Near]		= Plane(m_corners[Corners::NearTopLeft],		m_corners[Corners::NearTopRight],		m_corners[Corners::NearBottomRight]);
+	m_planes[Planes::Far]		= Plane(m_corners[Corners::FarTopRight],		m_corners[Corners::FarTopLeft],			m_corners[Corners::FarBottomLeft]);
 }
 
 Frustum::IntersectionResult::Type Frustum::Intersects(const AABB& aabb)
@@ -128,4 +128,21 @@ Frustum::IntersectionResult::Type Frustum::Intersects(const Sphere& sphere)
 	}
 
 	return result;
+}
+
+const Vector3* Frustum::Get_Corners()
+{
+	return m_corners;
+}
+
+Vector3 Frustum::Get_Centroid()
+{
+	Vector3 centroid(0.0f, 0.0f, 0.0f);
+
+	for (int i = 0; i < 8; i++)
+	{
+		centroid = centroid + m_corners[i];
+	}
+
+	return centroid / 8;
 }
