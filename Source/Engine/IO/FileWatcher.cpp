@@ -35,9 +35,9 @@ void FileWatcher::Entry_Point(Thread* self, void* ptr)
 				float elapsed = (Platform::Get()->Get_Ticks() - watcher->m_check_time);
 				if (watcher->m_check_time == 0.0f || elapsed > FILE_WATCHER_INTERVAL)
 				{
-					float old = watcher->m_last_change_time;
+					u64 old = watcher->m_last_change_time;
 					watcher->m_last_change_time = StreamFactory::Get_Last_Modified(watcher->m_path.c_str());
-					watcher->m_has_changed = (old != -1.0f && old != watcher->m_last_change_time);
+					watcher->m_has_changed = (old != 0 && old != watcher->m_last_change_time);
 					watcher->m_check_time = Platform::Get()->Get_Ticks();
 				}
 			}
@@ -51,14 +51,14 @@ void FileWatcher::Entry_Point(Thread* self, void* ptr)
 FileWatcher::FileWatcher(const char* path)
 	: m_path(path)
 	, m_has_changed(false)
-	, m_last_change_time(-1)
+	, m_last_change_time(0)
 	, m_check_time(0.0f)
 {
 	if (g_thread == NULL)
 	{
 		g_mutex = Mutex::Create();
 
-		g_thread = Thread::Create(Entry_Point, NULL);
+		g_thread = Thread::Create("File Watcher", Entry_Point, NULL);
 		g_thread->Set_Priority(ThreadPriority::Low);
 		g_thread->Start();
 	}

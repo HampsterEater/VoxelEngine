@@ -58,7 +58,7 @@ void FontRenderer::Draw_String(const FrameTime& time, const char* text, Point lo
 	// Draw each glyph!
 	Texture* glyph_texture = NULL;
 	float offset_x = location.X;
-	float offset_y = location.Y + baseline - size;
+	float offset_y = location.Y + size;// - size;
 	int length = strlen(text);
 
 	for (int i = 0; i < length; i++)
@@ -209,7 +209,7 @@ Point FontRenderer::Calculate_String_Size(const FrameTime& time, const char* tex
 	float max_x			= 0;
 	float max_y			= 0;
 	float offset_x		= 0;
-	float offset_y		= baseline - size;
+	float offset_y		= size;
 	float line_height	= size;
 	int   length		= strlen(text);
 
@@ -221,17 +221,17 @@ Point FontRenderer::Calculate_String_Size(const FrameTime& time, const char* tex
 		// Newline?
 		if (glyph == '\n')
 		{
-			offset_y += size;
+			offset_y += font->Get_SDF_Source_Size();
 			offset_x = 0;
 			continue;
 		}
 
 		// Calculate position of glyph.
 		Rect rect = Rect(
-				ceilf(offset_x + (font_glyph.Offset.X * scale)), 
-				ceilf(offset_y + (font_glyph.Offset.Y * scale)), 
-				ceilf(font_glyph.Size.X * scale), 
-				ceilf(font_glyph.Size.Y * scale)
+				(offset_x + (font_glyph.Offset.X)), 
+				(offset_y + (font_glyph.Offset.Y)), 
+				(font_glyph.Size.X), 
+				(font_glyph.Size.Y)
 			);		
 		
 		// Measure size.
@@ -241,8 +241,8 @@ Point FontRenderer::Calculate_String_Size(const FrameTime& time, const char* tex
 			max_x = rect.X + rect.Width;
 
 		// Advance the char offset.
-		offset_x += (font_glyph.Advance.X * scale);
+		offset_x += (font_glyph.Advance.X );
 	}
 
-	return Point(max_x, max_y);
+	return Point(ceilf(max_x * scale), ceilf(max_y * scale));
 }

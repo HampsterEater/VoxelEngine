@@ -45,6 +45,8 @@ private:
 	FT_Library										m_library;
 	FT_Face											m_face;
 
+	char*											m_buffer;
+
 	FreeType_FontTexture**							m_textures;
 	HashTable<FreeType_FontGlyph*, unsigned int>	m_glyphs;
 	int												m_current_dirty_texture_index;
@@ -63,6 +65,7 @@ public:
 
 	// Destructor!
 	FreeType_Font(FT_Library library, FT_Face face, char* buffer, ConfigFile* config);
+	FreeType_Font(FT_Library library, FT_Face face, char* buffer);
 	~FreeType_Font();
 
 	// FreeType stuff.
@@ -72,6 +75,7 @@ public:
 	void Add_Glyphs(const char* glyphs);
 	void Add_Glyph(unsigned int glyph);
 	HashTable<FreeType_FontGlyph*, unsigned int>& Get_Glyphs();
+	bool Load_Compiled_Config(ConfigFile* config);
 
 	float Find_SDF_Distance(int x, int y);
 	unsigned char SDF_Distance_To_Alpha(float distance);

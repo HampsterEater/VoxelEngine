@@ -55,6 +55,8 @@
     <ClInclude Include="Renderer\Text\FreeType\FreeType_ResourceCompiler.h" />
     <ClInclude Include="Resources\Reloadable.h" />
     <ClInclude Include="Resources\ResourceCompiler.h" />
+    <ClInclude Include="Tasks\Task.h" />
+    <ClInclude Include="Tasks\TaskManager.h" />
     <ClInclude Include="UI\UIElement.h" />
     <ClInclude Include="UI\UILayout.h" />
     <ClInclude Include="UI\UIManager.h" />
@@ -138,6 +140,8 @@
     <ClCompile Include="Scene\Light.cpp" />
     <ClCompile Include="Scene\Scene.cpp" />
     <ClCompile Include="Scene\Tickable.cpp" />
+    <ClCompile Include="Tasks\Task.cpp" />
+    <ClCompile Include="Tasks\TaskManager.cpp" />
     <ClCompile Include="UI\UIElement.cpp" />
     <ClCompile Include="UI\UILayout.cpp" />
     <ClCompile Include="UI\UIManager.cpp" />

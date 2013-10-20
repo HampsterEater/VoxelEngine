@@ -157,6 +157,12 @@
     <Filter Include="Header Files\Resources">
       <UniqueIdentifier>{4db05f78-c544-4401-9d25-c2a817b26255}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Tasks">
+      <UniqueIdentifier>{15ab47f2-10d7-49de-aee8-d46c41d57850}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Tasks">
+      <UniqueIdentifier>{dc225c88-2db0-4644-9a13-9a503bb3d3b5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Engine\GameEngine.cpp">
@@ -344,6 +350,12 @@
     </ClCompile>
     <ClCompile Include="Renderer\Text\FreeType\FreeType_ResourceCompiler.cpp">
       <Filter>Source Files\Renderer\Text\FreeType</Filter>
+    </ClCompile>
+    <ClCompile Include="Tasks\TaskManager.cpp">
+      <Filter>Source Files\Tasks</Filter>
+    </ClCompile>
+    <ClCompile Include="Tasks\Task.cpp">
+      <Filter>Source Files\Tasks</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -535,6 +547,12 @@
     </ClInclude>
     <ClInclude Include="Renderer\Text\FreeType\FreeType_ResourceCompiler.h">
       <Filter>Header Files\Renderer\Text\FreeType</Filter>
+    </ClInclude>
+    <ClInclude Include="Tasks\TaskManager.h">
+      <Filter>Header Files\Tasks</Filter>
+    </ClInclude>
+    <ClInclude Include="Tasks\Task.h">
+      <Filter>Header Files\Tasks</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

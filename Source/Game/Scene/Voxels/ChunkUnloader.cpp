@@ -32,7 +32,7 @@ ChunkUnloader::ChunkUnloader(ChunkManager* manager, const ChunkManagerConfig& co
 	DBG_ASSERT(m_unloaded_chunks_mutex != NULL);
 
 	// Create load/save thread.
-	m_thread = Thread::Create(Static_Chunk_Unload_Thread, this);
+	m_thread = Thread::Create("Chunk Unloader", Static_Chunk_Unload_Thread, this);
 	DBG_ASSERT(m_thread != NULL);
 	
 	// Boot up threads.

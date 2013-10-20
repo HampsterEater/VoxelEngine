@@ -32,7 +32,7 @@ int	Texture::Get_Pitch() const
 	return m_pitch;
 }
 
-const char* Texture::Get_Data() const
+char* Texture::Get_Data() const
 {
 	return m_data;
 }

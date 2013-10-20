@@ -77,18 +77,18 @@ void UIManager::Draw(const FrameTime& time)
 	static int scale_dir = 0;
 	if (scale_dir == 0)
 	{
-		scale += 0.01;
-		if (scale > 3.0f)
+		scale += 0.001;
+		if (scale > 6.0f)
 			scale_dir = 1;
 	}
 	else
 	{
-		scale -= 0.01;
+		scale -= 0.001;
 		if (scale < 0.1f)
 			scale_dir = 0;
 	}
 
-	float t = Platform::Get()->Get_Ticks();
+	//float t = Platform::Get()->Get_Ticks();
 
 	//m_font_renderer->Draw_String(time, " ", Point(0.0f, 0.0f), 32.0f * scale);
 	//Point size = m_font_renderer->Calculate_String_Size(time, " !\"#$%&'()*+,-./\n0123456789:;<=>?@ABCDEFG\nHIJKLMNOPQRSTUVWXYZ[\]\n^_`abcdefghijklmnopqr\nstuvwxyz{|}~¦Çüéâäàåçê\nëèïîìÄÅÉæÆôöòûùÿÖ\nÜø£Ø×ƒáíóúñÑªº¿®¬½¼¡«»¦¦\n¦¦¦ÁÂÀ©¦¦++¢¥++--+-+ãÃ\n++--¦-+¤ðÐÊËÈiÍÎÏ++¦_¦Ì¯ÓßÔÒõÕµþÞÚÛÙý\nÝ¯´­±=¾¶§÷¸°¨·¹³²¦", 32.0f * scale);
@@ -100,10 +100,10 @@ void UIManager::Draw(const FrameTime& time)
 									   "point of using Lorem Ipsum is that it has a more-or-less normal\n" 
 									   "distribution of letters, as opposed to using 'Content here, content\n"
 									   "here', making it look like readable English. Many desktop publishing\n"
-									   "packages and web page", Rect(0.0f, 0.0f, 150.0f * scale, 150.0f * scale), TextAlignment::Right, TextAlignment::Bottom);
+									   "packages and web page", Rect(0.0f, 0.0f, 150.0f * scale, 150.0f * scale), TextAlignment::Left, TextAlignment::Top);
 	
-	float elapsed = Platform::Get()->Get_Ticks() - t;
-	printf("Elapsed: %f\n", elapsed);
+	//float elapsed = Platform::Get()->Get_Ticks() - t;
+	//printf("Elapsed: %f\n", elapsed);
 
 	//	m_font_renderer->Draw_String(time, "New File", Point(50.0f, 120.0f), 16.0f * scale);
 }

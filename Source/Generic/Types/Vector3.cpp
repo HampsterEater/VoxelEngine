@@ -2,6 +2,7 @@
 //	Copyright (C) 2013 Tim Leonard
 // ===================================================================
 #include "Generic\Types\Vector3.h"
+#include "Generic\Helper\StringHelper.h"
 
 #include <math.h>
 
@@ -17,6 +18,28 @@ Vector3::Vector3(float x, float y, float z)
 	, Y(y)
 	, Z(z)
 {
+}
+
+std::string Vector3::To_String()
+{
+	return StringHelper::To_String(X) + "," + StringHelper::To_String(Y) + "," + StringHelper::To_String(Z);	
+}
+
+bool Vector3::Parse(std::string value, Vector3& result)
+{	
+	std::vector<std::string> segments;
+	StringHelper::Split(value.c_str(), ',', segments);
+	
+	if (segments.size() != 3)
+		return false;
+
+	result = Vector3(
+				(float)atof(segments.at(0).c_str()),
+				(float)atof(segments.at(1).c_str()),
+				(float)atof(segments.at(2).c_str())
+			);
+
+	return true;
 }
 
 Vector3 Vector3::operator* (const float a) const

@@ -105,7 +105,7 @@ bool FreeType_ResourceCompiler::Compile()
 	Stream* stream = StreamFactory::Open(m_ttf_input_path, StreamMode::Read);
 	if (stream == NULL)
 	{
-		DBG_LOG("Failed to compile font, tty file could not be found: '%s'", m_ttf_input_path);
+		DBG_LOG("Failed to compile font, ttf file could not be found: '%s'", m_ttf_input_path);
 		return NULL;
 	}
 
@@ -122,6 +122,7 @@ bool FreeType_ResourceCompiler::Compile()
 	// Load in font face.
 	FT_Library library = FreeType_FontFactory::Get_FreeType_Library();
 	FT_Face face;
+
 	int result = FT_New_Memory_Face(library, (FT_Byte*)buffer, size, 0, &face);
 	if (result != 0)
 	{
@@ -193,4 +194,68 @@ bool FreeType_ResourceCompiler::Compile()
 
 	DBG_LOG("Finished compiling to '%s'.", m_output_path.c_str());
 	return true;
+}
+
+FreeType_Font* FreeType_ResourceCompiler::Load_Compiled()
+{
+	std::string compiled_path = Get_Compiled_Path();
+	Platform* platform = Platform::Get();
+
+	// Compile time.
+	DBG_LOG("Loading font resource '%s'.", compiled_path.c_str());
+	
+	// Load configuration settings.
+	ConfigFile config;
+	if (!config.Load(compiled_path.c_str()))
+	{
+		DBG_LOG("Failed to load font, config file could not be found: '%s'", compiled_path.c_str());
+		return NULL;
+	}
+
+	// Grab configuration path.
+	std::string ttf_input_path = config.Get<const char*>("generation/ttf");
+
+	// Open the ttf file.
+	Stream* stream = StreamFactory::Open(ttf_input_path.c_str(), StreamMode::Read);
+	if (stream == NULL)
+	{
+		DBG_LOG("Failed to load font, ttf file could not be found: '%s'", ttf_input_path.c_str());
+		return NULL;
+	}
+
+	// Load in the font file.
+	int size = stream->Length();
+	char* buffer = new char[size];
+	if (buffer == NULL)
+	{
+		SAFE_DELETE(stream);
+		return NULL;
+	}
+	stream->Read(buffer, 0, size);
+
+	// Load in font face.
+	FT_Library library = FreeType_FontFactory::Get_FreeType_Library();
+	FT_Face face;
+
+	int result = FT_New_Memory_Face(library, (FT_Byte*)buffer, size, 0, &face);
+	if (result != 0)
+	{
+		DBG_LOG("Failed to open freetype font face: %s", m_ttf_input_path);
+		SAFE_DELETE(buffer);
+		SAFE_DELETE(stream);
+		return NULL;
+	}
+
+	// Create the font.
+	SAFE_DELETE(stream);
+	FreeType_Font* font = new FreeType_Font(library, face, buffer);
+	if (font->Load_Compiled_Config(&config))
+	{
+		SAFE_DELETE(font);
+		SAFE_DELETE(stream);
+		return NULL;
+	}
+
+	DBG_LOG("Finished loading compiled font from '%s'.", compiled_path.c_str());
+	return font;
 }

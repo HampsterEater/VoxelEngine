@@ -135,72 +135,68 @@ public:
 	// Get functions
 	// ==============================================================
 	template<typename T>
-	T Get(const char* name);
+	T Get(const char* name, ConfigFileNode node = NULL, bool as_attribute = false)
+	{
+		const char* source = Get<const char*>(name, node, as_attribute);
+		T result;
+		if (!T::Parse(source, result))
+		{
+			DBG_ASSERT_STR(false, "Config node '%s' was in invalid format.", name);
+		}
+		return result;
+	}
 	
 	template<>
-	const char* Get<const char*>(const char* name)
+	const char* Get<const char*>(const char* name, ConfigFileNode node, bool as_attribute)
 	{
-		ConfigFileNode node = Get_Node(name);
-		return node->value();
+		if (as_attribute != NULL)
+		{
+			DBG_ASSERT(node != NULL);
+			
+			rapidxml::xml_attribute<>* attribute = node->first_attribute(name, 0, false);			
+			DBG_ASSERT_STR(attribute != NULL, "Expecting config node attribute '%s'.", name);
+
+			return attribute->value();
+		}
+		else
+		{
+			DBG_ASSERT(node == NULL);
+
+			ConfigFileNode n = Get_Node(name);
+			return n->value();
+		}
 	}
 
 	template<>
-	int Get<int>(const char* name)
+	int Get<int>(const char* name, ConfigFileNode node, bool as_attribute)
 	{
-		const char* source = Get<const char*>(name);
+		const char* source = Get<const char*>(name, node, as_attribute);
 		return atoi(source);
 	}
 	
 	template<>
-	bool Get<bool>(const char* name)
+	unsigned int Get<unsigned int>(const char* name, ConfigFileNode node, bool as_attribute)
 	{
-		const char* source = Get<const char*>(name);
+		const char* source = Get<const char*>(name, node, as_attribute);
+		return (unsigned int)atoi(source);
+	}
+
+	template<>
+	bool Get<bool>(const char* name, ConfigFileNode node, bool as_attribute)
+	{
+		const char* source = Get<const char*>(name, node, as_attribute);
 		return (stricmp(source, "0") == 0 || stricmp(source, "false") == 0) ? false : true;
 	}
 
 	template<>
-	float Get<float>(const char* name)
+	float Get<float>(const char* name, ConfigFileNode node, bool as_attribute)
 	{
-		const char* source = Get<const char*>(name);
+		const char* source = Get<const char*>(name, node, as_attribute);
 		return (float)atof(source);
 	}
-	
+
 	template<>
-	IntVector3 Get<IntVector3>(const char* name)
-	{
-		const char* source = Get<const char*>(name);
-
-		std::vector<std::string> segments;
-		StringHelper::Split(source, ',', segments);
-
-		DBG_ASSERT_STR(segments.size() == 3, "XML attribute %s expected in format vector format; int,int,int");
-
-		return IntVector3(
-					atoi(segments.at(0).c_str()),
-					atoi(segments.at(1).c_str()),
-					atoi(segments.at(2).c_str())
-			   );
-	}
-	
-	template<>
-	Vector3 Get<Vector3>(const char* name)
-	{
-		const char* source = Get<const char*>(name);
-
-		std::vector<std::string> segments;
-		StringHelper::Split(source, ',', segments);
-
-		DBG_ASSERT_STR(segments.size() == 3, "XML attribute %s expected in format vector format; float,float,float");
-
-		return Vector3(
-					(float)atof(segments.at(0).c_str()),
-					(float)atof(segments.at(1).c_str()),
-					(float)atof(segments.at(2).c_str())
-			   );
-	}
-	
-	template<>
-	std::vector<const char*> Get<std::vector<const char*>>(const char* name)
+	std::vector<const char*> Get<std::vector<const char*>>(const char* name, ConfigFileNode node, bool as_attribute)
 	{
 		std::vector<const char*> result;
 
@@ -216,7 +212,7 @@ public:
 			if (chr == '\\' || chr == '/')
 			{
 				element = element->first_node(node_name.c_str(), 0, false);
-				DBG_ASSERT(element != NULL, "Expecting config node '%s'.", node_name.c_str());
+				DBG_ASSERT_STR(element != NULL, "Expecting config node '%s'.", node_name.c_str());
 
 				node_name = "";
 			}
@@ -238,12 +234,55 @@ public:
 	
 		return result;		
 	}
+	
+	template<>
+	std::vector<ConfigFileNode> Get<std::vector<ConfigFileNode>>(const char* name, ConfigFileNode node, bool as_attribute)
+	{
+		std::vector<ConfigFileNode> result;
+
+		const rapidxml::xml_node<>* element = m_xml_document->first_node("xml");
+		DBG_ASSERT(element != NULL);
+
+		const int name_len = strlen(name);
+		std::string node_name = "";
+
+		for (int i = 0; i < name_len; i++)
+		{
+			char chr = name[i];
+			if (chr == '\\' || chr == '/')
+			{
+				element = element->first_node(node_name.c_str(), 0, false);
+				DBG_ASSERT_STR(element != NULL, "Expecting config node '%s'.", node_name.c_str());
+
+				node_name = "";
+			}
+			else
+			{
+				node_name += chr;
+			}
+		}
+
+		// Iterate over results.
+		DBG_ASSERT(node_name != "");
+
+		element = element->first_node(node_name.c_str(), 0, false);
+		while (element != NULL)
+		{
+			result.push_back((ConfigFileNode)element);
+			element = element->next_sibling(node_name.c_str(), 0, false);
+		}
+	
+		return result;		
+	}
 
 	// ==============================================================
 	// Set functions
 	// ==============================================================
 	template<typename T>
-	void Set(const char* name, T value, ConfigFileNode node = NULL, bool as_attribute = false);
+	void Set(const char* name, T value, ConfigFileNode node = NULL, bool as_attribute = false)
+	{
+		Set(name, value.To_String().c_str(), node, as_attribute);		
+	}
 
 	template<>
 	void Set<const char*>(const char* name, const char* value, ConfigFileNode node, bool as_attribute)
@@ -278,6 +317,12 @@ public:
 	{
 		Set(name, StringHelper::To_String(value).c_str(), node, as_attribute);
 	}
+
+	template<>
+	void Set<unsigned int>(const char* name, unsigned int value, ConfigFileNode node, bool as_attribute)
+	{
+		Set(name, StringHelper::To_String(value).c_str(), node, as_attribute);
+	}
 	
 	template<>
 	void Set<bool>(const char* name, bool value, ConfigFileNode node, bool as_attribute)
@@ -289,30 +334,6 @@ public:
 	void Set<float>(const char* name, float value, ConfigFileNode node, bool as_attribute)
 	{
 		Set(name, StringHelper::To_String(value).c_str(), node, as_attribute);
-	}
-
-	template<>
-	void Set<IntVector3>(const char* name, IntVector3 value, ConfigFileNode node, bool as_attribute)
-	{
-		Set(name, (StringHelper::To_String(value.X) + "," + StringHelper::To_String(value.Y) + "," + StringHelper::To_String(value.Z)).c_str(), node, as_attribute);
-	}
-
-	template<>
-	void Set<Vector3>(const char* name, Vector3 value, ConfigFileNode node, bool as_attribute)
-	{
-		Set(name, (StringHelper::To_String(value.X) + "," + StringHelper::To_String(value.Y) + "," + StringHelper::To_String(value.Z)).c_str(), node, as_attribute);
-	}
-
-	template<>
-	void Set<Point>(const char* name, Point value, ConfigFileNode node, bool as_attribute)
-	{
-		Set(name, (StringHelper::To_String(value.X) + "," + StringHelper::To_String(value.Y)).c_str(), node, as_attribute);
-	}
-	
-	template<>
-	void Set<Rect>(const char* name, Rect value, ConfigFileNode node, bool as_attribute)
-	{
-		Set(name, (StringHelper::To_String(value.X) + "," + StringHelper::To_String(value.Y) + "," + StringHelper::To_String(value.Width) + "," + StringHelper::To_String(value.Height)).c_str(), node, as_attribute);
 	}
 
 };

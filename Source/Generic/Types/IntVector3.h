@@ -4,6 +4,8 @@
 #ifndef _GENERIC_INTVECTOR3_
 #define _GENERIC_INTVECTOR3_
 
+#include <string>
+
 struct IntVector3
 {
 public:
@@ -20,6 +22,10 @@ public:
 	
 	// General.
 	float Length_Squared() const;
+
+	// To/From string.
+	std::string To_String();
+	static bool Parse(std::string value, IntVector3& result);
 
 };
 

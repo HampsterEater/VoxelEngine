@@ -18,9 +18,14 @@ struct ThreadPriority
 
 class Thread
 {
+protected:
+	const char* m_name;
+
+	Thread(const char* name);
+
 public:
 	typedef void (*EntryPoint)(Thread* self, void* ptr);
-	static Thread* Create(EntryPoint entry_point, void* ptr);
+	static Thread* Create(const char* name, EntryPoint entry_point, void* ptr);
 	static Thread* Get_Current();
 
 	// Control functions.

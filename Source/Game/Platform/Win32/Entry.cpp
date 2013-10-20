@@ -29,7 +29,7 @@ int main(int argc, char* argv[])
 	FreeType_FontFactory	freeTypeFactory;
 
 	// Set main thread affinity to the first core only.
-//	Thread::Get_Current()->Set_Affinity(1 << 0);
+	Thread::Get_Current()->Set_Affinity(1 << 0);
 
 	// Seed random.
 	srand(GetTickCount());

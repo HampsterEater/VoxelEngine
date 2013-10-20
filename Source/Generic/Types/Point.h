@@ -4,21 +4,20 @@
 #ifndef _GENERIC_POINT_
 #define _GENERIC_POINT_
 
+#include <string>
+
 class Point
 {
 public:
 	float X, Y;
 
-	Point()
-		: X(0)
-		, Y(0)
-	{
-	}
-	Point(float x, float y)
-	{
-		X = x;
-		Y = y;
-	}
+	Point();
+	Point(float x, float y);
+
+	// To/From string.
+	std::string To_String();
+	static bool Parse(std::string value, Point& result);
+
 };
 
 #endif

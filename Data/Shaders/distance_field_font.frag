@@ -21,5 +21,5 @@ void main()
 		float alpha = smoothstep(0.5 - smoothing, 0.5 + smoothing, distance);  
 		gl_FragColor = vec4(vec3(1.0, 1.0, 1.0), alpha);
 	}	
-	gl_FragColor = vec4(vec3(gl_TexCoord[0].s, gl_TexCoord[0].t, 1.0), 1.0);
+//	gl_FragColor = vec4(vec3(gl_TexCoord[0].s, gl_TexCoord[0].t, 1.0), 1.0);	
 }

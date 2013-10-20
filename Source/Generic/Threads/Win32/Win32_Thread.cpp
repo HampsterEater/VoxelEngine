@@ -7,6 +7,33 @@
 // idea, fix this shit soon. Dam Get_Current_Thread() >_>
 std::vector<Win32_Thread*> Win32_Thread::g_win32_threads;
 
+// This lovely struct + function are used to set the name of a thread
+// in the visual studio debugger. Only works in visual studio!
+typedef struct tagTHREADNAME_INFO
+{
+   DWORD dwType; // must be 0x1000
+   LPCSTR szName; // pointer to name (in user addr space)
+   DWORD dwThreadID; // thread ID (-1=caller thread)
+   DWORD dwFlags; // reserved for future use, must be zero
+} THREADNAME_INFO;
+
+void Set_Visual_Studio_Thread_Name(DWORD dwThreadID, const char* szThreadName)
+{
+	THREADNAME_INFO info;
+	info.dwType			= 0x1000;
+	info.szName			= szThreadName;
+	info.dwThreadID		= dwThreadID;
+	info.dwFlags		= 0;
+
+	__try
+	{
+		RaiseException(0x406D1388, 0, sizeof(info)/sizeof(DWORD), (DWORD*)&info);
+	}
+	__except(EXCEPTION_CONTINUE_EXECUTION)
+	{
+	}
+}
+
 Win32_Thread* Win32_Thread::Get_Current_Thread()
 {
 	HANDLE handle = GetCurrentThread();
@@ -25,18 +52,22 @@ Win32_Thread* Win32_Thread::Get_Current_Thread()
 	return thread;
 }
 
-Win32_Thread::Win32_Thread(EntryPoint entry_point, void* ptr) 
-	: m_finished(false)
+Win32_Thread::Win32_Thread(const char* name, EntryPoint entry_point, void* ptr) 
+	: Thread(name) 
+	, m_finished(false)
+	, m_thread_id(0)
 {
 	m_entry_point = entry_point;
 	m_entry_ptr = ptr;
-	m_thread = CreateThread(NULL, NULL, Start_Routine, this, CREATE_SUSPENDED, NULL);
+	m_thread = CreateThread(NULL, NULL, Start_Routine, this, CREATE_SUSPENDED, &m_thread_id);
 
 	DBG_ASSERT(m_thread != NULL);
 }
 
 Win32_Thread::Win32_Thread(HANDLE handle)
-	: m_finished(false)
+	: Thread(NULL)
+	, m_finished(false)
+	, m_thread_id(0)
 {
 	m_thread = handle;
 	DBG_ASSERT(m_thread != NULL);
@@ -57,8 +88,17 @@ Win32_Thread::~Win32_Thread()
 DWORD WINAPI Win32_Thread::Start_Routine(LPVOID lpThreadParameter)
 {
 	Win32_Thread* thread = reinterpret_cast<Win32_Thread*>(lpThreadParameter);
+
+	// Set thread name.
+	if (thread->m_thread_id != 0 && thread->m_name != NULL)
+	{
+		Set_Visual_Studio_Thread_Name(thread->m_thread_id, thread->m_name);
+	}
+
+	// Call entry point.
 	thread->m_entry_point(thread, thread->m_entry_ptr);
 	thread->m_finished = true;
+
 	return 0;
 }
 

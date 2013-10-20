@@ -19,7 +19,7 @@ private:
 	friend class Thread;
 
 	Win32_Thread(HANDLE handle);
-	Win32_Thread(EntryPoint entry_point, void* ptr);
+	Win32_Thread(const char* name, EntryPoint entry_point, void* ptr);
 
 	static std::vector<Win32_Thread*> g_win32_threads;
 
@@ -31,6 +31,7 @@ private:
 	void*		m_entry_ptr;
 	HANDLE		m_thread;
 	bool		m_finished;
+	DWORD		m_thread_id;
 
 public:
 

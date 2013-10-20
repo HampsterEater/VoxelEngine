@@ -6,6 +6,8 @@
 
 #include "Generic\Types\IntVector3.h"
 
+#include <string>
+
 struct Vector3
 {
 public:
@@ -33,6 +35,10 @@ public:
 
 	Vector3 Direction() const;
 	Vector3 Right() const;
+
+	// To/From string.
+	std::string To_String();
+	static bool Parse(std::string value, Vector3& result);
 
 };
 

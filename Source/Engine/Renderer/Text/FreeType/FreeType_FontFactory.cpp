@@ -44,37 +44,6 @@ Font* FreeType_FontFactory::Try_Load(const char* url, FontFlags::Type flags)
 		compiler.Compile();
 	}
 
-	// Load configuration from the compiled path.
-	std::string compiled_path = compiler.Get_Compiled_Path();
-
-	// TODO: Load from compiled XML.
-
-	return NULL;
-
-	/*
-	// Load in the font file.
-	int size = stream->Length();
-	char* buffer = new char[size];
-	if (buffer == NULL)
-	{
-		SAFE_DELETE(stream);
-		return NULL;
-	}
-	stream->Read(buffer, 0, size);
-
-	// Load in font face.
-	FT_Face face;
-	int result = FT_New_Memory_Face(m_library, (FT_Byte*)buffer, size, 0, &face);
-	if (result != 0)
-	{
-		DBG_LOG("Failed to open freetype font face: %s", url);
-		SAFE_DELETE(buffer);
-		SAFE_DELETE(stream);
-		return NULL;
-	}
-
-	// Return resulting font!
-	SAFE_DELETE(stream);
-	return new FreeType_Font(m_library, face, buffer);
-	*/
+	// Load compiled path.
+	return compiler.Load_Compiled();
 }

@@ -29,3 +29,7 @@ CONFIG_VALUE(int,						audio_max_channels,					"audio/max_channels")
 // Language settings.
 CONFIG_VALUE(const char*,				language_default,					"languages/default")
 CONFIG_VALUE(std::vector<const char*>,	languages,							"languages/language")
+
+// Task settings
+CONFIG_VALUE(int,						tasks_max_workers,					"tasks/max_workers")
+CONFIG_VALUE(int,						tasks_max_tasks,					"tasks/max_tasks")

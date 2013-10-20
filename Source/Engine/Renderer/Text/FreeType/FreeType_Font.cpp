@@ -7,6 +7,8 @@
 #include "Engine\Renderer\Text\FreeType\FreeType_Font.h"
 #include "Engine\Renderer\Text\FreeType\FreeType_FontFactory.h"
 
+#include "Engine\Renderer\Textures\TextureFactory.h"
+
 #include "Engine\Config\ConfigFile.h"
 
 #include "Generic\Math\Math.h"
@@ -18,6 +20,7 @@ FreeType_Font::FreeType_Font(FT_Library library, FT_Face face, char* buffer, Con
 	, m_face(face)
 	, m_textures_locked(false)
 	, m_current_dirty_texture_index(-1)
+	, m_buffer(buffer)
 {
 	// Load configuration.
 	m_sdf_spread	= config->Get<int>("generation/sdf-spread");
@@ -46,6 +49,15 @@ FreeType_Font::FreeType_Font(FT_Library library, FT_Face face, char* buffer, Con
 	Unlock_Textures();
 }
 
+FreeType_Font::FreeType_Font(FT_Library library, FT_Face face, char* buffer)
+	: m_library(library)
+	, m_face(face)
+	, m_textures_locked(false)
+	, m_current_dirty_texture_index(-1)
+	, m_buffer(buffer)
+{
+}
+
 FreeType_Font::~FreeType_Font()
 {
 	for (int i = 0; i < m_max_textures; i++)
@@ -62,6 +74,79 @@ FreeType_Font::~FreeType_Font()
 	FT_Done_Face(m_face);
 
 	m_library = NULL;
+
+	SAFE_DELETE(m_buffer);
+}
+
+bool FreeType_Font::Load_Compiled_Config(ConfigFile* config)
+{	
+	// Load configuration.
+	m_sdf_spread	= config->Get<int>("generation/sdf-spread");
+	m_sdf_downscale = config->Get<int>("generation/sdf-downscale");
+	m_sdf_threshold = config->Get<int>("generation/sdf-threshold");
+	m_texture_size  = config->Get<int>("generation/texture-size");
+	m_max_textures	= config->Get<int>("generation/max-textures");
+	m_glyph_size    = config->Get<int>("generation/glyph-size");
+	m_glyph_spacing = config->Get<int>("generation/glyph-spacing");
+	
+	// Create texture buffer.
+	m_textures = new FreeType_FontTexture*[m_max_textures];
+	memset(m_textures, 0, m_max_textures * sizeof(Texture*));	
+
+	// Set face to use our character size.
+	int result = FT_Set_Pixel_Sizes(m_face, m_glyph_size * m_sdf_downscale, m_glyph_size * m_sdf_downscale);
+	DBG_ASSERT_STR(result == 0, "Failed to set character size of freetype font.");
+
+	// Load in all textures.
+	std::vector<const char*> textures = config->Get<std::vector<const char*>>("textures/texture");
+	DBG_ASSERT_STR(textures.size() < m_max_textures, "Compiled font contains more textures that max-textures.");
+
+	for (std::vector<const char*>::iterator iter = textures.begin(); iter != textures.end(); iter++)
+	{
+		m_current_dirty_texture_index++;
+
+		m_textures[m_current_dirty_texture_index]			= new FreeType_FontTexture();
+		m_textures[m_current_dirty_texture_index]->Is_Dirty = false;
+		m_textures[m_current_dirty_texture_index]->Texture	= TextureFactory::Load_Without_Handle(*iter, TextureFlags::None);
+
+		if (m_textures[m_current_dirty_texture_index]->Texture == NULL)
+		{
+			DBG_LOG("Failed to load compiled texture '%s'.", *iter);
+			return false;
+		}
+
+		m_textures[m_current_dirty_texture_index]->Buffer	= (unsigned char*)m_textures[m_current_dirty_texture_index]->Texture->Get_Data();
+		m_textures[m_current_dirty_texture_index]->Packer   = RectanglePacker(0, 0);		
+	}
+
+	// We don't want to try appending glyphs to last loaded texture, so move to the "next" one.
+	m_current_dirty_texture_index++;
+
+	// Load all glyphs.
+	std::vector<ConfigFileNode> glyphs = config->Get<std::vector<ConfigFileNode>>("glyphs/glyph");
+	for (std::vector<ConfigFileNode>::iterator iter = glyphs.begin(); iter != glyphs.end(); iter++)
+	{
+		ConfigFileNode node = *iter;
+
+		int texture_index = config->Get<int>("texture", node, true);
+		DBG_ASSERT_STR(texture_index < m_max_textures, "Glyph attempted to reference out of bounds texture index '%i'.", texture_index);
+
+		// Add glyph to list.	
+		FreeType_FontGlyph* new_glyph	= new FreeType_FontGlyph();	
+		new_glyph->FreeType_GlyphIndex	= config->Get<unsigned int>("ftindex", node, true);
+		new_glyph->Glyph.Texture		= m_textures[texture_index]->Texture;		
+		new_glyph->Glyph.Glyph			= config->Get<unsigned int>("glyph", node, true);
+		new_glyph->Glyph.UV				= config->Get<Rect>("uv", node, true);
+		new_glyph->TextureIndex			= texture_index;
+		new_glyph->Glyph.Size			= config->Get<Point>("size", node, true);
+		new_glyph->Glyph.Advance		= config->Get<Point>("advance", node, true);
+		new_glyph->Glyph.Offset			= config->Get<Point>("offset", node, true);
+		new_glyph->Glyph.Baseline		= config->Get<float>("baseline", node, true);
+
+		m_glyphs.Set(new_glyph->Glyph.Glyph, new_glyph);
+	}
+
+	return false;
 }
 
 FontGlyph FreeType_Font::Get_Glyph(unsigned int glyph) 
@@ -204,7 +289,7 @@ void FreeType_Font::Add_Glyph(unsigned int glyph)
 		m_textures[m_current_dirty_texture_index]->Texture = renderer->Create_Texture(m_texture_size, m_texture_size, m_texture_size, TextureFormat::Luminosity, TextureFlags::LinearFilter);
 	
 		bool packed = m_textures[m_current_dirty_texture_index]->Packer.Pack(glyph_size, glyph_rect);
-		DBG_ASSERT(packed, "Could not pack glyph into brand new texture! To large?");
+		DBG_ASSERT_STR(packed, "Could not pack glyph into brand new texture! To large?");
 	}
 
 	// Work out glyph texture position etc.

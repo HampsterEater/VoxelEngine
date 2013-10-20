@@ -4,26 +4,20 @@
 #ifndef _GENERIC_RECTANGLE_
 #define _GENERIC_RECTANGLE_
 
+#include <string>
+
 class Rect
 {
 public:
 	float X, Y, Width, Height;
 
-	Rect()
-		: X(0)
-		, Y(0)
-		, Width(0)
-		, Height(0)
-	{
-	}
+	Rect();
+	Rect(float x, float y, float w, float h);
 
-	Rect(float x, float y, float w, float h)
-	{
-		X = x;
-		Y = y;
-		Width = w;
-		Height = h;
-	}
+	// To/From string.
+	std::string To_String();
+	static bool Parse(std::string value, Rect& result);
+
 };
 
 #endif

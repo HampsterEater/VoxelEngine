@@ -1,7 +1,7 @@
 <xml>
 	<name>Voxel Engine</name>
 	<resources>
-		<compile-dir>Data/.built/</compile-dir>
+		<compile_dir>Data/.built/</compile_dir>
 	</resource>
 	<rendering>
 		<pipeline>Data/Config/Render_Pipeline.xml</pipeline>
@@ -13,6 +13,10 @@
 		</display>
 		<frame_rate>60</frame_rate>
 	</rendering>
+	<tasks>
+		<max_tasks>256</max_tasks>
+		<max_workers>6</max_workers>
+	</tasks>
 	<languages>
 		<default>EN-UK</default>
 		<language>Data/Config/Languages/en-uk.xml</language>

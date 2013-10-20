@@ -7,10 +7,15 @@
 #include "Generic\Threads\Win32\Win32_Thread.h"
 #endif
 
-Thread* Thread::Create(EntryPoint entry_point, void* ptr)
+Thread::Thread(const char* name)
+	: m_name(name)
+{
+}
+
+Thread* Thread::Create(const char* name, EntryPoint entry_point, void* ptr)
 {
 #ifdef PLATFORM_WIN32
-	return new Win32_Thread(entry_point, ptr);
+	return new Win32_Thread(name, entry_point, ptr);
 #else
 	#error "Platform unsupported."
 #endif

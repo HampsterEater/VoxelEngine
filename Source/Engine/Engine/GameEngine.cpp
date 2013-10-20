@@ -10,6 +10,8 @@
 #include "Engine\Scene\Scene.h"
 #include "Engine\Localise\Locale.h"
 
+#include "Engine\Tasks\TaskManager.h"
+
 #include "Engine\Renderer\Textures\TextureFactory.h"
 #include "Engine\Renderer\Text\FontFactory.h"
 #include "Engine\Audio\Sounds\SoundFactory.h"
@@ -76,6 +78,12 @@ GameEngine::GameEngine(GameRunner* runner)
 	{
 		m_audio_renderer = AudioRenderer::Create();
 		DBG_ASSERT(m_audio_renderer != NULL);
+	}
+
+	DBG_LOG("Initialising task manager.");
+	{
+		m_task_manager = new TaskManager(m_config.tasks_max_workers, m_config.tasks_max_tasks);
+		DBG_ASSERT(m_task_manager != NULL);
 	}
 		
 	DBG_LOG("Loading languages.");

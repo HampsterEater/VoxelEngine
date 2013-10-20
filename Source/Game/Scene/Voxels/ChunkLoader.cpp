@@ -36,7 +36,7 @@ ChunkLoader::ChunkLoader(ChunkManager* manager, const ChunkManagerConfig& config
 	DBG_ASSERT(m_loaded_chunks_mutex != NULL);
 
 	// Create load/save thread.
-	m_thread = Thread::Create(Static_Chunk_Load_Thread, this);
+	m_thread = Thread::Create("Chunk Loader", Static_Chunk_Load_Thread, this);
 	DBG_ASSERT(m_thread != NULL);
 	
 	// Boot up threads.

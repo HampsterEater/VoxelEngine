@@ -36,9 +36,10 @@ public:
 	~FreeType_ResourceCompiler		();	
 
 	// Derived methods.
-	bool		Should_Compile		();
-	std::string Get_Compiled_Path	();
-	bool		Compile				();
+	bool			Should_Compile		();
+	std::string		Get_Compiled_Path	();
+	bool			Compile				();
+	FreeType_Font*	Load_Compiled		();
 
 };
 

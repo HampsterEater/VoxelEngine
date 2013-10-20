@@ -108,10 +108,12 @@
     <ClInclude Include="ThirdParty\RapidXML\rapidxml_iterators.hpp" />
     <ClInclude Include="ThirdParty\RapidXML\rapidxml_print.hpp" />
     <ClInclude Include="ThirdParty\RapidXML\rapidxml_utils.hpp" />
+    <ClInclude Include="Threads\ConditionVariable.h" />
     <ClInclude Include="Threads\MutexLock.h" />
     <ClInclude Include="Threads\Mutex.h" />
     <ClInclude Include="Threads\Semaphore.h" />
     <ClInclude Include="Threads\Thread.h" />
+    <ClInclude Include="Threads\Win32\Win32_ConditionVariable.h" />
     <ClInclude Include="Threads\Win32\Win32_Mutex.h" />
     <ClInclude Include="Threads\Win32\Win32_Semaphore.h" />
     <ClInclude Include="Threads\Win32\Win32_Thread.h" />
@@ -145,10 +147,12 @@
     <ClCompile Include="Memory\Memory.cpp" />
     <ClCompile Include="Memory\Win32\Win32_Memory.cpp" />
     <ClCompile Include="Patterns\Singleton.cpp" />
+    <ClCompile Include="Threads\ConditionVaraible.cpp" />
     <ClCompile Include="Threads\Mutex.cpp" />
     <ClCompile Include="Threads\MutexLock.cpp" />
     <ClCompile Include="Threads\Semaphore.cpp" />
     <ClCompile Include="Threads\Thread.cpp" />
+    <ClCompile Include="Threads\Win32\Win32_ConditionVariable.cpp" />
     <ClCompile Include="Threads\Win32\Win32_Mutex.cpp" />
     <ClCompile Include="Threads\Win32\Win32_Semaphore.cpp" />
     <ClCompile Include="Threads\Win32\Win32_Thread.cpp" />

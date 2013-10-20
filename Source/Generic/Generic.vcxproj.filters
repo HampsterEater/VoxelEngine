@@ -231,6 +231,12 @@
     <ClInclude Include="Math\RectanglePacker.h">
       <Filter>Header Files\Math</Filter>
     </ClInclude>
+    <ClInclude Include="Threads\ConditionVariable.h">
+      <Filter>Header Files\Threads</Filter>
+    </ClInclude>
+    <ClInclude Include="Threads\Win32\Win32_ConditionVariable.h">
+      <Filter>Header Files\Threads\Win32</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Types\String.cpp">
@@ -325,6 +331,12 @@
     </ClCompile>
     <ClCompile Include="Math\RectanglePacker.cpp">
       <Filter>Source Files\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Threads\ConditionVaraible.cpp">
+      <Filter>Source Files\Threads</Filter>
+    </ClCompile>
+    <ClCompile Include="Threads\Win32\Win32_ConditionVariable.cpp">
+      <Filter>Source Files\Threads\Win32</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

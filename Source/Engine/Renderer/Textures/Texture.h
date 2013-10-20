@@ -50,7 +50,7 @@ public:
 	int						Get_Width	 () const;
 	int						Get_Height	 () const;
 	int						Get_Pitch	 () const;
-	const char*				Get_Data	 () const;
+	char*					Get_Data	 () const;
 	TextureFormat::Type		Get_Format	 () const;
 	
 	// Note: When setting data ownership of the buffer is transfered to the texture 

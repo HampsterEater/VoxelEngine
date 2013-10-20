@@ -8,10 +8,14 @@
 
 #include <Windows.h>
 
+class Win32_ConditionVariable;
+
 class Win32_Mutex : public Mutex
 {
 private:
 	friend class Mutex;
+	friend class Win32_ConditionVariable;
+
 	Win32_Mutex();
 
 	CRITICAL_SECTION m_critical_section;
