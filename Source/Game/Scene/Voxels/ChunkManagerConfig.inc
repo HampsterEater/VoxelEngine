@@ -30,6 +30,9 @@ CONFIG_VALUE(int,				chunk_regenerations_per_frame,		"voxels/chunk_regenerations
 
 // Chunk management settings.
 CONFIG_VALUE(int,				chunk_unloads_per_frame,			"voxels/chunk_unloads_per_frame")
+CONFIG_VALUE(int,				chunk_max_load_tasks,				"voxels/max_load_tasks")
+CONFIG_VALUE(int,				chunk_max_unload_tasks,				"voxels/max_unload_tasks")
+CONFIG_VALUE(int,				chunk_max_regenerate_tasks,			"voxels/max_regenerate_tasks")
 
 // Memory settings. 
 // Set to a number above 1, eg. 

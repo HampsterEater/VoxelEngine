@@ -117,7 +117,9 @@ TaskManager::QueuedTask* TaskManager::Worker_Wait_For_Task(unsigned int timeout)
 {
 	QueuedTask* task = Get_Available_Task();
 	if (task != NULL)
+	{
 		return task;
+	}
 
 	{
 		MutexLock lock(m_worker_task_mutex);
@@ -127,7 +129,7 @@ TaskManager::QueuedTask* TaskManager::Worker_Wait_For_Task(unsigned int timeout)
 			task = Get_Available_Task();
 		}
 	}
-
+	
 	return task;
 }
 
@@ -148,6 +150,11 @@ void TaskManager::Worker_Task_Completed(QueuedTask* task)
 	task->TaskRemaining--;
 	task->ID = -1;
 	
+	if (task->TaskRemaining <= 0)
+	{
+		task->Work->Complete();
+	}
+
 	QueuedTask* parent = Get_Task_By_ID(task->Parent);
 	if (parent != NULL)
 		parent->TaskRemaining--;
@@ -176,7 +183,7 @@ TaskManager::QueuedTask* TaskManager::Get_Available_Task()
 			{
 				iter = m_task_queue.erase(iter);
 				task = iter_task;
-				continue;
+				break;
 			}
 		}
 	}
@@ -201,6 +208,8 @@ TaskID TaskManager::Add_Task(Task* work, TaskID parent)
 			m_tasks[i].Parent		= parent;
 			m_tasks[i].TaskRemaining = 1;
 			m_tasks[i].Work			= work;
+
+			work->Reset();
 
 			return m_tasks[i].ID;
 		}
@@ -247,7 +256,7 @@ void TaskManager::Wait_For_All()
 	while (true)
 	{
 		// Task completed yet?
-		bool found_active_task = true;
+		bool found_active_task = false;
 		for (int i = 0; i < m_task_count; i++)
 		{
 			if (m_tasks[i].TaskRemaining > 0)

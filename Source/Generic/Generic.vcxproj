@@ -86,6 +86,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Data\DataTransformer.h" />
+    <ClInclude Include="Data\Hashes\CRC32DataTransformer.h" />
     <ClInclude Include="Defines.h" />
     <ClInclude Include="Helper\StringHelper.h" />
     <ClInclude Include="Math\Math.h" />
@@ -117,6 +119,8 @@
     <ClInclude Include="Threads\Win32\Win32_Mutex.h" />
     <ClInclude Include="Threads\Win32\Win32_Semaphore.h" />
     <ClInclude Include="Threads\Win32\Win32_Thread.h" />
+    <ClInclude Include="Traits\IsPointer.h" />
+    <ClInclude Include="Traits\Traits.h" />
     <ClInclude Include="Types\AABB.h" />
     <ClInclude Include="Types\CachedMemoryPool.h" />
     <ClInclude Include="Types\Color.h" />
@@ -137,6 +141,8 @@
     <ClInclude Include="Types\VirtualArray3.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Data\DataTransformer.cpp" />
+    <ClCompile Include="Data\Hashes\CRC32DataTransformer.cpp" />
     <ClCompile Include="Helper\StringHelper.cpp" />
     <ClCompile Include="Math\Math.cpp" />
     <ClCompile Include="Math\Noise\Noise.cpp" />
@@ -156,6 +162,8 @@
     <ClCompile Include="Threads\Win32\Win32_Mutex.cpp" />
     <ClCompile Include="Threads\Win32\Win32_Semaphore.cpp" />
     <ClCompile Include="Threads\Win32\Win32_Thread.cpp" />
+    <ClCompile Include="Traits\IsPointer.cpp" />
+    <ClCompile Include="Traits\Traits.cpp" />
     <ClCompile Include="Types\AABB.cpp" />
     <ClCompile Include="Types\Color.cpp" />
     <ClCompile Include="Types\FixedMemoryPool.cpp" />

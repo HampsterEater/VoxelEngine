@@ -61,6 +61,18 @@
     <Filter Include="Source Files\Scene\Voxels\Serialization">
       <UniqueIdentifier>{e2bd693e-021f-46a8-aa56-f5c7473fcaaa}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Scene\Voxels\Tasks">
+      <UniqueIdentifier>{a0f81912-5bf0-4c45-88ba-dbac01e83693}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Scene\Voxels\Tasks">
+      <UniqueIdentifier>{5549ae00-edd1-4fd2-91f8-29807f4cc039}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Scene\Voxels\[Deprecated]">
+      <UniqueIdentifier>{7ebb312b-6182-4b8e-a53e-91f25ccba82a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Scene\Voxels\[Deprecated]">
+      <UniqueIdentifier>{a7dd52ae-541c-48f1-85af-1afe4bae33d7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Platform\Win32\Entry.h">
@@ -87,12 +99,6 @@
     <ClInclude Include="Scene\Voxels\ChunkManagerConfig.h">
       <Filter>Header Files\Scene\Voxels</Filter>
     </ClInclude>
-    <ClInclude Include="Scene\Voxels\ChunkLoader.h">
-      <Filter>Header Files\Scene\Voxels</Filter>
-    </ClInclude>
-    <ClInclude Include="Scene\Voxels\ChunkUnloader.h">
-      <Filter>Header Files\Scene\Voxels</Filter>
-    </ClInclude>
     <ClInclude Include="Scene\Voxels\Generation\ChunkGenerator.h">
       <Filter>Header Files\Scene\Voxels\Generation</Filter>
     </ClInclude>
@@ -101,6 +107,15 @@
     </ClInclude>
     <ClInclude Include="Scene\Voxels\Serialization\WorldFile.h">
       <Filter>Header Files\Scene\Voxels\Serialization</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\Voxels\Tasks\ChunkLoadTask.h">
+      <Filter>Header Files\Scene\Voxels\Tasks</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\Voxels\Tasks\ChunkUnloadTask.h">
+      <Filter>Header Files\Scene\Voxels\Tasks</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\Voxels\Tasks\ChunkRegenerateMeshTask.h">
+      <Filter>Header Files\Scene\Voxels\Tasks</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -116,9 +131,6 @@
     <ClCompile Include="Scene\Voxels\Voxel.cpp">
       <Filter>Source Files\Scene\Voxels</Filter>
     </ClCompile>
-    <ClCompile Include="Scene\Voxels\ChunkManager.cpp">
-      <Filter>Source Files\Scene\Voxels</Filter>
-    </ClCompile>
     <ClCompile Include="Runner\Game.cpp">
       <Filter>Source Files\Runner</Filter>
     </ClCompile>
@@ -126,12 +138,6 @@
       <Filter>Source Files\Runner</Filter>
     </ClCompile>
     <ClCompile Include="Scene\Voxels\ChunkManagerConfig.cpp">
-      <Filter>Source Files\Scene\Voxels</Filter>
-    </ClCompile>
-    <ClCompile Include="Scene\Voxels\ChunkLoader.cpp">
-      <Filter>Source Files\Scene\Voxels</Filter>
-    </ClCompile>
-    <ClCompile Include="Scene\Voxels\ChunkUnloader.cpp">
       <Filter>Source Files\Scene\Voxels</Filter>
     </ClCompile>
     <ClCompile Include="Scene\Voxels\Generation\ChunkGenerator.cpp">
@@ -142,6 +148,18 @@
     </ClCompile>
     <ClCompile Include="Scene\Voxels\Serialization\WorldFile.cpp">
       <Filter>Source Files\Scene\Voxels\Serialization</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene\Voxels\Tasks\ChunkLoadTask.cpp">
+      <Filter>Source Files\Scene\Voxels\Tasks</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene\Voxels\Tasks\ChunkUnloadTask.cpp">
+      <Filter>Source Files\Scene\Voxels\Tasks</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene\Voxels\ChunkManager.cpp">
+      <Filter>Source Files\Scene\Voxels</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene\Voxels\Tasks\ChunkRegenerateMeshTask.cpp">
+      <Filter>Source Files\Scene\Voxels\Tasks</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

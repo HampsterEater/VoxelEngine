@@ -82,7 +82,20 @@
 	#pragma warning(disable : 4996)
 #endif
 
+// Special compiler keywords.
+#if defined(_MSC_VER)	
+	#define INLINE __forceinline
+#else
+	#error "Unsupported platform."
+#endif
+
 // Special types.
+#define s8  char
+#define u8  unsigned char
+#define s16 short
+#define u16 unsigned short
+#define s32 int
+#define u32 unsigned int
 #define s64 long long int
 #define u64 unsigned long long int
 

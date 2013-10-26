@@ -12,13 +12,17 @@
 
 #include "Game\Scene\Voxels\Chunk.h"
 #include "Game\Scene\Voxels\ChunkManagerConfig.h"
-#include "Game\Scene\Voxels\ChunkLoader.h"
-#include "Game\Scene\Voxels\ChunkUnloader.h"
 #include "Game\Scene\Voxels\Voxel.h"
 #include "Generic\Types\VirtualArray3.h"
 
+#include "Game\Scene\Voxels\Tasks\ChunkLoadTask.h"
+#include "Game\Scene\Voxels\Tasks\ChunkUnloadTask.h"
+#include "Game\Scene\Voxels\Tasks\ChunkRegenerateMeshTask.h"
+
 #include "Game\Scene\Voxels\Serialization\RegionFile.h"
 #include "Game\Scene\Voxels\Serialization\WorldFile.h"
+
+#include "Game\Scene\Voxels\Generation\ChunkGenerator.h"
 
 #include "Generic\Threads\Thread.h"
 #include "Generic\Threads\Mutex.h"
@@ -33,6 +37,10 @@
 
 class Texture;
 class TextureAtlas;
+
+// How much the Y axis is biased. The higher this is the more we perfer to load
+// chunks on the cameras "level"
+#define CHUNK_LOAD_Y_BIAS 2
 
 class ChunkManager : public Drawable, public Tickable
 {
@@ -50,11 +58,15 @@ private:
 	int							m_max_chunks;
 	int							m_voxels_per_chunk;
 
-	ChunkLoader*				m_chunk_loader;
-	ChunkUnloader*				m_chunk_unloader;
-		
 	FixedMemoryPool<Chunk>		m_chunk_memory_pool;
 	FixedMemoryPool<Voxel>		m_voxel_memory_pool;
+
+	LinkedList<ChunkLoadTask*>				m_load_tasks;
+	LinkedList<ChunkUnloadTask*>			m_unload_tasks;
+	LinkedList<ChunkRegenerateMeshTask*>	m_regenerate_mesh_tasks;	
+
+	LinkedList<IntVector3>		 m_chunk_unload_list;
+	LinkedList<IntVector3>		 m_chunk_load_list;
 
 	LinkedList<Chunk*>			m_visible_chunks;
 	LinkedList<Chunk*>			m_dirty_chunks;
@@ -71,27 +83,34 @@ private:
 
 	Mutex*						m_region_access_mutex;
 
+	bool						m_dirty_chunks_sorted;
+
 	// Chunk access. Generally chunk manager should be responsible
 	// for creating/setting chunks, so these are private.
 	void Queue_Dirty_Chunk(Chunk* chunk);
 
 	// List status updating.
-	void Update_Chunk_Lists();
-	void Update_Visible_List();
-	void Update_Unload_List();
-	void Update_Load_List();
+	void Update_Chunk_Lists		();
+	void Update_Visible_List	();
+	void Update_Unload_List		();
+	void Update_Load_List		();
 	void Regenerate_Dirty_Chunks();
+
+	void Create_New_Tasks		();
+	void Poll_Running_Tasks		();
 
 	// List sorting.
 	static int Visible_List_Sort_Comparer(Chunk* a, Chunk* b, void* extra);
+	static int Chunk_List_Sort_Comparer(IntVector3 a, IntVector3 b, void* extra);
 
 protected:
 	friend class Chunk;
-	friend class ChunkLoader;
-	friend class ChunkUnloader;
+	friend class ChunkLoadTask;
+	friend class ChunkUnloadTask;
 
 	// Config access.
 	const ChunkManagerConfig& Get_Config();
+	ChunkGenerator* Get_Chunk_Generator();
 
 	// Memory pool access.
 	FixedMemoryPool<Voxel>& Get_Voxel_Memory_Pool();

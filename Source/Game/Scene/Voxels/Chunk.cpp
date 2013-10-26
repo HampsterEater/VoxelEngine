@@ -5,6 +5,7 @@
 #include "Game\Scene\Voxels\Chunk.h"
 #include "Generic\Types\Vector3.h"
 #include "Generic\Types\AABB.h"
+#include "Generic\Data\Hashes\CRC32DataTransformer.h"
 #include "Engine\Engine\GameEngine.h"
 #include "Engine\Platform\Platform.h"
 #include "Engine\Renderer\Textures\TextureAtlas.h"
@@ -38,6 +39,11 @@ Chunk::Chunk(ChunkManager* manager, int x, int y, int z, int width, int height, 
 	, m_is_contained(false)
 	, m_has_hole_face(false)
 	, m_aabb_cached(false)
+	, m_render_vertices(0)
+	, m_render_triangles(0)
+	, m_is_regenerating(false)
+	, m_regeneration_count(0)
+	, m_hash(0)
 {	
 	int chunk_size = sizeof(Voxel) * m_width * m_height * m_depth;
 		
@@ -46,6 +52,8 @@ Chunk::Chunk(ChunkManager* manager, int x, int y, int z, int width, int height, 
 
 	m_voxels = (Voxel*)mem;
 	memset(m_voxels, 0, sizeof(Voxel) * m_width * m_height * m_depth);
+
+	memset(m_neighbour_chunks, 0, sizeof(Chunk*) * 3 * 3 * 3);
 }
 
 Chunk::~Chunk()
@@ -75,7 +83,7 @@ IntVector3 Chunk::Get_Region() const
 
 bool Chunk::Should_Render() const
 {
-	return m_triangle_count > 0 || m_is_dirty == true;
+	return m_triangle_count > 0 || m_is_dirty == true || m_is_regenerating == true;
 }
 
 AABB Chunk::Get_AABB() 
@@ -157,9 +165,9 @@ void Chunk::Fill(VoxelType::Type type, int ix, int iy, int iz, int width, int he
 		return;
 	}
 
-	for (int x = ix; x <= ix + m_width; x++)
+	for (int x = ix; x < ix + m_width; x++)
 	{
-		for (int y = 0; y <= iy + m_height; y++)
+		for (int y = 0; y < iy + m_height; y++)
 		{
 			for (int z = 0; z < iz + m_depth; z++)
 			{
@@ -213,11 +221,6 @@ void Chunk::Regenerate_Voxel(Renderer* renderer, const Render_Voxel& voxel, int 
 	float half_w = m_voxel_width / 2.0f;
 	float half_h = m_voxel_height / 2.0f;
 	float half_d = m_voxel_depth / 2.0f;
-
-		//renderer->Translate_World_Matrix((float)m_x * (m_width * (m_voxel_width * 1)), 
-	//							     (float)m_y * (m_height * (m_voxel_height * 1)), 
-	//							     (float)m_z * (m_depth * (m_voxel_depth * 1)));
-
 
 	float x = (m_x * m_width * m_voxel_width) + ((ix * m_voxel_width) + (half_w / 2.0f));
 	float y = (m_y * m_height * m_voxel_height) + ((iy * m_voxel_height) + (half_h / 2.0f));
@@ -441,22 +444,16 @@ bool Chunk::Should_Render_Voxel(Render_Voxel& voxel)
 	return true;
 }
 
-void Chunk::Regenerate_Mesh(Renderer* renderer, bool as_neighbour)
+void Chunk::Calculate_Visible_Voxels()
 {
-	// Get rid of old mesh?	
-	if (m_mesh_id >= 0)
-	{
-		renderer->Destroy_Mesh(m_mesh_id);
-		m_mesh_id = -1;
-	}
-
 	// Reset some info.	
 	m_has_hole_face = false;
 
 	// Work out a list of candidate voxels for rendering.
-	std::vector<Render_Voxel> render_voxels;
-	int render_vertices = 0;
-	int render_triangles = 0;
+	m_render_voxels.clear();
+	m_render_vertices = 0;
+	m_render_triangles = 0;
+	m_regeneration_count++;
 
 	for (int x = 0; x < m_width; x++)
 	{
@@ -470,23 +467,132 @@ void Chunk::Regenerate_Mesh(Renderer* renderer, bool as_neighbour)
 
 				if (Should_Render_Voxel(render_voxel))
 				{
-					render_voxels.push_back(render_voxel);
-					render_triangles += render_voxel.triangle_count;
-					render_vertices  += render_voxel.vertex_count;
+					m_render_voxels.push_back(render_voxel);
+					m_render_triangles += render_voxel.triangle_count;
+					m_render_vertices  += render_voxel.vertex_count;
 				}
 			}
 		}
 	}
 
 	// Regenerate new mesh!
-	m_mesh_voxel_count = render_voxels.size();
+	CRC32DataTransformer crc;	
+	m_mesh_voxel_count = m_render_voxels.size();
+	m_hash = crc.Calculate<u32>(m_render_voxels.data(), sizeof(Render_Voxel) * m_mesh_voxel_count);
+}
 
-	if (render_triangles > 0)
+void Chunk::Relink_Neighbours()
+{
+	for (int x = -1; x <= 1; x++)
+	{		
+		for (int y = -1; y <= 1; y++)
+		{			
+			for (int z = -1; z <= 1; z++)
+			{
+				m_neighbour_chunks[x + 1][y + 1][z + 1] = m_manager->Get_Chunk(IntVector3(m_x + x, m_y + y, m_z + z));
+			}
+		}
+	}
+}
+
+bool Chunk::Are_Neighbours_Loaded()
+{
+	for (int x = -1; x <= 1; x++)
+	{		
+		for (int y = -1; y <= 1; y++)
+		{			
+			for (int z = -1; z <= 1; z++)
+			{
+				Chunk* chunk = m_neighbour_chunks[x + 1][y + 1][z + 1];
+				if (chunk == NULL || chunk->Get_Status() != ChunkStatus::Loaded)
+				{
+					//if (chunk == NULL && m_y == -2 && abs(dist_x) < 8 && abs(dist_z) < 8)
+					//{
+						//Chunk* c = m_manager->Get_Chunk(IntVector3(m_x + x, m_y + y, m_z + z));
+						//printf("Neighbour chunk null %i,%i,%i - %i\n", m_x + x, m_y + y, m_z + z, (c != NULL));
+					//}
+					return false;
+				}
+			}
+		}
+	}
+
+	return true;
+}
+
+bool Chunk::Have_Neighbours_Changed()
+{
+	for (int x = -1; x <= 1; x++)
+	{		
+		for (int y = -1; y <= 1; y++)
+		{			
+			for (int z = -1; z <= 1; z++)
+			{
+				Chunk* chunk = m_neighbour_chunks[x + 1][y + 1][z + 1];
+				if (chunk != NULL && chunk->Get_Status() == ChunkStatus::Loaded)
+				{
+					int hash = m_neighbour_chunk_hashes[x + 1][y + 1][z + 1];
+					if (hash == 0) // If we couldn't store the hash because the chunk hadn't regenerated last time.
+					{
+						m_neighbour_chunk_hashes[x + 1][y + 1][z + 1] = chunk->m_hash;
+					}
+					else
+					{
+						if (chunk->m_hash != hash)
+						{
+							return true;
+						}
+					}
+				}
+				else
+				{
+					return false;
+				}
+			}
+		}
+	}
+
+	return false;
+}
+
+void Chunk::Store_Neighbour_Hashes()
+{
+	for (int x = -1; x <= 1; x++)
+	{		
+		for (int y = -1; y <= 1; y++)
+		{			
+			for (int z = -1; z <= 1; z++)
+			{
+				Chunk* chunk = m_neighbour_chunks[x + 1][y + 1][z + 1];
+				if (chunk != NULL && chunk->Get_Status() == ChunkStatus::Loaded && chunk->Is_Regenerating() == false)
+				{
+					m_neighbour_chunk_hashes[x + 1][y + 1][z + 1] = chunk->m_hash;
+				}
+				else
+				{
+					m_neighbour_chunk_hashes[x + 1][y + 1][z + 1] = 0;
+				}
+			}
+		}
+	}
+}
+
+void Chunk::Regenerate_Mesh(Renderer* renderer, bool as_neighbour)
+{
+	// Get rid of old mesh?	
+	if (m_mesh_id >= 0)
 	{
-		m_mesh_id = renderer->Start_Mesh(render_vertices, render_triangles);
+		renderer->Destroy_Mesh(m_mesh_id);
+		m_mesh_id = -1;
+	}
+
+	// Render the mesh!
+	if (m_render_triangles > 0)
+	{
+		m_mesh_id = renderer->Start_Mesh(m_render_vertices, m_render_triangles);
 		DBG_ASSERT(m_mesh_id >= 0);
 
-		for (std::vector<Render_Voxel>::iterator iter = render_voxels.begin(); iter != render_voxels.end(); iter++)
+		for (std::vector<Render_Voxel>::iterator iter = m_render_voxels.begin(); iter != m_render_voxels.end(); iter++)
 		{
 			Render_Voxel& render_voxel = *iter;		
 			Regenerate_Voxel(renderer, render_voxel, render_voxel.x, render_voxel.y, render_voxel.z);
@@ -494,42 +600,10 @@ void Chunk::Regenerate_Mesh(Renderer* renderer, bool as_neighbour)
 
 		renderer->End_Mesh(m_mesh_id);
 	}
+	
+	m_triangle_count = m_render_triangles;
 
-	// Should we regenerate neighbours?
-	// TODO: Only do this if this is a new chunk or we have modified edge voxels.
-	if (as_neighbour == false)
-	{
-		Regenerate_Neighbour_Meshs(renderer);
-	}
-
-	m_triangle_count = render_triangles;
-	m_is_dirty = false;
-}
-
-void Chunk::Regenerate_Neighbour_Meshs(Renderer* renderer)
-{
-	for (int x = -1; x <= 1; x++)
-	{	
-		for (int y = -1; y <= 1; y++)
-		{			
-			for (int z = -1; z <= 1; z++)
-			{
-				// Only do cardinal directions.
-				if ((x != 0 && y == 0 && z == 0) ||
-					(x == 0 && y != 0 && z == 0) ||
-					(x == 0 && y == 0 && z != 0))
-				{
-					Chunk* c = m_manager->Get_Chunk(IntVector3(m_x + x, 
-															   m_y + y, 
-															   m_z + z));
-					if (c != NULL && c->Is_Dirty() == false)
-					{
-						c->Regenerate_Mesh(renderer, true);
-					}
-				}
-			}
-		}
-	}
+	Store_Neighbour_Hashes();
 }
 
 Voxel* Chunk::Get_Voxel(int x, int y, int z)
@@ -610,5 +684,12 @@ void Chunk::Draw(const FrameTime& time, RenderPipeline* pipeline)
 
 void Chunk::Tick(const FrameTime& time)
 {
-	
+	// Do we need to regenerate?
+	if (Are_Neighbours_Loaded() && 
+		Have_Neighbours_Changed() &&
+		m_is_dirty == false && 
+		m_is_regenerating == false)
+	{
+		Mark_Dirty(true);
+	}
 }

@@ -1,7 +1,7 @@
 <xml>
 	<name>Voxel Engine</name>
 	<resources>
-		<compile_dir>Data/.built/</compile_dir>
+		<compile_dir>.built/</compile_dir>
 	</resource>
 	<rendering>
 		<pipeline>Data/Config/Render_Pipeline.xml</pipeline>
@@ -14,7 +14,7 @@
 		<frame_rate>60</frame_rate>
 	</rendering>
 	<tasks>
-		<max_tasks>256</max_tasks>
+		<max_tasks>512</max_tasks>
 		<max_workers>6</max_workers>
 	</tasks>
 	<languages>
@@ -28,13 +28,16 @@
 		<chunk_size>16,16,16</chunk_size>
 		<region_size>16,16,16</region_size>
 		<voxel_size>0.07,0.07,0.07</voxel_size>
-		<draw_distance>8,6,8</draw_distance>
+		<draw_distance>7,6,7</draw_distance>
 		<load_distance>10,8,10</load_distance>
 		<unload_distance>12,10,12</unload_distance>
-		<extents_min>0,-4,0</extents_min>
-		<extents_max>0,4,0</extents_max>
+		<extents_min>0,-5,0</extents_min>
+		<extents_max>0,5,0</extents_max>
 		<unload_timeout>10000</unload_timeout>
-		<chunk_regenerations_per_frame>2</chunk_regenerations_per_frame>
+		<max_unload_tasks>64</max_unload_tasks>
+		<max_load_tasks>64</max_load_tasks>		
+		<max_regenerate_tasks>64</max_regenerate_tasks>		
+		<chunk_regenerations_per_frame>8</chunk_regenerations_per_frame>
 		<chunk_unloads_per_frame>25</chunk_unloads_per_frame>
 		<chunk_memory_pool_buffer>1.6</chunk_memory_pool_buffer>
 		<voxel_memory_pool_buffer>1.6</voxel_memory_pool_buffer>
@@ -48,8 +51,8 @@
 		</generation>
 	</voxels>
 	<saving>
-		<save_directory>Save/World/</save_directory>
-		<world_file_path>Save/World/World.dat</world_file_path>
-		<region_directory>Save/World/Regions/</region_directory>
+		<save_directory>.save/World/</save_directory>
+		<world_file_path>.save/World/World.dat</world_file_path>
+		<region_directory>.save/World/Regions/</region_directory>
 	</saving>
 </xml>

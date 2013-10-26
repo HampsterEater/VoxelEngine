@@ -14,7 +14,7 @@
 
 // A task ID is used to reference a task once it's been queued with the
 // task amanager. It pretty much just equates to an index in the task array.
-typedef unsigned int TaskID;
+typedef int TaskID;
 
 class TaskManager : public Singleton<TaskManager>
 {

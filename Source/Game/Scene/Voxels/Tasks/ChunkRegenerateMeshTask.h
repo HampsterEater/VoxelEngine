@@ -1,8 +1,8 @@
 // ===================================================================
 //	Copyright (C) 2013 Tim Leonard
 // ===================================================================
-#ifndef _GAME_SCENE_VOXELS_TASKS_CHUNKLOADTASK_
-#define _GAME_SCENE_VOXELS_TASKS_CHUNKLOADTASK_
+#ifndef _GAME_SCENE_VOXELS_TASKS_CHUNKREGENERATEMESHTASK_
+#define _GAME_SCENE_VOXELS_TASKS_CHUNKREGENERATEMESHTASK_
 
 #include "Engine\Tasks\Task.h"
 
@@ -13,18 +13,16 @@
 class Chunk;
 class ChunkManager;
 
-class ChunkLoadTask : public Task
+class ChunkRegenerateMeshTask : public Task
 {
 private:	
 	ChunkManager*				m_manager;
 	Chunk*						m_chunk;
-	IntVector3					m_position;
 	const ChunkManagerConfig&	m_config;
 
 public:
-	ChunkLoadTask(ChunkManager* manager, IntVector3 chunk_position, const ChunkManagerConfig& config);
+	ChunkRegenerateMeshTask(ChunkManager* manager, Chunk* chunk, const ChunkManagerConfig& config);
 
-	IntVector3 Get_Chunk_Position();
 	Chunk*	   Get_Chunk();
 	 
 	void Run();

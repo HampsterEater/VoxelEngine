@@ -16,8 +16,6 @@
 #include "Game\Scene\Voxels\Voxel.h"
 
 class ChunkManager;
-class ChunkLoader;
-class ChunkUnloader;
 
 // Determines the different states a chunk can be in.
 struct ChunkStatus
@@ -40,11 +38,11 @@ class Chunk : public Drawable
 {
 private:
 	friend class ChunkManager;
-	friend class ChunkLoader;
-	friend class ChunkUnloader;
 	friend class ChunkGenerator;
 	friend class WorldFile;
 	friend class RegionFile;
+	friend class ChunkLoadTask;
+	friend class ChunkUnloadTask;
 
 	// This contains information we use when generating a chunk's
 	// mesh from all its voxels. Includes occlusion information and such.
@@ -96,10 +94,21 @@ private:
 	int m_mesh_voxel_count;
 	int m_triangle_count;
 
+	std::vector<Render_Voxel> m_render_voxels;
+	int m_render_vertices;
+	int m_render_triangles;
+
+	// Neighbour chunk hashes. Used to decide when to regenerate.
+	int		m_hash;
+	int		m_neighbour_chunk_hashes[3][3][3]; // One for each cardinal direction.
+	Chunk*	m_neighbour_chunks[3][3][3];
+
 	// Store current state of chunk.
 	bool m_is_empty;
 	bool m_is_full;
 	bool m_is_contained;
+	bool m_is_regenerating;
+	bool m_regeneration_count;
 
 	// Status management.
 	ChunkStatus::Type	m_status;
@@ -114,7 +123,7 @@ private:
 	bool m_has_hole_face;
 
 	// Index stuff.
-	__forceinline int Flatten_Index(int x, int y, int z)
+	INLINE int Flatten_Index(int x, int y, int z)
 	{
 		return y + m_height * (x + m_depth * z);
 	}
@@ -122,24 +131,33 @@ private:
 	bool Should_Render_Voxel		(Render_Voxel& voxel);
 	void Regenerate_Mesh			(Renderer* renderer, bool as_neighbour = false);
 	void Regenerate_Voxel			(Renderer* renderer, const Render_Voxel& voxel, int x, int y, int z);
-	void Regenerate_Neighbour_Meshs	(Renderer* renderer);
 
 	bool Is_Dirty();
 	void Mark_Dirty(bool dirty = true);
 
-	inline ChunkStatus::Type Get_Status()				{ return m_status; };
-	inline void Set_Status(ChunkStatus::Type status)	{ m_status = status; };
+	INLINE ChunkStatus::Type Get_Status()			{ return m_status; };
+	INLINE void Set_Status(ChunkStatus::Type status){ m_status = status; };
 
-	Voxel* Get_Voxel_Buffer()							{ return m_voxels; }
-	
-	int	 Get_Triangle_Count()							{ return m_triangle_count; }
+	INLINE Voxel* Get_Voxel_Buffer()				{ return m_voxels; }
+
+	INLINE int	 Get_Triangle_Count()				{ return m_triangle_count; }
+
+	INLINE bool	 Is_Regenerating()					{ return m_is_regenerating; }
+	INLINE void	 Set_Regenerating(bool value)		{ m_is_regenerating = value; }	
+
+	bool Are_Neighbours_Loaded();	
+	void Store_Neighbour_Hashes();
+	bool Have_Neighbours_Changed();
 
 	void Recalculate_State();
 
-	bool Is_Empty()										{ return m_is_empty; }
-	bool Is_Full ()										{ return m_is_full; }
-	bool Is_Contained()									{ return m_is_contained; }
-	bool Has_Hole_Face()								{ return m_has_hole_face; }
+	void Notify_Neighbours_Of_Change();
+	void Relink_Neighbours();
+
+	INLINE bool Is_Empty()							{ return m_is_empty; }
+	INLINE bool Is_Full ()							{ return m_is_full; }
+	INLINE bool Is_Contained()						{ return m_is_contained; }
+	INLINE bool Has_Hole_Face()						{ return m_has_hole_face; }
 
 	// Constructors.
 	Chunk();
@@ -154,6 +172,7 @@ public:
 	AABB Get_AABB();
 	Sphere Get_Bounding_Sphere() const;
 	bool Should_Render() const;
+	void Calculate_Visible_Voxels();
 
 	// Unload properties.
 	void Reset_Unload_Timer();

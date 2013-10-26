@@ -24,7 +24,7 @@ protected:
 
 	// Used by the hashing function to produce interleaved hashs
 	// to create a z-order curve hash.
-	__forceinline int ZOrder(int x) const
+	INLINE int ZOrder(int x) const
 	{
 		x &= 0x3FF;
 		x  = (x | (x<<16)) & 4278190335;

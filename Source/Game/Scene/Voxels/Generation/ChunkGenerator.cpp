@@ -16,6 +16,7 @@ ChunkGenerator::ChunkGenerator(ChunkManager* manager, const ChunkManagerConfig& 
 {
 	m_scale_factor = m_config.map_terrain_base_noise_sample_step;
 
+	/*
 	m_terrain_base_noise = new SimplexNoise(m_config.map_seed);
 	m_terrain_base_noise_sampler = new NoiseSampler3D(m_terrain_base_noise, 
 													  m_chunk_world_position,
@@ -24,12 +25,13 @@ ChunkGenerator::ChunkGenerator(ChunkManager* manager, const ChunkManagerConfig& 
 													  m_config.map_terrain_base_noise_octaves,
 													  m_config.map_terrain_base_noise_persistence,
 													  m_config.map_terrain_base_noise_scale); 
+													  */
 }
 
 ChunkGenerator::~ChunkGenerator()
 {
-	SAFE_DELETE(m_terrain_base_noise_sampler);
-	SAFE_DELETE(m_terrain_base_noise);
+	//SAFE_DELETE(m_terrain_base_noise_sampler);
+	//SAFE_DELETE(m_terrain_base_noise);
 }
 	
 void ChunkGenerator::Generate(Chunk* chunk)

@@ -45,7 +45,7 @@ private:
 	void Setup_Default_Header();
 	bool Validate_Header();
 	
-	__forceinline int Flatten_Index(int x, int y, int z)
+	INLINE int Flatten_Index(int x, int y, int z)
 	{
 		return y + m_config.region_size.Y * (x + m_config.region_size.Z * z);
 	}

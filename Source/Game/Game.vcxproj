@@ -16,13 +16,14 @@
     <ClInclude Include="Runner\GameConfig.h" />
     <ClInclude Include="Scene\Cameras\FirstPersonCamera.h" />
     <ClInclude Include="Scene\Voxels\Chunk.h" />
-    <ClInclude Include="Scene\Voxels\ChunkLoader.h" />
     <ClInclude Include="Scene\Voxels\ChunkManager.h" />
     <ClInclude Include="Scene\Voxels\ChunkManagerConfig.h" />
-    <ClInclude Include="Scene\Voxels\ChunkUnloader.h" />
     <ClInclude Include="Scene\Voxels\Generation\ChunkGenerator.h" />
     <ClInclude Include="Scene\Voxels\Serialization\RegionFile.h" />
     <ClInclude Include="Scene\Voxels\Serialization\WorldFile.h" />
+    <ClInclude Include="Scene\Voxels\Tasks\ChunkLoadTask.h" />
+    <ClInclude Include="Scene\Voxels\Tasks\ChunkRegenerateMeshTask.h" />
+    <ClInclude Include="Scene\Voxels\Tasks\ChunkUnloadTask.h" />
     <ClInclude Include="Scene\Voxels\Voxel.h" />
   </ItemGroup>
   <ItemGroup>
@@ -31,13 +32,14 @@
     <ClCompile Include="Runner\GameConfig.cpp" />
     <ClCompile Include="Scene\Cameras\FirstPersonCamera.cpp" />
     <ClCompile Include="Scene\Voxels\Chunk.cpp" />
-    <ClCompile Include="Scene\Voxels\ChunkLoader.cpp" />
     <ClCompile Include="Scene\Voxels\ChunkManager.cpp" />
     <ClCompile Include="Scene\Voxels\ChunkManagerConfig.cpp" />
-    <ClCompile Include="Scene\Voxels\ChunkUnloader.cpp" />
     <ClCompile Include="Scene\Voxels\Generation\ChunkGenerator.cpp" />
     <ClCompile Include="Scene\Voxels\Serialization\RegionFile.cpp" />
     <ClCompile Include="Scene\Voxels\Serialization\WorldFile.cpp" />
+    <ClCompile Include="Scene\Voxels\Tasks\ChunkLoadTask.cpp" />
+    <ClCompile Include="Scene\Voxels\Tasks\ChunkRegenerateMeshTask.cpp" />
+    <ClCompile Include="Scene\Voxels\Tasks\ChunkUnloadTask.cpp" />
     <ClCompile Include="Scene\Voxels\Voxel.cpp" />
   </ItemGroup>
   <ItemGroup>

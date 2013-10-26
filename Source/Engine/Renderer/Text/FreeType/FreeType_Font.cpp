@@ -161,6 +161,11 @@ FontGlyph FreeType_Font::Get_Glyph(unsigned int glyph)
 		Lock_Textures();
 		Add_Glyph(glyph);
 		Unlock_Textures();
+
+		bool result = m_glyphs.Get(glyph, output);
+		DBG_ASSERT(result == true);
+
+		return output->Glyph;
 	}
 }
 

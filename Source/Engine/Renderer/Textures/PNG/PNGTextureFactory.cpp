@@ -28,7 +28,7 @@ bool PNGTextureFactory::Try_Save(const char* url, Texture* texture, TextureFlags
 	Stream* stream = StreamFactory::Open(url, (StreamMode::Type)(StreamMode::Write|StreamMode::Truncate));
 	if (stream == NULL)
 	{
-		return NULL;
+		return false;
 	}
 
 	// Calculate format specifications for saving.
@@ -62,7 +62,7 @@ bool PNGTextureFactory::Try_Save(const char* url, Texture* texture, TextureFlags
 	default:
 		{
 		delete stream;
-		return NULL;
+		return false;
 		}
 	}
 	
@@ -71,13 +71,13 @@ bool PNGTextureFactory::Try_Save(const char* url, Texture* texture, TextureFlags
 	if (png_ptr == NULL) 
 	{
 		delete stream;
-		return NULL;
+		return false;
 	}
     png_infop info_ptr = png_create_info_struct (png_ptr);
 	if (info_ptr == NULL) 
 	{
 		delete stream;
-		return NULL;
+		return false;
 	}
 	
 	// Setup error handler.
@@ -86,7 +86,7 @@ bool PNGTextureFactory::Try_Save(const char* url, Texture* texture, TextureFlags
         png_destroy_write_struct(&png_ptr, &info_ptr);
 
 		delete stream;
-		return NULL;
+		return false;
 	}
 
 	// Set image attributes.
@@ -120,7 +120,7 @@ bool PNGTextureFactory::Try_Save(const char* url, Texture* texture, TextureFlags
 	delete stream;
 
 	// Return texture.
-	return texture;
+	return true;
 }
 
 Texture* PNGTextureFactory::Try_Load(const char* url, TextureFlags::Type flags)

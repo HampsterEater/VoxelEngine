@@ -20,7 +20,9 @@ public:
 
 	struct Iterator
 	{
-	private:
+	protected:
+		friend class LinkedList<T>;
+
 		const Node* m_node;
 
 	public:
@@ -264,6 +266,14 @@ public:
 		//delete value;
 
 		m_size--;
+	}
+
+	Iterator Remove(Iterator iter)
+	{
+		Node* node = const_cast<Node*>(iter.m_node);
+		Node* next = node->Next;
+		Remove(node);
+		return Iterator(next);
 	}
 
 	const Node* Find(T value)

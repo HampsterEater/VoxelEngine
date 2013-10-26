@@ -139,6 +139,8 @@ Matrix4 Light::Get_Projection_Matrix()
 			}
 		default: DBG_ASSERT(false);
 	}
+
+	return Matrix4::Identity(); // Just shuts up C4715: Not all control paths return a value.
 }
 
 Matrix4 Light::Get_View_Matrix()
@@ -202,4 +204,6 @@ Matrix4 Light::Get_View_Matrix()
 	default:
 		DBG_ASSERT(false);
 	}
+
+	return Matrix4::Identity(); // Just shuts up C4715: Not all control paths return a value.
 }

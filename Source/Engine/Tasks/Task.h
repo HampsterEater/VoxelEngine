@@ -9,8 +9,18 @@
 class Task
 {
 private:
+	bool m_completed;
 
-public:
+protected:
+	friend class TaskManager;
+
+	Task();
+	void Reset();
+	void Complete();
+
+public:	
+	bool Is_Completed();
+
 	virtual void Run() = 0;
 
 };

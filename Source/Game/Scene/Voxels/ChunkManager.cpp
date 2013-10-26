@@ -2,6 +2,7 @@
 //	Copyright (C) 2013 Tim Leonard
 // ===================================================================
 #include "Game\Scene\Voxels\ChunkManager.h"
+#include "Game\Scene\Voxels\Generation\ChunkGenerator.h"
 #include "Engine\Scene\Camera.h"
 #include "Generic\Math\Math.h"
 #include "Generic\Types\LinkedList.h"
@@ -11,6 +12,8 @@
 #include "Engine\Renderer\Textures\TextureFactory.h"
 #include "Engine\Renderer\Textures\TextureAtlas.h"
 #include "Engine\Renderer\RenderPipeline.h"
+
+#include "Engine\Tasks\TaskManager.h"
 
 #include "Engine\Renderer\Shaders\Shader.h"
 #include "Engine\Renderer\Shaders\ShaderFactory.h"
@@ -22,8 +25,6 @@ ChunkManager::ChunkManager(const ChunkManagerConfig& config)
 	: m_config(config)
 	, m_last_camera_chunk_position(-9999, -9999, -9999)
 	, m_last_camera_position(-9999, -9999, -9999)
-	, m_chunk_loader(new ChunkLoader(this, config))					// TODO: Not going to be deterministically destructed, will mess with destructor of ChunkManager, fix.
-	, m_chunk_unloader(new ChunkUnloader(this, config))
 	, m_max_chunks((m_config.unload_distance.X * 2) * 
 				   (m_config.unload_distance.Y * 2) * 
 				   (m_config.unload_distance.Z * 2))
@@ -49,10 +50,6 @@ ChunkManager::ChunkManager(const ChunkManagerConfig& config)
 
 ChunkManager::~ChunkManager()
 {
-	// Close threads down before we start disposing of things ;)
-	SAFE_DELETE(m_chunk_loader);
-	SAFE_DELETE(m_chunk_unloader);
-	
 	m_world_file->Close();
 	SAFE_DELETE(m_world_file);
 
@@ -64,9 +61,31 @@ ChunkManager::~ChunkManager()
 		SAFE_DELETE(region);
 	}
 	m_region_files.Clear();
+	
+	for (LinkedList<ChunkLoadTask*>::Iterator iter = m_load_tasks.Begin(); iter != m_load_tasks.End(); iter++)
+	{
+		ChunkLoadTask* task = *iter;
+		SAFE_DELETE(task);
+	}
+	m_load_tasks.Clear();
+	
+	for (LinkedList<ChunkUnloadTask*>::Iterator iter = m_unload_tasks.Begin(); iter != m_unload_tasks.End(); iter++)
+	{
+		ChunkUnloadTask* task = *iter;
+		SAFE_DELETE(task);
+	}
+	m_unload_tasks.Clear();
+	
+	for (LinkedList<ChunkRegenerateMeshTask*>::Iterator iter = m_regenerate_mesh_tasks.Begin(); 
+			iter != m_regenerate_mesh_tasks.End();
+			iter++)
+	{
+		ChunkRegenerateMeshTask* task = *iter;
+		SAFE_DELETE(task);
+	}
+	m_regenerate_mesh_tasks.Clear();
 
 	SAFE_DELETE(m_region_access_mutex);
-
 	SAFE_DELETE(m_voxel_face_atlas);
 	//SAFE_DELETE(m_voxel_face_atlas_texture);	
 	SAFE_DELETE(m_voxel_face_atlas_material);
@@ -101,48 +120,252 @@ void ChunkManager::Tick(const FrameTime& time)
 		m_last_camera_position		 = position;
 		m_last_camera_chunk_position = chunk_position;
 
+		// Update the unload/load/visible lists!
+		//float t = Platform::Get()->Get_Ticks();
 		Update_Chunk_Lists();
+		//float elapsed = Platform::Get()->Get_Ticks() - t;
+		//printf("Took %f ms\n", elapsed);
 	}
 
-	// Remove newly unloaded chunks.
-	int counter = 0;		
-	if (m_chunk_unloader->Get_Mutex()->Try_Lock())
-	{
-		while ((counter++) < m_config.chunk_unloads_per_frame)
-		{
-			Chunk* chunk = m_chunk_unloader->Consume_Chunk();
-			if (chunk == NULL)
-			{
-				break;
-			}
-			
-			Remove_Chunk(chunk->Get_Position());
-			m_chunk_memory_pool.Release(chunk);		
-		}
+	// Create new tasks.
+	Create_New_Tasks();
 
-		m_chunk_unloader->Get_Mutex()->Unlock();
-	}
-
-	// Insert newly loaded chunks.
-	if (m_chunk_loader->Get_Mutex()->Try_Lock())
-	{
-		while (true)
-		{
-			Chunk* chunk = m_chunk_loader->Consume_Chunk();
-			if (chunk == NULL)
-			{
-				break;
-			}
-
-			Add_Chunk(chunk->Get_Position(), chunk);
-			chunk->Mark_Dirty(true);
-		}
-
-		m_chunk_loader->Get_Mutex()->Unlock();
-	}
+	// Update running tasks.
+	Poll_Running_Tasks();
 
 	// Regenerate dirty chunk meshes.
 	Regenerate_Dirty_Chunks();
+}
+
+void ChunkManager::Create_New_Tasks()
+{
+	TaskManager* task_manager = TaskManager::Get();
+	
+	IntVector3 camera_position = Get_Last_Camera_Chunk_Position();
+		
+	// Create unload tasks.
+	while (m_unload_tasks.Size() < m_config.chunk_max_unload_tasks &&
+		   m_chunk_unload_list.Size() > 0)
+	{
+		IntVector3 chunk = m_chunk_unload_list.Pop_First();
+			
+		ChunkUnloadTask* task = new ChunkUnloadTask(this, chunk);
+		
+		TaskID id = task_manager->Add_Task(task);
+		task_manager->Queue_Task(id);
+
+		m_unload_tasks.Add(task);
+	}
+
+	// Create load tasks.
+	while (m_load_tasks.Size() < m_config.chunk_max_load_tasks &&
+		   m_chunk_load_list.Size() > 0)
+	{
+		IntVector3 chunk = m_chunk_load_list.Pop_First();
+
+		ChunkLoadTask* task = new ChunkLoadTask(this, chunk, m_config);
+		
+		TaskID id = task_manager->Add_Task(task);
+		task_manager->Queue_Task(id);
+
+		m_load_tasks.Add(task);
+	}
+}
+
+void ChunkManager::Poll_Running_Tasks()
+{
+	Renderer* renderer = Renderer::Get();
+
+	// Remove newly unloaded chunks.
+	int counter = 0;		
+	for (LinkedList<ChunkUnloadTask*>::Iterator iter = m_unload_tasks.Begin(); 
+			iter != m_unload_tasks.End() && counter++ < m_config.chunk_unloads_per_frame;
+			iter++)
+	{
+		ChunkUnloadTask* task = *iter;
+		if (task->Is_Completed() == false)
+		{
+			continue;
+		}
+
+		Chunk* chunk = task->Get_Chunk();
+		Remove_Chunk(chunk->Get_Position());
+		m_chunk_memory_pool.Release(chunk);	
+
+		iter = m_unload_tasks.Remove(iter);
+
+		SAFE_DELETE(task);
+	}
+
+	// Insert newly loaded chunks.
+	for (LinkedList<ChunkLoadTask*>::Iterator iter = m_load_tasks.Begin(); 
+			iter != m_load_tasks.End();
+			iter++)
+	{
+		ChunkLoadTask* task = *iter;
+		if (task->Is_Completed() == false)
+		{
+			continue;
+		}
+
+		Chunk* chunk = task->Get_Chunk();
+		Add_Chunk(chunk->Get_Position(), chunk);
+		chunk->Mark_Dirty(true);
+
+		iter = m_load_tasks.Remove(iter);
+
+		SAFE_DELETE(task);
+	}
+
+	// Insert regenerated chunks into opengl!
+	counter = 0;
+	for (LinkedList<ChunkRegenerateMeshTask*>::Iterator iter = m_regenerate_mesh_tasks.Begin(); 
+			iter != m_regenerate_mesh_tasks.End() && counter++ < m_config.chunk_regenerations_per_frame;
+			iter++)
+	{
+		ChunkRegenerateMeshTask* task = *iter;
+		if (task->Is_Completed() == false)
+		{
+			continue;
+		}
+
+		Chunk* chunk = task->Get_Chunk();
+		chunk->Regenerate_Mesh(renderer, false);
+		chunk->Set_Regenerating(false);
+
+		iter = m_regenerate_mesh_tasks.Remove(iter);
+		SAFE_DELETE(task);
+	}
+}
+
+void ChunkManager::Update_Unload_List()
+{
+	IntVector3 camera_chunk = Get_Last_Camera_Chunk_Position();
+
+	// Clear current chunk list.
+	m_chunk_unload_list.Clear();
+
+	// Look for all chunks further than the unload distance.
+	for (LinkedList<Chunk*>::Iterator iter = m_chunk_list.Begin(); iter != m_chunk_list.End(); iter++)
+	{
+		Chunk* chunk = *iter;
+		IntVector3 chunk_position = chunk->Get_Position();
+
+		if (chunk->Get_Status() != ChunkStatus::Loaded)
+		{
+			continue;
+		}
+
+		if (chunk->Is_Regenerating() == true)
+		{
+			continue;
+		}
+
+		// Calculate distance to chunk.
+		int distance_x = abs(chunk_position.X - camera_chunk.X);
+		int distance_y = abs(chunk_position.Y - camera_chunk.Y);
+		int distance_z = abs(chunk_position.Z - camera_chunk.Z);
+
+		if (distance_x >= m_config.unload_distance.X ||
+			distance_y >= m_config.unload_distance.Y ||
+			distance_z >= m_config.unload_distance.Z)
+		{
+			if (chunk->Get_Unload_Timer() >= m_config.unload_timeout)
+			{
+				// Don't unload a chunk thats already unloading!		
+				bool found = false;
+				for (LinkedList<ChunkUnloadTask*>::Iterator iter = m_unload_tasks.Begin(); iter != m_unload_tasks.End(); iter++)
+				{
+					ChunkUnloadTask* task = *iter;
+					if (task->Get_Chunk_Position() == chunk_position)
+					{
+						found = true;
+						break;
+					}
+				}
+				for (LinkedList<ChunkRegenerateMeshTask*>::Iterator iter = m_regenerate_mesh_tasks.Begin(); iter != m_regenerate_mesh_tasks.End(); iter++)
+				{
+					ChunkRegenerateMeshTask* task = *iter;
+					if (task->Get_Chunk()->Get_Position() == chunk_position)
+					{
+						found = true;
+						break;
+					}
+				}
+				if (found == true)
+				{
+					continue;
+				}
+
+				m_chunk_unload_list.Add(chunk_position);
+			}
+		}
+		else
+		{
+			chunk->Reset_Unload_Timer();
+		}
+	}
+
+	// Sort load list so the closest is first.	
+	m_chunk_unload_list.Sort(Chunk_List_Sort_Comparer, true, &m_last_camera_chunk_position);
+}
+
+void ChunkManager::Update_Load_List()
+{
+	IntVector3 camera_chunk = Get_Last_Camera_Chunk_Position();
+
+	// Clear current chunk list.
+	m_chunk_load_list.Clear();
+
+	// Look for all chunks in our load distance.
+	for (int x = camera_chunk.X - m_config.load_distance.X; x < camera_chunk.X + m_config.load_distance.X; x++)
+	{
+		for (int y = camera_chunk.Y - m_config.load_distance.Y; y < camera_chunk.Y + m_config.load_distance.Y; y++)
+		{
+			for (int z = camera_chunk.Z - m_config.load_distance.Z; z < camera_chunk.Z + m_config.load_distance.Z; z++)
+			{
+				// Check chunk is in extents.
+				if ((m_config.extents_min.X != 0 && x < m_config.extents_min.X) ||
+					(m_config.extents_max.X != 0 && x > m_config.extents_max.X) ||
+					(m_config.extents_min.Y != 0 && y < m_config.extents_min.Y) ||
+					(m_config.extents_max.Y != 0 && y > m_config.extents_max.Y) ||
+					(m_config.extents_min.Z != 0 && z < m_config.extents_min.Z) ||
+					(m_config.extents_max.Z != 0 && z > m_config.extents_max.Z))
+					continue;
+
+				// Load chunk info!
+				IntVector3 chunk_position = IntVector3(x, y, z);
+				Chunk*	   chunk		  = Get_Chunk(chunk_position); 
+
+				if (chunk != NULL)
+				{
+					continue;
+				}
+				
+				// Don't load a chunk thats already loading!		
+				bool found = false;
+				for (LinkedList<ChunkLoadTask*>::Iterator iter = m_load_tasks.Begin(); iter != m_load_tasks.End(); iter++)
+				{
+					ChunkLoadTask* task = *iter;
+					if (task->Get_Chunk_Position() == chunk_position)
+					{
+						found = true;
+						break;
+					}
+				}
+				if (found == true)
+				{
+					continue;
+				}
+
+				// No chunk loaded? Time to load!
+				m_chunk_load_list.Add(chunk_position);
+			}
+		}
+	}
+
+	// Sort load list so the closest is first.	
+	m_chunk_load_list.Sort(Chunk_List_Sort_Comparer, false, &m_last_camera_chunk_position);
 }
 
 void ChunkManager::Draw(const FrameTime& time, RenderPipeline* pipeline)
@@ -193,7 +416,6 @@ void ChunkManager::Draw(const FrameTime& time, RenderPipeline* pipeline)
 void ChunkManager::Update_Chunk_Lists()
 {
 	Update_Unload_List();
-
 	Update_Load_List();
 
 	// Make sure to update visible list after load list as 
@@ -206,11 +428,11 @@ void ChunkManager::Update_Visible_List()
 	m_visible_chunks.Clear();
 
 	// Look for all chunks in our draw distance.
-	for (int x = m_last_camera_chunk_position.X - m_config.draw_distance.X; x < m_last_camera_chunk_position.X + m_config.draw_distance.X; x++)
+	for (int x = m_last_camera_chunk_position.X - m_config.draw_distance.X; x <= m_last_camera_chunk_position.X + m_config.draw_distance.X; x++)
 	{
-		for (int y = m_last_camera_chunk_position.Y - m_config.draw_distance.Y; y < m_last_camera_chunk_position.Y + m_config.draw_distance.Y; y++)
+		for (int y = m_last_camera_chunk_position.Y - m_config.draw_distance.Y; y <= m_last_camera_chunk_position.Y + m_config.draw_distance.Y; y++)
 		{
-			for (int z = m_last_camera_chunk_position.Z - m_config.draw_distance.Z; z < m_last_camera_chunk_position.Z + m_config.draw_distance.Z; z++)
+			for (int z = m_last_camera_chunk_position.Z - m_config.draw_distance.Z; z <= m_last_camera_chunk_position.Z + m_config.draw_distance.Z; z++)
 			{
 				Chunk* c = Get_Chunk(IntVector3(x, y, z));
 				if (c != NULL && c->Is_Empty() == false && c->Should_Render() == true)
@@ -238,69 +460,75 @@ int ChunkManager::Visible_List_Sort_Comparer(Chunk* a, Chunk* b, void* extra)
 	return sgn;
 }
 
-void ChunkManager::Update_Unload_List()
+int ChunkManager::Chunk_List_Sort_Comparer(IntVector3 a, IntVector3 b, void* extra)
 {
-	m_chunk_unloader->Refresh();
-}
+	IntVector3 camera_position = *reinterpret_cast<IntVector3*>(extra);
 
-void ChunkManager::Update_Load_List()
-{
-	m_chunk_loader->Refresh();
+	float distance_a = (camera_position - a).Length_Squared();
+	float distance_b = (camera_position - b).Length_Squared();
+
+	int sgn = FastSign(distance_b - distance_a);
+
+	return sgn;
 }
 
 void ChunkManager::Regenerate_Dirty_Chunks()
 {
 	Renderer* renderer = Renderer::Get();
-	RenderPipeline* pipeline = GameEngine::Get()->Get_RenderPipeline();
-	Frustum frustum	= pipeline->Get_Active_Camera()->Get_Frustum();
+	TaskManager* task_manager = TaskManager::Get();
 
-	// Keep loading while we have time available.
-	for (int i = 0; i < m_config.chunk_regenerations_per_frame; i++)
+	// Sort the dirty chunk queue.
+	if (m_dirty_chunks_sorted == false)
 	{
-		Chunk* closest_chunk = NULL;
-		const LinkedList<Chunk*>::Node* closest_chunk_node = NULL;
-		float  closest_distance = 0.0f;
-		
-		// Find closest chunk to regenerate.
-		for (LinkedList<Chunk*>::Iterator iter = m_dirty_chunks.Begin(); iter != m_dirty_chunks.End(); iter++)
+		m_dirty_chunks.Sort(Visible_List_Sort_Comparer, false, &m_last_camera_chunk_position);
+		m_dirty_chunks_sorted = true;
+	}
+
+//	printf("Chunks:%i Tasks:%i Load:%i Tasks:%i\n", m_dirty_chunks.Size(), m_regenerate_mesh_tasks.Size(), m_chunk_load_list.Size(), m_load_tasks.Size());
+
+	// Get regenerating chunks.
+	while (m_regenerate_mesh_tasks.Size() < m_config.chunk_max_regenerate_tasks &&
+		   m_dirty_chunks.Size() > 0)
+	{
+		Chunk* chunk = NULL;
+
+		// Only regenerate chunks whos neighbours are loaded.
+		for (LinkedList<Chunk*>::Iterator iter = m_dirty_chunks.Begin(); 
+			iter != m_dirty_chunks.End();
+			iter++)
 		{
-			Chunk* chunk		= *iter;
-			AABB   chunk_aabb	= chunk->Get_AABB();
-			float  distance		= (chunk_aabb.Center - m_last_camera_chunk_position).Length_Squared();
-
-			// If chunk is in frustum, then bias it so its regenerated earlier.
-			//if (frustum.Intersects(chunk_aabb) != Frustum::IntersectionResult::Outside)
-			//{
-			//	distance /= 100.0f;
-			//}
-
-			if (closest_chunk == NULL || distance < closest_distance)
+			Chunk* tmp = *iter;
+			if (tmp->Are_Neighbours_Loaded())
 			{
-				closest_chunk = chunk;
-				closest_distance = distance;
-				closest_chunk_node = iter.Get_Node();
+				m_dirty_chunks.Remove(iter);
+				chunk = tmp;
+				break;
 			}
 		}
 
-		// Regenerate chunk.
-		if (closest_chunk == NULL)
+		if (chunk == NULL)
 		{
 			break;
 		}
-		else
-		{
-			closest_chunk->Regenerate_Mesh(renderer);
-			
-		//	DBG_LOG("Regenerated chunk %i,%i,%i", closest_chunk->Get_Position().X, closest_chunk->Get_Position().Y, closest_chunk->Get_Position().Z);
 
-			m_dirty_chunks.Remove(closest_chunk_node);
-		}
+		// Mark chunk as regenerating.
+		chunk->Mark_Dirty(false);	
+		chunk->Set_Regenerating(true);
+
+		// Create regeneration task.
+		ChunkRegenerateMeshTask* task = new ChunkRegenerateMeshTask(this, chunk, m_config);
+		
+		TaskID id = task_manager->Add_Task(task);
+		task_manager->Queue_Task(id);
+
+		m_regenerate_mesh_tasks.Add(task);
 	}
 }
 
 void ChunkManager::Queue_Dirty_Chunk(Chunk* chunk)
 {
 	m_dirty_chunks.Add(chunk);
+	m_dirty_chunks_sorted = false;
 }
 
 FixedMemoryPool<Voxel>& ChunkManager::Get_Voxel_Memory_Pool()
@@ -330,6 +558,22 @@ void ChunkManager::Add_Chunk(IntVector3 position, Chunk* chunk)
 	{
 		m_visible_chunks.Add(chunk);
 	}
+
+	// Make this chunk and all it's neighbours relink their neighbour array.
+	for (int x = -1; x <= 1; x++)
+	{
+		for (int y = -1; y <= 1; y++)
+		{			
+			for (int z = -1; z <= 1; z++)
+			{
+				Chunk* c = Get_Chunk(IntVector3(position.X + x, position.Y + y, position.Z + z));
+				if (c != NULL)
+				{
+					c->Relink_Neighbours();
+				}
+			}
+		}
+	}
 }
 
 void ChunkManager::Remove_Chunk(IntVector3 position)
@@ -350,6 +594,22 @@ void ChunkManager::Remove_Chunk(IntVector3 position)
 
 	m_chunk_list.Remove(chunk->m_chunklist_node);
 	m_chunks.Remove(position.X, position.Y, position.Z);
+	
+	// Make this chunk and all it's neighbours relink their neighbour array.
+	for (int x = -1; x <= 1; x++)
+	{
+		for (int y = -1; y <= 1; y++)
+		{			
+			for (int z = -1; z <= 1; z++)
+			{
+				Chunk* c = Get_Chunk(IntVector3(position.X + x, position.Y + y, position.Z + z));
+				if (c != NULL)
+				{
+					c->Relink_Neighbours();
+				}
+			}
+		}
+	}
 }
 
 LinkedList<Chunk*>& ChunkManager::Get_Chunks()
@@ -359,7 +619,8 @@ LinkedList<Chunk*>& ChunkManager::Get_Chunks()
 
 Chunk* ChunkManager::Get_Chunk(IntVector3 position)
 {
-	return m_chunks.Get(position.X, position.Y, position.Z);;
+	Chunk* chunk = m_chunks.Get(position.X, position.Y, position.Z);
+	return chunk;
 }
 
 Chunk* ChunkManager::Get_Chunk(int hash)

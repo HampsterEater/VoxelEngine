@@ -126,6 +126,7 @@ GameEngine::~GameEngine()
 	SAFE_DELETE(m_ui_manager);
 
 	// Destroy singletons.
+	TaskManager::Destroy();
 	Locale::Destroy();
 	RenderPipeline::Destroy();
 	AudioRenderer::Destroy();
@@ -162,6 +163,9 @@ bool GameEngine::Is_Running()
 void GameEngine::Stop()
 {
 	m_is_running = false;
+
+	DBG_LOG("Waiting for tasks to complete...");
+	m_task_manager->Wait_For_All();
 }
 
 void GameEngine::Run()
