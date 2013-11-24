@@ -23,6 +23,7 @@
 class Display;
 class Camera;
 class ShaderProgram;
+class Pixmap;
 
 struct RendererOption
 {
@@ -35,33 +36,43 @@ struct RendererOption
 	};
 };
 
+struct MeshPrimitiveType
+{
+	enum Type
+	{
+		Triangle,
+		Line
+	};
+};
+
 class Renderer : public Singleton<Renderer>
 {
 public:
-	static Renderer* Create();
+	static Renderer*				Create();
 
 	// Base functions.	
-	virtual void			Flip						(const FrameTime& time) = 0;
+	virtual void					Flip						(const FrameTime& time) = 0;
 
 	// Display related settings.
-	virtual bool			Set_Display					(Display* display) = 0;
+	virtual bool					Set_Display					(Display* display) = 0;
 
 	// Rendering! What we are all here for.
-	virtual void			Bind_Render_Target			(RenderTarget* texture) = 0;
-	virtual void			Bind_Material				(Material* material) = 0;
-	virtual void			Bind_Texture				(const Texture* texture, int slot) = 0;
-	virtual void			Bind_Shader_Program			(ShaderProgram* program) = 0;
+	virtual void					Bind_Render_Target			(RenderTarget* texture) = 0;
+	virtual void					Bind_Material				(Material* material) = 0;
+	virtual void					Bind_Texture				(const Texture* texture, int slot) = 0;
+	virtual void					Bind_Shader_Program			(ShaderProgram* program) = 0;
 
-	virtual Texture*		Create_Texture				(char* data, int width, int height, int pitch, TextureFormat::Type format, TextureFlags::Type flags) = 0;
-	virtual Texture*		Create_Texture				(int width, int height, int pitch, TextureFormat::Type format, TextureFlags::Type flags) = 0;
-	virtual Shader*			Create_Shader				(char* source, ShaderType::Type type) = 0;
-	virtual ShaderProgram*  Create_Shader_Program		(std::vector<Shader*>& shaders) = 0;
+	virtual Texture*				Create_Texture				(char* data, int width, int height, int pitch, TextureFormat::Type format, TextureFlags::Type flags) = 0;
+	virtual Texture*				Create_Texture				(int width, int height, int pitch, TextureFormat::Type format, TextureFlags::Type flags) = 0;
+	virtual Texture*				Create_Texture				(Pixmap* pixmap, TextureFlags::Type flags) = 0;
+	virtual Shader*					Create_Shader				(char* source, ShaderType::Type type) = 0;
+	virtual ShaderProgram*			Create_Shader_Program		(std::vector<Shader*>& shaders) = 0;
 
-	virtual RenderTarget*	Create_Render_Target		() = 0;
+	virtual RenderTarget*			Create_Render_Target		() = 0;
 
-	virtual Material*		Get_Material				() = 0;
+	virtual Material*				Get_Material				() = 0;
 
-	virtual void			Set_Output_Buffers			(std::vector<OutputBufferType::Type>& outputs) = 0;
+	virtual void					Set_Output_Buffers			(std::vector<OutputBufferType::Type>& outputs) = 0;
 
 	virtual void					Set_Clear_Color				(Color color) = 0;
 	virtual Color					Get_Clear_Color				() = 0;
@@ -83,30 +94,33 @@ public:
 	virtual void					Set_Viewport				(Rect viewport) = 0;
 	virtual Rect					Set_Viewport				() = 0;
 
-	virtual void					Clear_Buffer				() = 0;
+	virtual void					Clear_Buffer				(bool color = true, bool depth = true) = 0;
 
-	virtual void			Set_World_Matrix			(Matrix4 matrix) = 0;
-	virtual Matrix4			Get_World_Matrix			() = 0;
-	virtual void			Set_View_Matrix				(Matrix4 matrix) = 0;
-	virtual Matrix4			Get_View_Matrix				() = 0;
-	virtual void			Set_Projection_Matrix		(Matrix4 matrix) = 0;
-	virtual Matrix4			Get_Projection_Matrix		() = 0;
+	virtual void					Set_World_Matrix			(Matrix4 matrix) = 0;
+	virtual Matrix4					Get_World_Matrix			() = 0;
+	virtual void					Set_View_Matrix				(Matrix4 matrix) = 0;
+	virtual Matrix4					Get_View_Matrix				() = 0;
+	virtual void					Set_Projection_Matrix		(Matrix4 matrix) = 0;
+	virtual Matrix4					Get_Projection_Matrix		() = 0;
 
-	virtual void			Render_Mesh					(int id) = 0;
-	virtual void			Destroy_Mesh				(int id) = 0;
-	virtual int				Start_Mesh					(int vertices, int triangles) = 0;
-	virtual void			End_Mesh					(int id) = 0;
-	virtual int				Add_Mesh_Vertex				(int id, Vector3 position, Vector3 normal, float r, float g, float b, float a, float u, float v) = 0;
-	virtual int				Add_Mesh_Triangle			(int id, int vertex1, int vertex2, int vertex3) = 0;
+	virtual void					Render_Mesh					(int id) = 0;
+	virtual void					Destroy_Mesh				(int id) = 0;
+	virtual int						Start_Mesh					(MeshPrimitiveType::Type type, int vertices, int primitives) = 0;
+	virtual void					End_Mesh					(int id) = 0;
+	virtual int						Add_Mesh_Vertex				(int id, Vector3 position, Vector3 normal, float r, float g, float b, float a, float u, float v) = 0;
+	virtual int						Add_Mesh_Primitive			(int id, int vertex1, int vertex2, int vertex3) = 0;
+	virtual int						Add_Mesh_Primitive			(int id, int vertex1, int vertex2) = 0;
 
 	// Immediate rendering (mainly used for debugging).
-	virtual void			Draw_Line					(float x1, float y1, float z1, float x2, float y2, float z2, float size = 1.0f) = 0;
-	virtual void			Draw_Quad					(Rect bounds, Rect uv) = 0;
+	virtual void					Draw_Line					(float x1, float y1, float z1, float x2, float y2, float z2, float size = 1.0f) = 0;
+	virtual void					Draw_Quad					(Rect bounds, Rect uv) = 0;
+	virtual void					Draw_Quad					(Vector3 v1, Vector3 v2, Vector3 v3, Vector3 v4) = 0;
 	
 	// Build in debug primitives.
-	void					Draw_Wireframe_Cube			(float w, float h, float d);
-	void					Draw_Wireframe_Sphere		(float r);
-	void					Draw_Arrow					(Vector3 direction, float line_length = 0.2f, float pip_length = 0.04f);
+	//virtual void					Draw_Cube					(float w, float h, float d) = 0;
+	//void							Draw_Wireframe_Cube			(float w, float h, float d);
+	//void							Draw_Wireframe_Sphere		(float r);
+	//void							Draw_Arrow					(Vector3 direction, float line_length = 0.2f, float pip_length = 0.04f);
 
 };
 

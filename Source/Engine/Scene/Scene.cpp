@@ -101,7 +101,12 @@ void Scene::Tick(const FrameTime& time)
 	// Tick all tickables.
 	for (std::vector<Tickable*>::iterator iter = m_tickables.begin(); iter != m_tickables.end(); iter++)
 	{
-		(*iter)->Tick(time);
+		Tickable* tickable = *iter;
+
+		if (tickable->Get_Enabled())
+		{
+			tickable->Tick(time);
+		}
 	}
 }
 

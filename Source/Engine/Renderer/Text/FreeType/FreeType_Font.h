@@ -8,19 +8,15 @@
 #include "Generic\Math\RectanglePacker.h"
 
 #include "Engine\Renderer\Text\Font.h"
+#include "Engine\Renderer\Textures\Pixmap.h"
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
-//#define MAX_TEXTURES				8
-//#define TEXTURE_SIZE				512
-//#define GLYPH_SIZE					32
-//#define GLYPH_SPACING				2
-//#define GLYPH_SIGNED_SPREAD			32
-//#define GLYPH_SIGNED_THRESHOLD		128
-//#define GLYPH_DOWNSCALE_FACTOR		32
-
 class ConfigFile;
+class Pixmap;
+
+#define SDF_DOWNSCALE
 
 struct FreeType_FontGlyph
 {
@@ -34,7 +30,7 @@ struct FreeType_FontTexture
 {
 public:
 	Texture*		Texture;
-	unsigned char*	Buffer;
+	Pixmap*			Pixmap;
 	bool			Is_Dirty;
 	RectanglePacker	Packer;
 };
@@ -61,6 +57,8 @@ private:
 
 	bool											m_textures_locked;
 
+	int												m_baseline;
+
 public:
 
 	// Destructor!
@@ -77,9 +75,16 @@ public:
 	HashTable<FreeType_FontGlyph*, unsigned int>& Get_Glyphs();
 	bool Load_Compiled_Config(ConfigFile* config);
 
-	float Find_SDF_Distance(int x, int y);
+#ifdef SDF_DOWNSCALE
+	void Generate_SDF(Pixmap* glyph_pixmap, Pixmap* pixmap, Rect rect, int offset);
+#else
+	void Generate_SDF(Pixmap* pixmap, Rect rect);
+#endif
+	float Find_SDF_Distance(PixmapWindow window, int pixel_x, int pixel_y);
 	unsigned char SDF_Distance_To_Alpha(float distance);
 	float Get_Baseline();
+	
+	//void Generate_SDF(Pixmap* pixmap, Rect rect);
 
 	// Actual font stuff!	
 	float Get_SDF_Spread();

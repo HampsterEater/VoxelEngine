@@ -19,10 +19,12 @@ class Reloadable
 private:
 	static std::vector<Reloadable*> m_reloadables;
 	std::vector<FileWatcher*> m_watchers;
+	int m_version;
 
 protected:
 	void Add_Reload_Trigger_File(const char* path);
 	void Reset_Reload_Trigger_Files();
+	void Increment_Version();
 
 	static void Check_For_Reloads();
 
@@ -36,6 +38,7 @@ public:
 
 	// Derived methods.
 	virtual void Reload() = 0;
+	int Get_Version();
 
 };
 

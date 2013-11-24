@@ -10,6 +10,7 @@ uniform sampler2D g_light_accumulation;
 uniform sampler2D g_ssao;
 uniform sampler2D g_shadow_map;
 uniform sampler2D g_shadow_accumulation;
+uniform sampler2D g_depth;
 
 void main()
 {    
@@ -18,6 +19,7 @@ void main()
     float ssao    		= texture2D(g_ssao, gl_TexCoord[0].xy).x;	
     vec3  shadow  		= texture2D(g_shadow_accumulation, gl_TexCoord[0].xy).rgb;	
     vec3  shadow_map  	= texture2D(g_shadow_map, gl_TexCoord[0].xy).rgb;	
+    vec3  depth	 	 	= texture2D(g_depth, gl_TexCoord[0].xy).rgb;	
 
 	// Create color by subtracting SSAO buffer from diffuse.
 	vec3 color = clamp(diffuse - ssao, 0.0, 1.0);
@@ -30,7 +32,8 @@ void main()
 	
 	// Apply gamma correction
 	gl_FragColor.xyz = pow(color, vec3(1.0 / 2.2));
-	gl_FragColor.w = 1.0;
+	gl_FragColor.w 	 = 1.0;
+	gl_FragDepth 	 = depth.r;
 	
-	//gl_FragColor = vec4(shadow,  1.0); 
+	//gl_FragColor = vec4(diffuse,  1.0); 
 }

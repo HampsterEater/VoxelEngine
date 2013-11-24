@@ -1,0 +1,52 @@
+<xml>
+	<settings>
+		<texture-size>512</texture-size>
+		<max-textures>1</max-textures>
+	</setting>
+	<images>
+	 
+		<!-- Menu/Toolbar Icons -->
+		<image type="single" 	name="icon_new_file" 		 			file="Data/Atlases/UI/Icons/new_file.png" />
+		<image type="single" 	name="icon_mouse"	 		 			file="Data/Atlases/UI/Icons/mouse.png" />
+		<image type="single" 	name="icon_pencil"	 		 			file="Data/Atlases/UI/Icons/pencil.png" />
+		<image type="single" 	name="icon_rect"		 	 			file="Data/Atlases/UI/Icons/rect.png" />
+		<image type="single" 	name="icon_circle"		 	 			file="Data/Atlases/UI/Icons/circle.png" />
+		<image type="single" 	name="icon_add"	 	 					file="Data/Atlases/UI/Icons/add.png" />
+		<image type="single" 	name="icon_subtract"	 	 			file="Data/Atlases/UI/Icons/subtract.png" />
+		<image type="single" 	name="icon_cut"		 		 			file="Data/Atlases/UI/Icons/cut.png" />
+		<image type="single" 	name="icon_copy"	 		 			file="Data/Atlases/UI/Icons/copy.png" />
+		<image type="single" 	name="icon_paste"	 		 			file="Data/Atlases/UI/Icons/paste.png" />
+				
+		<!-- Cursor -->
+		<image type="single" 	name="cursor_pointer" 		 			file="Data/Atlases/UI/Cursor/pointer.png" />
+		<image type="single" 	name="cursor_split_horizontal" 	 		file="Data/Atlases/UI/Cursor/split_horizontal.png" 		origin="0.5,0.5" />
+		<image type="single" 	name="cursor_split_vertical" 	 		file="Data/Atlases/UI/Cursor/split_vertical.png" 		origin="0.5,0.5" />
+	
+		<!-- MenuBar -->
+		<image type="grid"		name="menubar_background_#"				file="Data/Atlases/UI/MenuBar/background_middle.png"   	width="3" height="3" hspace="0" vspace="0" />	
+		
+		<!-- MenuItem -->
+		<image type="grid"		name="menuitem_background_hover_#"		file="Data/Atlases/UI/MenuItem/background_hover.png"   		width="1" height="1" hspace="0" vspace="0" />	
+		<image type="grid"		name="menuitem_background_pressed_#"	file="Data/Atlases/UI/MenuItem/background_pressed.png" 		width="1" height="1" hspace="0" vspace="0" />	
+		<image type="grid"		name="menuitem_background_seperator_#"	file="Data/Atlases/UI/MenuItem/background_seperator.png" 	width="1" height="1" hspace="0" vspace="0" />	
+		<image type="grid"		name="menuitem_context_background_#"	file="Data/Atlases/UI/MenuItem/context_background.png" 		width="1" height="1" hspace="0" vspace="0" />	
+		<image type="single" 	name="menuitem_submenu_arrow_icon" 		file="Data/Atlases/UI/MenuItem/submenu_arrow_icon.png" />
+
+		<!-- SplitContainer -->
+		<image type="grid"		name="splitcontainer_background_#"		file="Data/Atlases/UI/SplitContainer/background_seperator.png" width="1" height="1" hspace="0" vspace="0" />	
+			
+		<!-- Toolbar -->
+		<image type="grid"		name="toolbar_background_#"				file="Data/Atlases/UI/Toolbar/background_middle.png"   	width="3" height="3" hspace="0" vspace="0" />	
+		
+		<!-- Toolbar Item -->
+		<image type="grid"		name="toolbaritem_background_hover_#"		file="Data/Atlases/UI/ToolbarItem/background_hover.png"   		width="1" height="1" hspace="0" vspace="0" />	
+		<image type="grid"		name="toolbaritem_background_pressed_#"		file="Data/Atlases/UI/ToolbarItem/background_pressed.png" 		width="1" height="1" hspace="0" vspace="0" />	
+		<image type="grid"		name="toolbaritem_background_seperator_#"	file="Data/Atlases/UI/ToolbarItem/background_seperator.png" 	width="1" height="1" hspace="0" vspace="0" />		
+		<image type="grid"		name="toolbaritem_background_#"				file="Data/Atlases/UI/ToolbarItem/background.png" 	width="1" height="1" hspace="0" vspace="0" />	
+				
+	</images> 
+	<animations>
+	
+
+	</animations>
+</xml>

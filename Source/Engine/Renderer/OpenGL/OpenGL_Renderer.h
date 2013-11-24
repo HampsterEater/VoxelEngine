@@ -79,7 +79,7 @@ private:
 		float u, v;
 	};
 
-	struct Triangle
+	struct Primitive
 	{
 		int vertex_1;
 		int vertex_2;
@@ -94,21 +94,25 @@ private:
 		GLuint		vbo_vertices_buffer;
 		GLuint		vbo_texcoords_buffer;
 		GLuint		vbo_normals_buffer;
+		GLuint		vbo_colors_buffer;
 		float*		vbo_vertices;
 		float*		vbo_texcoords;
 		float*		vbo_normals;
+		float*		vbo_colors;
 		int			vbo_vertices_count;
 #else
 		GLuint		list_id;
 #endif
 
+		MeshPrimitiveType::Type primitive_type;
+
 		Vertex*		vertices;
-		Triangle*	triangles;
+		Primitive*	primitives;
 
 		int			vertex_counter;
 		int			vertex_count;
-		int			triangle_counter;
-		int			triangle_count;
+		int			primitive_counter;
+		int			primitive_count;
 	};
 
 	Mesh					m_meshs[MAX_MESHS];
@@ -166,6 +170,8 @@ public:
 
 	Texture*		Create_Texture			(char* data, int width, int height, int pitch, TextureFormat::Type format, TextureFlags::Type flags);
 	Texture*		Create_Texture			(int width, int height, int pitch, TextureFormat::Type format, TextureFlags::Type flags);
+	Texture*		Create_Texture			(Pixmap* pixmap, TextureFlags::Type flags);
+
 	Shader*			Create_Shader			(char* source, ShaderType::Type type);
 	ShaderProgram*  Create_Shader_Program	(std::vector<Shader*>& shaders);
 	RenderTarget*	Create_Render_Target	();
@@ -194,7 +200,7 @@ public:
 	void					Set_Viewport				(Rect viewport);
 	Rect					Set_Viewport				();
 
-	void					Clear_Buffer				();
+	void					Clear_Buffer				(bool color, bool depth);
 
 	void		Set_World_Matrix			(Matrix4 matrix);
 	Matrix4		Get_World_Matrix			();
@@ -205,14 +211,17 @@ public:
 
 	void Render_Mesh(int id);
 	void Destroy_Mesh(int id);
-	int  Start_Mesh(int vertices, int triangles);
+	int  Start_Mesh(MeshPrimitiveType::Type type, int vertices, int primitives);
 	void End_Mesh(int id);
 	int  Add_Mesh_Vertex(int id, Vector3 position, Vector3 normal, float r, float g, float b, float a, float u, float v);
-	int  Add_Mesh_Triangle(int id, int vertex1, int vertex2, int vertex3);
+	int  Add_Mesh_Primitive(int id, int vertex1, int vertex2, int vertex3);
+	int  Add_Mesh_Primitive(int id, int vertex1, int vertex2);
 
 	// Immediate rendering.	
 	void Draw_Line(float x1, float y1, float z1, float x2, float y2, float z2, float size = 1.0f);
 	void Draw_Quad(Rect bounds, Rect uv);
+	void Draw_Quad(Vector3 v1, Vector3 v2, Vector3 v3, Vector3 v4);
+	//void Draw_Cube(float x, float y, float z);
 
 };
 

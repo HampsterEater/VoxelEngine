@@ -20,9 +20,11 @@ varying vec3 g_vertex_normal;
 varying float g_vertex_depth;
 varying float g_vertex_depth_nonlinear;
 
+varying vec4 g_vertex_color;
+
 void main()
 {
-	gl_FragData[0] = vec4(texture2D(g_texture, gl_TexCoord[0].st).rgb, 1.0);
+	gl_FragData[0] = vec4(texture2D(g_texture, gl_TexCoord[0].st).rgb, 1.0) * g_vertex_color;
 	gl_FragData[1] = vec4(normalize(g_vertex_normal.xyz), 1.0);
 	gl_FragData[2] = vec4(g_material_specular, g_material_shininess);
 	gl_FragData[3] = vec4(g_vertex_position.xyz, g_vertex_depth);

@@ -19,7 +19,29 @@ Renderer* Renderer::Create()
 #endif
 }
 
+/*
 void Renderer::Draw_Wireframe_Cube(float w, float h, float d)
+{
+	// Top
+	Draw_Line(0, 0, 0,   w, 0, 0);
+	Draw_Line(0, 0, 0,   0, 0, d);
+	Draw_Line(0, 0, d,   w, 0, d);
+	Draw_Line(w, 0, 0,   w, 0, d);
+
+	// Bottom
+	Draw_Line(0, h, 0,   w, h, 0);
+	Draw_Line(0, h, 0,   0, h, d);
+	Draw_Line(0, h, d,   w, h, d);
+	Draw_Line(w, h, 0,   w, h, d);
+
+	// Connectors.
+	Draw_Line(0, 0, 0,   0, h, 0);
+	Draw_Line(0, 0, d,   0, h, d);
+	Draw_Line(w, 0, d,   w, h, d);
+	Draw_Line(w, 0, 0,   w, h, 0);
+}
+
+void Renderer::Draw_Cube(float w, float h, float d)
 {
 	// Top
 	Draw_Line(0, 0, 0,   w, 0, 0);
@@ -94,3 +116,4 @@ void Renderer::Draw_Arrow(Vector3 direction, float line_length, float pip_length
 		Draw_Line(end.X, end.Y, end.Z, end_pip.X, end_pip.Y, end_pip.Z, 8.0f);
 	}
 }
+*/

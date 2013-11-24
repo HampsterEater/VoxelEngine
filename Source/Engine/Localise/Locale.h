@@ -14,11 +14,13 @@
 
 #include "Engine\Resources\Reloadable.h"
 
+#include <string>
+
 class Texture;
 class TextureHandle;
 
 // Quick macro to get a localised string.
-#define S(id) Locale::Get()->Get_String(id);
+#define S(id) (Locale::Get()->Get_String((id)))
 
 class Language : public Reloadable
 {
@@ -56,7 +58,8 @@ public:
 
 	bool Load_Language(const char* name);
 	bool Change_Language(const char* name);
-
+	
+	const char* Get_String(std::string& id);
 	const char* Get_String(const char* id);
 	const char* Get_String(int id);
 

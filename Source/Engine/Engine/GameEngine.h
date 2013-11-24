@@ -18,6 +18,7 @@ class GameRunner;
 class RenderPipeline;
 class Locale;
 class TaskManager;
+class Input;
 
 class GameEngine : public Singleton<GameEngine>
 {
@@ -37,6 +38,7 @@ private:
 	UIManager*			m_ui_manager;
 	Locale*				m_locale;
 	TaskManager*		m_task_manager;
+	Input*				m_input;
 
 	RenderPipeline*		m_render_pipeline;
 

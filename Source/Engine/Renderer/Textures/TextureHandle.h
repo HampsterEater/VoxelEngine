@@ -8,6 +8,8 @@
 
 #include "Engine\Resources\Reloadable.h"
 
+#include "Engine\Renderer\Textures\Texture.h"
+
 #include <string>
 
 // The texture handle wraps a Texture class instance, and automatically

@@ -26,3 +26,6 @@ STATE_SETTING("FRONT",				Front)
 
 STATE_SETTING("ONE_ONE",						One_One)
 STATE_SETTING("SRC_ALPHA_ONE_MINUS_SRC_ALPHA",	Src_Alpha_One_Minus_Src_Alpha) // TODO: gross
+
+STATE_SETTING("FULL",				Full)
+STATE_SETTING("OUTPUT",				Output)

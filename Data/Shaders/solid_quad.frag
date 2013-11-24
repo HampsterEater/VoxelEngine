@@ -1,21 +1,11 @@
 // ===================================================================
 //	Copyright (C) 2013 Tim Leonard
 // ===================================================================
-#ifndef _ENGINE_KEYS_
-#define _ENGINE_KEYS_
+#version 120
 
-struct Key
+uniform vec4 g_color;
+
+void main()
 {
-	enum Type
-	{
-		Up,
-		Down,
-		Left,
-		Right,
-
-		Escape,
-		F1
-	};
-};
-
-#endif
+	gl_FragColor = g_color;
+}

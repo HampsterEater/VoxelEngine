@@ -8,6 +8,7 @@
 #include "Generic\Types\Sphere.h"
 #include "Generic\Types\Vector3.h"
 #include "Generic\Types\Plane.h"
+#include "Generic\Types\Point.h"
 
 #include <vector>
 
@@ -73,6 +74,12 @@ public:
 	Frustum();
 	Frustum(float angle,
 			float aspect_ratio,
+			float near,
+			float far,
+			const Vector3& pos,
+			const Vector3& target,
+			const Vector3& up);
+	Frustum(Point size,
 			float near,
 			float far,
 			const Vector3& pos,

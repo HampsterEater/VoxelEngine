@@ -22,12 +22,17 @@
     <ClInclude Include="Audio\Sounds\SoundHandle.h" />
     <ClInclude Include="Config\ConfigFile.h" />
     <ClInclude Include="Display\Display.h" />
-    <ClInclude Include="Display\Keys.h" />
     <ClInclude Include="Display\Win32\Win32_Display.h" />
     <ClInclude Include="Engine\FrameTime.h" />
     <ClInclude Include="Engine\GameEngine.h" />
     <ClInclude Include="Engine\GameEngineConfig.h" />
     <ClInclude Include="Engine\GameRunner.h" />
+    <ClInclude Include="Input\Input.h" />
+    <ClInclude Include="Input\KeyboardState.h" />
+    <ClInclude Include="Input\MouseState.h" />
+    <ClInclude Include="Input\Win32\Win32_Input.h" />
+    <ClInclude Include="Input\Win32\Win32_KeyboardState.h" />
+    <ClInclude Include="Input\Win32\Win32_MouseState.h" />
     <ClInclude Include="IO\FileWatcher.h" />
     <ClInclude Include="IO\Stream.h" />
     <ClInclude Include="IO\StreamFactory.h" />
@@ -35,7 +40,13 @@
     <ClInclude Include="IO\Win32\Win32_FileStreamFactory.h" />
     <ClInclude Include="Localise\Locale.h" />
     <ClInclude Include="Platform\Platform.h" />
+    <ClInclude Include="Platform\Win32\Win32_EntryPoint.h" />
     <ClInclude Include="Platform\Win32\Win32_Platform.h" />
+    <ClInclude Include="Renderer\Atlases\Atlas.h" />
+    <ClInclude Include="Renderer\Atlases\AtlasFactory.h" />
+    <ClInclude Include="Renderer\Atlases\AtlasHandle.h" />
+    <ClInclude Include="Renderer\Atlases\AtlasRenderer.h" />
+    <ClInclude Include="Renderer\Atlases\AtlasResourceCompiler.h" />
     <ClInclude Include="Renderer\Drawable.h" />
     <ClInclude Include="Renderer\Material.h" />
     <ClInclude Include="Renderer\OpenGL\OpenGL_Renderer.h" />
@@ -44,8 +55,13 @@
     <ClInclude Include="Renderer\OpenGL\OpenGL_ShaderFactory.h" />
     <ClInclude Include="Renderer\OpenGL\OpenGL_ShaderProgram.h" />
     <ClInclude Include="Renderer\OpenGL\OpenGL_Texture.h" />
+    <ClInclude Include="Renderer\PrimitiveRenderer.h" />
     <ClInclude Include="Renderer\Renderer.h" />
     <ClInclude Include="Renderer\RenderPipeline.h" />
+    <ClInclude Include="Renderer\Textures\Pixmap.h" />
+    <ClInclude Include="Renderer\Textures\PixmapFactory.h" />
+    <ClInclude Include="Renderer\Textures\PixmapFormat.h" />
+    <ClInclude Include="Renderer\Textures\TextureFormat.h" />
     <ClInclude Include="Renderer\Text\Font.h" />
     <ClInclude Include="Renderer\Text\FontFactory.h" />
     <ClInclude Include="Renderer\Text\FontHandle.h" />
@@ -57,18 +73,31 @@
     <ClInclude Include="Resources\ResourceCompiler.h" />
     <ClInclude Include="Tasks\Task.h" />
     <ClInclude Include="Tasks\TaskManager.h" />
+    <ClInclude Include="UI\Elements\UILabel.h" />
+    <ClInclude Include="UI\Elements\UIMenuBar.h" />
+    <ClInclude Include="UI\Elements\UIMenuItem.h" />
+    <ClInclude Include="UI\Elements\UIPanel.h" />
+    <ClInclude Include="UI\Elements\UISplitContainer.h" />
+    <ClInclude Include="UI\Elements\UISplitContainerItem.h" />
+    <ClInclude Include="UI\Elements\UIToolbar.h" />
+    <ClInclude Include="UI\Elements\UIToolbarItem.h" />
+    <ClInclude Include="UI\Layouts\UILayout.h" />
+    <ClInclude Include="UI\Layouts\UILayoutFactory.h" />
+    <ClInclude Include="UI\Layouts\UILayoutHandle.h" />
     <ClInclude Include="UI\UIElement.h" />
-    <ClInclude Include="UI\UILayout.h" />
+    <ClInclude Include="UI\UIEvent.h" />
+    <ClInclude Include="UI\UIFrame.h" />
     <ClInclude Include="UI\UIManager.h" />
     <ClInclude Include="UI\UIScene.h" />
     <ClInclude Include="UI\UITransition.h" />
+    <ClInclude Include="Version.h" />
     <None Include="Renderer\RenderPipeline_ShaderUniformType.inc">
       <FileType>CppHeader</FileType>
     </None>
     <ClInclude Include="Renderer\Shaders\Shader.h" />
     <ClInclude Include="Renderer\Shaders\ShaderFactory.h" />
     <ClInclude Include="Renderer\Shaders\ShaderProgram.h" />
-    <ClInclude Include="Renderer\Textures\PNG\PNGTextureFactory.h" />
+    <ClInclude Include="Renderer\Textures\PNG\PNGPixmapFactory.h" />
     <ClInclude Include="Renderer\Textures\RenderTarget.h" />
     <ClInclude Include="Renderer\Textures\Texture.h" />
     <ClInclude Include="Renderer\Textures\TextureAtlas.h" />
@@ -79,6 +108,8 @@
     <ClInclude Include="Scene\Light.h" />
     <ClInclude Include="Scene\Scene.h" />
     <ClInclude Include="Scene\Tickable.h" />
+    <None Include="UI\Elements\UIElementDefinitions.inc" />
+    <None Include="UI\UIEventList.inc" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Audio\AudioRenderer.cpp" />
@@ -97,6 +128,10 @@
     <ClCompile Include="Engine\GameEngine.cpp" />
     <ClCompile Include="Engine\GameEngineConfig.cpp" />
     <ClCompile Include="Engine\GameRunner.cpp" />
+    <ClCompile Include="Input\Input.cpp" />
+    <ClCompile Include="Input\Win32\Win32_Input.cpp" />
+    <ClCompile Include="Input\Win32\Win32_KeyboardState.cpp" />
+    <ClCompile Include="Input\Win32\Win32_MouseState.cpp" />
     <ClCompile Include="IO\FileWatcher.cpp" />
     <ClCompile Include="IO\Stream.cpp" />
     <ClCompile Include="IO\StreamFactory.cpp" />
@@ -104,7 +139,13 @@
     <ClCompile Include="IO\Win32\Win32_FileStreamFactory.cpp" />
     <ClCompile Include="Localise\Locale.cpp" />
     <ClCompile Include="Platform\Platform.cpp" />
+    <ClCompile Include="Platform\Win32\Win32_EntryPoint.cpp" />
     <ClCompile Include="Platform\Win32\Win32_Platform.cpp" />
+    <ClCompile Include="Renderer\Atlases\Atlas.cpp" />
+    <ClCompile Include="Renderer\Atlases\AtlasFactory.cpp" />
+    <ClCompile Include="Renderer\Atlases\AtlasHandle.cpp" />
+    <ClCompile Include="Renderer\Atlases\AtlasRenderer.cpp" />
+    <ClCompile Include="Renderer\Atlases\AtlasResourceCompiler.cpp" />
     <ClCompile Include="Renderer\Drawable.cpp" />
     <ClCompile Include="Renderer\Material.cpp" />
     <ClCompile Include="Renderer\OpenGL\OpenGL_Renderer.cpp" />
@@ -113,6 +154,7 @@
     <ClCompile Include="Renderer\OpenGL\OpenGL_ShaderFactory.cpp" />
     <ClCompile Include="Renderer\OpenGL\OpenGL_ShaderProgram.cpp" />
     <ClCompile Include="Renderer\OpenGL\OpenGL_Texture.cpp" />
+    <ClCompile Include="Renderer\PrimitiveRenderer.cpp" />
     <ClCompile Include="Renderer\Renderer.cpp" />
     <ClCompile Include="Renderer\RenderPipeline.cpp">
       <PreprocessToFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</PreprocessToFile>
@@ -120,7 +162,9 @@
     <ClCompile Include="Renderer\Shaders\Shader.cpp" />
     <ClCompile Include="Renderer\Shaders\ShaderFactory.cpp" />
     <ClCompile Include="Renderer\Shaders\ShaderProgram.cpp" />
-    <ClCompile Include="Renderer\Textures\PNG\PNGTextureFactory.cpp" />
+    <ClCompile Include="Renderer\Textures\Pixmap.cpp" />
+    <ClCompile Include="Renderer\Textures\PixmapFactory.cpp" />
+    <ClCompile Include="Renderer\Textures\PNG\PNGPixmapFactory.cpp" />
     <ClCompile Include="Renderer\Textures\RenderTarget.cpp" />
     <ClCompile Include="Renderer\Textures\Texture.cpp" />
     <ClCompile Include="Renderer\Textures\TextureAtlas.cpp" />
@@ -142,8 +186,20 @@
     <ClCompile Include="Scene\Tickable.cpp" />
     <ClCompile Include="Tasks\Task.cpp" />
     <ClCompile Include="Tasks\TaskManager.cpp" />
+    <ClCompile Include="UI\Elements\UILabel.cpp" />
+    <ClCompile Include="UI\Elements\UIMenuBar.cpp" />
+    <ClCompile Include="UI\Elements\UIMenuItem.cpp" />
+    <ClCompile Include="UI\Elements\UIPanel.cpp" />
+    <ClCompile Include="UI\Elements\UISplitContainer.cpp" />
+    <ClCompile Include="UI\Elements\UISplitContainerItem.cpp" />
+    <ClCompile Include="UI\Elements\UIToolbar.cpp" />
+    <ClCompile Include="UI\Elements\UIToolbarItem.cpp" />
+    <ClCompile Include="UI\Layouts\UILayout.cpp" />
+    <ClCompile Include="UI\Layouts\UILayoutFactory.cpp" />
+    <ClCompile Include="UI\Layouts\UILayoutHandle.cpp" />
     <ClCompile Include="UI\UIElement.cpp" />
-    <ClCompile Include="UI\UILayout.cpp" />
+    <ClCompile Include="UI\UIEvent.cpp" />
+    <ClCompile Include="UI\UIFrame.cpp" />
     <ClCompile Include="UI\UIManager.cpp" />
     <ClCompile Include="UI\UIScene.cpp" />
     <ClCompile Include="UI\UITransition.cpp" />
@@ -204,11 +260,15 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ForcedIncludeFiles>$(SolutionDir)\Generic\Defines.h</ForcedIncludeFiles>
       <FloatingPointModel>Fast</FloatingPointModel>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
+    <PostBuildEvent>
+      <Command>python "$(SolutionDir)Scripts\update_version.py" -f "$(ProjectDir)Version.h" -p "Engine"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -221,6 +281,7 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ForcedIncludeFiles>$(SolutionDir)\Generic\Defines.h</ForcedIncludeFiles>
       <FloatingPointModel>Fast</FloatingPointModel>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -228,6 +289,9 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
+    <PostBuildEvent>
+      <Command>python "$(SolutionDir)Scripts\update_version.py" -f "$(ProjectDir)Version.h" -p "Engine"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

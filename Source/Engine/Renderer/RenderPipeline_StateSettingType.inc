@@ -12,12 +12,14 @@
 //			  Name					Enum			Type					
 
 // Samplers	
-STATE_SETTING("Clear-Color",		ClearColor,		"color")
-STATE_SETTING("Clear-Depth",		ClearDepth,		"float")
-STATE_SETTING("Depth-Function",		DepthFunction,	"enum")
-STATE_SETTING("Cull-Face",			CullFace,		"enum")
-STATE_SETTING("Depth-Test",			DepthTest,		"bool")
-STATE_SETTING("Alpha-Test",			AlphaTest,		"bool")
-STATE_SETTING("Clear",				Clear,			"bool")
-STATE_SETTING("Blend",				Blend,			"bool")
-STATE_SETTING("Blend-Function",		BlendFunction,	"enum")
+STATE_SETTING("Clear-Color-Value",	ClearColorValue,	"color")
+STATE_SETTING("Clear-Depth-Value",	ClearDepthValue,	"float")
+STATE_SETTING("Depth-Function",		DepthFunction,		"enum")
+STATE_SETTING("Cull-Face",			CullFace,			"enum")
+STATE_SETTING("Depth-Test",			DepthTest,			"bool")
+STATE_SETTING("Alpha-Test",			AlphaTest,			"bool")
+STATE_SETTING("Clear-Color",		Clear,				"bool")
+STATE_SETTING("Clear-Depth",		ClearDepth,			"bool")
+STATE_SETTING("Blend",				Blend,				"bool")
+STATE_SETTING("Blend-Function",		BlendFunction,		"enum")
+STATE_SETTING("Viewport",			Viewport,			"enum")

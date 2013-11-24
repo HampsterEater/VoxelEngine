@@ -37,12 +37,24 @@ void Reloadable::Check_For_Reloads()
 
 		if (changed == true)
 		{
+			(*iter)->Increment_Version();
 			(*iter)->Reload();
 		}
 	}
 }
 
+int Reloadable::Get_Version()
+{
+	return m_version;
+}
+
+void Reloadable::Increment_Version()
+{
+	m_version++;
+}
+
 Reloadable::Reloadable()
+	: m_version(0)
 {
 	m_reloadables.push_back(this);
 }

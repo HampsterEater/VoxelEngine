@@ -11,11 +11,18 @@
 class Tickable
 {
 protected:
+	bool m_enabled;
 
 public:
 
+	Tickable();
+
 	// Base functions.
 	virtual void Tick(const FrameTime& time) = 0;
+
+	// State changes.
+	virtual void Set_Enabled(bool value);
+	virtual bool Get_Enabled() const;
 
 };
 

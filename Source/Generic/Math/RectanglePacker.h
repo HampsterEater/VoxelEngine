@@ -23,6 +23,7 @@ private:
 public:
 	RectanglePacker();
 	RectanglePacker(int width, int height);
+	RectanglePacker(int width, int height, int spacing);
 
 	bool Pack(Point size, Rect& location);
 

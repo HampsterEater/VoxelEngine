@@ -11,10 +11,14 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Platform\Win32\Entry.h" />
     <ClInclude Include="Runner\Game.h" />
     <ClInclude Include="Runner\GameConfig.h" />
+    <ClInclude Include="Scene\Cameras\EditorCamera.h" />
     <ClInclude Include="Scene\Cameras\FirstPersonCamera.h" />
+    <ClInclude Include="Scene\Cameras\GameCamera.h" />
+    <ClInclude Include="Scene\Cameras\OrthoCamera.h" />
+    <ClInclude Include="Scene\Editor\EditorGrid.h" />
+    <ClInclude Include="Scene\Editor\EditorSelectionPrimitive.h" />
     <ClInclude Include="Scene\Voxels\Chunk.h" />
     <ClInclude Include="Scene\Voxels\ChunkManager.h" />
     <ClInclude Include="Scene\Voxels\ChunkManagerConfig.h" />
@@ -25,12 +29,20 @@
     <ClInclude Include="Scene\Voxels\Tasks\ChunkRegenerateMeshTask.h" />
     <ClInclude Include="Scene\Voxels\Tasks\ChunkUnloadTask.h" />
     <ClInclude Include="Scene\Voxels\Voxel.h" />
+    <ClInclude Include="UI\Scenes\Editor\Actions\EditorAction.h" />
+    <ClInclude Include="UI\Scenes\Editor\UIScene_Editor.h" />
+    <ClInclude Include="UI\Scenes\UIScene_Game.h" />
+    <ClInclude Include="Version.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Platform\Win32\Entry.cpp" />
     <ClCompile Include="Runner\Game.cpp" />
     <ClCompile Include="Runner\GameConfig.cpp" />
+    <ClCompile Include="Scene\Cameras\EditorCamera.cpp" />
     <ClCompile Include="Scene\Cameras\FirstPersonCamera.cpp" />
+    <ClCompile Include="Scene\Cameras\GameCamera.cpp" />
+    <ClCompile Include="Scene\Cameras\OrthoCamera.cpp" />
+    <ClCompile Include="Scene\Editor\EditorGrid.cpp" />
+    <ClCompile Include="Scene\Editor\EditorSelectionPrimitive.cpp" />
     <ClCompile Include="Scene\Voxels\Chunk.cpp" />
     <ClCompile Include="Scene\Voxels\ChunkManager.cpp" />
     <ClCompile Include="Scene\Voxels\ChunkManagerConfig.cpp" />
@@ -41,6 +53,8 @@
     <ClCompile Include="Scene\Voxels\Tasks\ChunkRegenerateMeshTask.cpp" />
     <ClCompile Include="Scene\Voxels\Tasks\ChunkUnloadTask.cpp" />
     <ClCompile Include="Scene\Voxels\Voxel.cpp" />
+    <ClCompile Include="UI\Scenes\Editor\UIScene_Editor.cpp" />
+    <ClCompile Include="UI\Scenes\UIScene_Game.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Scene\Voxels\ChunkManagerConfig.inc" />
@@ -95,12 +109,16 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ForcedIncludeFiles>$(SolutionDir)\Generic\Defines.h</ForcedIncludeFiles>
       <FloatingPointModel>Fast</FloatingPointModel>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>$(SolutionDir)..\Output\Generic\$(Configuration)\Generic.lib;$(SolutionDir)..\Output\Engine\$(Configuration)\Engine.lib;$(SolutionDir)..\Output\libpng\$(Configuration)\libpng.lib;$(SolutionDir)..\Output\zlib\$(Configuration)\zlib.lib;$(SolutionDir)..\Output\FreeType\$(Configuration)\FreeType.lib;opengl32.lib;glu32.lib;Winmm.lib;$(SolutionDir)Generic\ThirdParty\FMod\Library\fmodex_vc.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)..\Output\Generic\$(Configuration)\Generic.lib;$(SolutionDir)..\Output\Engine\$(Configuration)\Engine.lib;$(SolutionDir)..\Output\libpng\$(Configuration)\libpng.lib;$(SolutionDir)..\Output\zlib\$(Configuration)\zlib.lib;$(SolutionDir)..\Output\FreeType\$(Configuration)\FreeType.lib;opengl32.lib;glu32.lib;Winmm.lib;dbghelp.lib;ws2_32.lib;Shell32.lib;$(SolutionDir)Generic\ThirdParty\FMod\Library\fmodex_vc.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>python "$(SolutionDir)Scripts\update_version.py" -f "$(ProjectDir)Version.h" -p "Game"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -113,15 +131,19 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ForcedIncludeFiles>$(SolutionDir)\Generic\Defines.h</ForcedIncludeFiles>
       <FloatingPointModel>Fast</FloatingPointModel>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>$(SolutionDir)..\Output\Generic\$(Configuration)\Generic.lib;$(SolutionDir)..\Output\Engine\$(Configuration)\Engine.lib;$(SolutionDir)..\Output\libpng\$(Configuration)\libpng.lib;$(SolutionDir)..\Output\zlib\$(Configuration)\zlib.lib;$(SolutionDir)..\Output\FreeType\$(Configuration)\FreeType.lib;opengl32.lib;glu32.lib;Winmm.lib;$(SolutionDir)Generic\ThirdParty\FMod\Library\fmodex_vc.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)..\Output\Generic\$(Configuration)\Generic.lib;$(SolutionDir)..\Output\Engine\$(Configuration)\Engine.lib;$(SolutionDir)..\Output\libpng\$(Configuration)\libpng.lib;$(SolutionDir)..\Output\zlib\$(Configuration)\zlib.lib;$(SolutionDir)..\Output\FreeType\$(Configuration)\FreeType.lib;opengl32.lib;glu32.lib;Winmm.lib;dbghelp.lib;ws2_32.lib;Shell32.lib;$(SolutionDir)Generic\ThirdParty\FMod\Library\fmodex_vc.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <Profile>true</Profile>
     </Link>
+    <PostBuildEvent>
+      <Command>python "$(SolutionDir)Scripts\update_version.py" -f "$(ProjectDir)Version.h" -p "Game"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

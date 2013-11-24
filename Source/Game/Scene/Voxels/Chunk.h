@@ -17,6 +17,8 @@
 
 class ChunkManager;
 
+#define CHUNK_VOXEL_PALETTE_SIZE 64
+
 // Determines the different states a chunk can be in.
 struct ChunkStatus
 {
@@ -97,6 +99,10 @@ private:
 	std::vector<Render_Voxel> m_render_voxels;
 	int m_render_vertices;
 	int m_render_triangles;
+	
+	// Voxel palette information.
+	Color m_voxel_color_palette[CHUNK_VOXEL_PALETTE_SIZE];
+	int   m_voxel_color_palette_insert_index;
 
 	// Neighbour chunk hashes. Used to decide when to regenerate.
 	int		m_hash;
@@ -132,9 +138,6 @@ private:
 	void Regenerate_Mesh			(Renderer* renderer, bool as_neighbour = false);
 	void Regenerate_Voxel			(Renderer* renderer, const Render_Voxel& voxel, int x, int y, int z);
 
-	bool Is_Dirty();
-	void Mark_Dirty(bool dirty = true);
-
 	INLINE ChunkStatus::Type Get_Status()			{ return m_status; };
 	INLINE void Set_Status(ChunkStatus::Type status){ m_status = status; };
 
@@ -148,8 +151,6 @@ private:
 	bool Are_Neighbours_Loaded();	
 	void Store_Neighbour_Hashes();
 	bool Have_Neighbours_Changed();
-
-	void Recalculate_State();
 
 	void Notify_Neighbours_Of_Change();
 	void Relink_Neighbours();
@@ -174,6 +175,11 @@ public:
 	bool Should_Render() const;
 	void Calculate_Visible_Voxels();
 
+	// Dirty regen stuff!
+	bool Is_Dirty();
+	void Mark_Dirty(bool dirty = true);
+	void Recalculate_State();
+
 	// Unload properties.
 	void Reset_Unload_Timer();
 	float Get_Unload_Timer() const;
@@ -182,10 +188,13 @@ public:
 	Voxel* Get_Relative_Voxel(int voxel_x, int voxel_y, int voxel_z, 
 							  int offset_x, int offset_y, int offset_z);
 	Voxel* Get_Voxel(int x, int y, int z);
+	void Set_Voxel(int x, int y, int z, Voxel voxel);
 
 	// General manipulation of chunks.
-	void Fill(VoxelType::Type type, int x, int y, int z, int width, int height, int depth);
-	void Set (VoxelType::Type type, int x, int y, int z);
+	void  Fill(VoxelType::Type type, int x, int y, int z, int width, int height, int depth, Color color = Color::White);
+	void  Set (VoxelType::Type type, int x, int y, int z, Color color = Color::White);
+	int   Color_To_Palette_Index(Color color);
+	Color Palette_Index_To_Color(int index);
 
 	// Updating / Drawing.
 	int  Drawn_Voxels();

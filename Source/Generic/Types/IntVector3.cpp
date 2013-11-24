@@ -42,6 +42,16 @@ bool IntVector3::Parse(std::string value, IntVector3& result)
 	return true;
 }
 
+IntVector3 IntVector3::operator* (const IntVector3 a) const
+{
+	return IntVector3(X * a.X, Y * a.Y, Z * a.Z);
+}
+
+IntVector3 IntVector3::operator+ (const IntVector3 a) const
+{
+	return IntVector3(X + a.X, Y + a.Y, Z + a.Z);
+}
+
 bool IntVector3::operator==(const IntVector3 &other) const
 {
 	return X == other.X && Y == other.Y && Z == other.Z;
@@ -57,6 +67,11 @@ IntVector3 IntVector3::operator-(const IntVector3 a) const
 	return IntVector3(X - a.X, Y - a.Y, Z - a.Z);
 }
 	
+float IntVector3::Length() const
+{
+	return sqrt(X * X + Y * Y + Z * Z);
+}
+
 float IntVector3::Length_Squared() const
 {
 	return (float)(X * X + Y * Y + Z * Z);

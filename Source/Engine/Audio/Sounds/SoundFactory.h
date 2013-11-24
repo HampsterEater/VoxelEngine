@@ -18,7 +18,10 @@ private:
 	static HashTable<SoundHandle*, int>	m_loaded_sounds;
 
 public:
-		
+	
+	// Dispose.
+	static void Dispose();
+	
 	// Static methods.
 	static SoundHandle* Load(const char* url, SoundFlags::Type flags);
 	static Sound* Load_Without_Handle(const char* url, SoundFlags::Type flags);

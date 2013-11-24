@@ -16,7 +16,6 @@ ChunkGenerator::ChunkGenerator(ChunkManager* manager, const ChunkManagerConfig& 
 {
 	m_scale_factor = m_config.map_terrain_base_noise_sample_step;
 
-	/*
 	m_terrain_base_noise = new SimplexNoise(m_config.map_seed);
 	m_terrain_base_noise_sampler = new NoiseSampler3D(m_terrain_base_noise, 
 													  m_chunk_world_position,
@@ -25,7 +24,6 @@ ChunkGenerator::ChunkGenerator(ChunkManager* manager, const ChunkManagerConfig& 
 													  m_config.map_terrain_base_noise_octaves,
 													  m_config.map_terrain_base_noise_persistence,
 													  m_config.map_terrain_base_noise_scale); 
-													  */
 }
 
 ChunkGenerator::~ChunkGenerator()
@@ -43,7 +41,7 @@ void ChunkGenerator::Generate(Chunk* chunk)
 								  	 m_chunk_position.Z * m_config.chunk_size.Z);
 
 	// Generate noise samplers.
-	//m_terrain_base_noise_sampler->Resposition(m_chunk_world_position);
+	m_terrain_base_noise_sampler->Resposition(m_chunk_world_position);
 
 	// Place base terrain.
 	Place_Terrain();
@@ -61,8 +59,8 @@ void ChunkGenerator::Place_Terrain()
 			for (int z = 0; z < m_config.chunk_size.Z; z++)
 			{				
 				// Get a sample at the voxels position.
-				//float value = m_terrain_base_noise_sampler->Sample(x, y, z);
-				float value = 1.0f;
+				float value = m_terrain_base_noise_sampler->Sample(x, y, z);
+				//float value = 1.0f;
 
 				// Bias sample by Y position. Results in up=air, down=ground
 				value += (m_chunk_world_position.Y + y) * m_scale_factor.Y;

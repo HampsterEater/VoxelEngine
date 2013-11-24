@@ -14,6 +14,7 @@
 #include "Generic\Types\Matrix4.h"
 #include "Generic\Types\Rectangle.h"
 
+#include "Engine\Renderer\Textures\Pixmap.h"
 #include "Engine\Renderer\Textures\TextureFactory.h"
 
 #include "Engine\Renderer\OpenGL\OpenGL_Texture.h"
@@ -583,8 +584,15 @@ bool OpenGL_Renderer::Get_Blend()
 
 void OpenGL_Renderer::Set_Viewport(Rect viewport)
 {
-	glViewport(viewport.X, viewport.Y, viewport.Width, viewport.Height);
-	m_viewport = viewport;
+	Display* display = Display::Get();
+
+	m_viewport			= viewport; 
+	m_viewport.X		= viewport.X;
+	m_viewport.Y		= (display->Get_Height() - (viewport.Y + viewport.Height));
+	m_viewport.Width	= Max(viewport.Width, 0);
+	m_viewport.Height	= Max(viewport.Height, 0);
+
+	glViewport(m_viewport.X, m_viewport.Y, m_viewport.Width, m_viewport.Height);
 }
 
 Rect OpenGL_Renderer::Set_Viewport()
@@ -592,9 +600,12 @@ Rect OpenGL_Renderer::Set_Viewport()
 	return m_viewport;
 }
 
-void OpenGL_Renderer::Clear_Buffer()
+void OpenGL_Renderer::Clear_Buffer(bool color, bool depth)
 {
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	int bits = 0;
+	if (color) bits |= GL_COLOR_BUFFER_BIT;
+	if (depth) bits |= GL_DEPTH_BUFFER_BIT;
+	glClear(bits);
 }
 
 Texture* OpenGL_Renderer::Create_Texture(int width, int height, int pitch, TextureFormat::Type format, TextureFlags::Type flags)
@@ -682,7 +693,7 @@ Texture* OpenGL_Renderer::Create_Texture(int width, int height, int pitch, Textu
 		glBindTexture(GL_TEXTURE_2D, previous_texture->Get_ID());
 	}
 
-	return new OpenGL_Texture(texture_id, NULL, width, height, pitch, format);
+	return new OpenGL_Texture(texture_id, width, height, pitch, format);
 }
 
 Texture* OpenGL_Renderer::Create_Texture(char* data, int width, int height, int pitch, TextureFormat::Type format, TextureFlags::Type flags)
@@ -770,7 +781,100 @@ Texture* OpenGL_Renderer::Create_Texture(char* data, int width, int height, int 
 		glBindTexture(GL_TEXTURE_2D, previous_texture->Get_ID());
 	}
 
-	return new OpenGL_Texture(texture_id, data, width, height, pitch, format);
+	return new OpenGL_Texture(texture_id, width, height, pitch, format);
+}
+
+Texture* OpenGL_Renderer::Create_Texture(Pixmap* pixmap, TextureFlags::Type flags)
+{
+	GLuint texture_id;	
+	
+	const OpenGL_Texture* previous_texture = m_binded_textures[0];
+
+	// Generate and bind texture.
+	glGenTextures(1, &texture_id);
+	glBindTexture(GL_TEXTURE_2D, texture_id);
+	
+	// And some nice filtering and clamp the texture.
+	glHint(GL_GENERATE_MIPMAP_HINT, GL_NICEST);	
+	if ((flags & TextureFlags::AllowRepeat) != 0)
+	{
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_REPEAT);
+	}
+	else
+	{
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP);
+	}
+	if ((flags & TextureFlags::LinearFilter) != 0)
+	{
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR); 
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); 
+	}
+	else
+	{
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR); 
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); 
+	}
+	glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE); 
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 4);
+
+	TextureFormat::Type format	= pixmap->Get_Texture_Format();
+	int width					= pixmap->Get_Width();
+	int height					= pixmap->Get_Height();
+	unsigned char* data			= pixmap->Get_Data();
+
+	// Upload data to GPU.
+	switch (format)
+	{
+	case TextureFormat::R8G8B8:
+		{
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+			break;
+		}
+	case TextureFormat::R32FG32FB32FA32F:
+		{
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, data);
+			break;
+		}
+	case TextureFormat::R8G8B8A8:
+		{
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+			break;
+		}
+	case TextureFormat::DepthFormat:
+		{
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, data);
+			break;
+		}
+	case TextureFormat::StencilFormat:
+		{
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_STENCIL_INDEX, width, height, 0, GL_STENCIL_INDEX, GL_FLOAT, data);
+			break;
+		}
+	case TextureFormat::Luminosity:
+		{
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, data);
+			break;
+		}
+
+	default:
+		{
+			// Format not supported.
+			DBG_ASSERT(false);
+			break;
+		}
+	}
+	
+	// Reset binding to previous texture.
+	if (previous_texture != NULL)
+	{
+		glBindTexture(GL_TEXTURE_2D, previous_texture->Get_ID());
+	}
+
+	return new OpenGL_Texture(texture_id, pixmap);
 }
 
 void OpenGL_Renderer::Set_World_Matrix(Matrix4 matrix)
@@ -807,10 +911,13 @@ void OpenGL_Renderer::Render_Mesh(int id)
 {
 	Mesh& mesh = m_meshs[id];
 	DBG_ASSERT(mesh.active == true);
+
+	glLineWidth(1.0f); 
 	
 #ifdef USE_VBO_FOR_MESH
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_NORMAL_ARRAY);
+	glEnableClientState(GL_COLOR_ARRAY);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
 	glBindBuffer(GL_ARRAY_BUFFER_ARB, mesh.vbo_vertices_buffer);
@@ -822,8 +929,24 @@ void OpenGL_Renderer::Render_Mesh(int id)
 	glBindBuffer(GL_ARRAY_BUFFER_ARB, mesh.vbo_normals_buffer);
 	glNormalPointer(GL_FLOAT, 0, NULL);
 
-	glDrawArrays(GL_TRIANGLES, 0, mesh.vbo_vertices_count);
+	glBindBuffer(GL_ARRAY_BUFFER_ARB, mesh.vbo_colors_buffer);
+	glColorPointer(4, GL_FLOAT, 0, NULL);
 
+	switch (mesh.primitive_type)
+	{
+		case MeshPrimitiveType::Triangle: 
+			glDrawArrays(GL_TRIANGLES, 0, mesh.vbo_vertices_count);
+			break;
+
+		case MeshPrimitiveType::Line: 
+			glDrawArrays(GL_LINES, 0, mesh.vbo_vertices_count);
+			break;
+
+		default:
+			DBG_ASSERT_STR(false, "Invalid mesh primitive type.");
+	}
+
+	glDisableClientState(GL_COLOR_ARRAY);
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_NORMAL_ARRAY);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -841,16 +964,18 @@ void OpenGL_Renderer::Destroy_Mesh(int id)
 	glDeleteBuffers(1, &mesh.vbo_vertices_buffer);
 	glDeleteBuffers(1, &mesh.vbo_texcoords_buffer);
 	glDeleteBuffers(1, &mesh.vbo_normals_buffer);
+	glDeleteBuffers(1, &mesh.vbo_colors_buffer);
 
 	SAFE_DELETE_ARRAY(mesh.vbo_vertices);
 	SAFE_DELETE_ARRAY(mesh.vbo_texcoords);
 	SAFE_DELETE_ARRAY(mesh.vbo_normals);
+	SAFE_DELETE_ARRAY(mesh.vbo_colors);
 #else
 	glDeleteLists(mesh.list_id, 1);
 #endif
 }
 
-int OpenGL_Renderer::Start_Mesh(int vertices, int triangles)
+int OpenGL_Renderer::Start_Mesh(MeshPrimitiveType::Type type, int vertices, int primitives)
 {
 	int mesh_id = Get_Free_Mesh_Index();
 	if (mesh_id < 0)
@@ -861,16 +986,18 @@ int OpenGL_Renderer::Start_Mesh(int vertices, int triangles)
 	Mesh& mesh = m_meshs[mesh_id];
 	mesh.active				= true;
 	mesh.vertices			= new Vertex[vertices];
-	mesh.triangles			= new Triangle[triangles];
+	mesh.primitives			= new Primitive[primitives];
 	mesh.vertex_counter		= 0;
-	mesh.triangle_counter	= 0;
+	mesh.primitive_counter	= 0;
 	mesh.vertex_count		= vertices;
-	mesh.triangle_count		= triangles;
+	mesh.primitive_count	= primitives;
+	mesh.primitive_type		= type;
 
 	#ifdef USE_VBO_FOR_MESH
 		glGenBuffers(1, &mesh.vbo_vertices_buffer);
 		glGenBuffers(1, &mesh.vbo_texcoords_buffer);
 		glGenBuffers(1, &mesh.vbo_normals_buffer);
+		glGenBuffers(1, &mesh.vbo_colors_buffer);
 	#else
 		mesh.list_id = glGenLists(1);
 	#endif
@@ -885,50 +1012,73 @@ void OpenGL_Renderer::End_Mesh(int id)
 	Mesh& mesh = m_meshs[id];
 	DBG_ASSERT(mesh.active == true);
 	DBG_ASSERT(mesh.vertex_counter == mesh.vertex_counter);
-	DBG_ASSERT(mesh.triangle_counter == mesh.triangle_count);
+	DBG_ASSERT(mesh.primitive_counter == mesh.primitive_count);
 	
 #ifdef USE_VBO_FOR_MESH
-	mesh.vbo_vertices_count = mesh.triangle_count * 3;
+	mesh.vbo_vertices_count = mesh.primitive_count * 3;
 	mesh.vbo_normals		= new float[mesh.vbo_vertices_count * 3];
 	mesh.vbo_vertices		= new float[mesh.vbo_vertices_count * 3];
 	mesh.vbo_texcoords		= new float[mesh.vbo_vertices_count * 2];
+	mesh.vbo_colors			= new float[mesh.vbo_vertices_count * 4];
 
 	int tex_coord_offset = 0;
 	int normal_offset = 0;
 	int vertex_offset = 0;
-	for (int i = 0; i < mesh.triangle_count; i++)
+	int color_offset = 0;
+	for (int i = 0; i < mesh.primitive_count; i++)
 	{
-		Triangle& tri = mesh.triangles[i];
+		Primitive& tri = mesh.primitives[i];
 		Vertex&	v1  = mesh.vertices[tri.vertex_1];
 		Vertex&	v2  = mesh.vertices[tri.vertex_2];
 		Vertex&	v3  = mesh.vertices[tri.vertex_3];
-		
-		mesh.vbo_texcoords[tex_coord_offset++] = v1.u;
-		mesh.vbo_texcoords[tex_coord_offset++] = v1.v;		
-		mesh.vbo_normals[normal_offset++] = v1.normal.X;
-		mesh.vbo_normals[normal_offset++] = v1.normal.Y;
-		mesh.vbo_normals[normal_offset++] = v1.normal.Z;
-		mesh.vbo_vertices[vertex_offset++] = v1.position.X;
-		mesh.vbo_vertices[vertex_offset++] = v1.position.Y;
-		mesh.vbo_vertices[vertex_offset++] = v1.position.Z;
-		
-		mesh.vbo_texcoords[tex_coord_offset++] = v2.u;
-		mesh.vbo_texcoords[tex_coord_offset++] = v2.v;		
-		mesh.vbo_normals[normal_offset++] = v2.normal.X;
-		mesh.vbo_normals[normal_offset++] = v2.normal.Y;
-		mesh.vbo_normals[normal_offset++] = v2.normal.Z;
-		mesh.vbo_vertices[vertex_offset++] = v2.position.X;
-		mesh.vbo_vertices[vertex_offset++] = v2.position.Y;
-		mesh.vbo_vertices[vertex_offset++] = v2.position.Z;
-		
-		mesh.vbo_texcoords[tex_coord_offset++] = v3.u;
-		mesh.vbo_texcoords[tex_coord_offset++] = v3.v;		
-		mesh.vbo_normals[normal_offset++] = v3.normal.X;
-		mesh.vbo_normals[normal_offset++] = v3.normal.Y;
-		mesh.vbo_normals[normal_offset++] = v3.normal.Z;
-		mesh.vbo_vertices[vertex_offset++] = v3.position.X;
-		mesh.vbo_vertices[vertex_offset++] = v3.position.Y;
-		mesh.vbo_vertices[vertex_offset++] = v3.position.Z;
+
+		if (tri.vertex_1 >= 0)
+		{
+			mesh.vbo_texcoords[tex_coord_offset++] = v1.u;
+			mesh.vbo_texcoords[tex_coord_offset++] = v1.v;		
+			mesh.vbo_normals[normal_offset++] = v1.normal.X;
+			mesh.vbo_normals[normal_offset++] = v1.normal.Y;
+			mesh.vbo_normals[normal_offset++] = v1.normal.Z;
+			mesh.vbo_vertices[vertex_offset++] = v1.position.X;
+			mesh.vbo_vertices[vertex_offset++] = v1.position.Y;
+			mesh.vbo_vertices[vertex_offset++] = v1.position.Z;
+			mesh.vbo_colors[color_offset++] = v1.r;
+			mesh.vbo_colors[color_offset++] = v1.g;
+			mesh.vbo_colors[color_offset++] = v1.b;
+			mesh.vbo_colors[color_offset++] = v1.a;
+		}
+
+		if (tri.vertex_2 >= 0)
+		{
+			mesh.vbo_texcoords[tex_coord_offset++] = v2.u;
+			mesh.vbo_texcoords[tex_coord_offset++] = v2.v;		
+			mesh.vbo_normals[normal_offset++] = v2.normal.X;
+			mesh.vbo_normals[normal_offset++] = v2.normal.Y;
+			mesh.vbo_normals[normal_offset++] = v2.normal.Z;
+			mesh.vbo_vertices[vertex_offset++] = v2.position.X;
+			mesh.vbo_vertices[vertex_offset++] = v2.position.Y;
+			mesh.vbo_vertices[vertex_offset++] = v2.position.Z;
+			mesh.vbo_colors[color_offset++] = v2.r;
+			mesh.vbo_colors[color_offset++] = v2.g;
+			mesh.vbo_colors[color_offset++] = v2.b;
+			mesh.vbo_colors[color_offset++] = v2.a;
+		}
+
+		if (tri.vertex_3 >= 0)
+		{
+			mesh.vbo_texcoords[tex_coord_offset++] = v3.u;
+			mesh.vbo_texcoords[tex_coord_offset++] = v3.v;		
+			mesh.vbo_normals[normal_offset++] = v3.normal.X;
+			mesh.vbo_normals[normal_offset++] = v3.normal.Y;
+			mesh.vbo_normals[normal_offset++] = v3.normal.Z;
+			mesh.vbo_vertices[vertex_offset++] = v3.position.X;
+			mesh.vbo_vertices[vertex_offset++] = v3.position.Y;
+			mesh.vbo_vertices[vertex_offset++] = v3.position.Z;
+			mesh.vbo_colors[color_offset++] = v3.r;
+			mesh.vbo_colors[color_offset++] = v3.g;
+			mesh.vbo_colors[color_offset++] = v3.b;
+			mesh.vbo_colors[color_offset++] = v3.a;
+		}
 	}
 
 	glBindBuffer(GL_ARRAY_BUFFER_ARB, mesh.vbo_vertices_buffer);
@@ -939,6 +1089,9 @@ void OpenGL_Renderer::End_Mesh(int id)
 	
 	glBindBuffer(GL_ARRAY_BUFFER_ARB, mesh.vbo_texcoords_buffer);
 	glBufferData(GL_ARRAY_BUFFER_ARB, mesh.vbo_vertices_count * sizeof(float) * 2, mesh.vbo_texcoords, GL_STATIC_DRAW_ARB);
+	
+	glBindBuffer(GL_ARRAY_BUFFER_ARB, mesh.vbo_colors_buffer);
+	glBufferData(GL_ARRAY_BUFFER_ARB, mesh.vbo_vertices_count * sizeof(float) * 4, mesh.vbo_colors, GL_STATIC_DRAW_ARB);
 #else
 	glNewList(mesh.list_id, GL_COMPILE);
 	glBegin(GL_TRIANGLES);
@@ -972,7 +1125,7 @@ void OpenGL_Renderer::End_Mesh(int id)
 #endif
 
 	// Delete triangle/vertex arrays.
-	SAFE_DELETE_ARRAY(mesh.triangles);
+	SAFE_DELETE_ARRAY(mesh.primitives);
 	SAFE_DELETE_ARRAY(mesh.vertices);
 }
 
@@ -998,21 +1151,38 @@ int OpenGL_Renderer::Add_Mesh_Vertex(int id, Vector3 position, Vector3 normal, f
 	return mesh.vertex_counter++;
 }
 
-int OpenGL_Renderer::Add_Mesh_Triangle(int id, int vertex1, int vertex2, int vertex3)
+int OpenGL_Renderer::Add_Mesh_Primitive(int id, int vertex1, int vertex2, int vertex3)
 {
 	DBG_ASSERT(id >= 0);
 
 	Mesh& mesh = m_meshs[id];
 	DBG_ASSERT(mesh.active == true);
-	DBG_ASSERT(mesh.triangle_counter < mesh.triangle_count);
+	DBG_ASSERT(mesh.primitive_counter < mesh.primitive_count);
 
-	Triangle tri;
+	Primitive tri;
 	tri.vertex_1 = vertex1;
 	tri.vertex_2 = vertex2;
 	tri.vertex_3 = vertex3;
 
-	mesh.triangles[mesh.triangle_counter] = tri;
-	return mesh.triangle_counter++;
+	mesh.primitives[mesh.primitive_counter] = tri;
+	return mesh.primitive_counter++;
+}
+
+int OpenGL_Renderer::Add_Mesh_Primitive(int id, int vertex1, int vertex2)
+{
+	DBG_ASSERT(id >= 0);
+
+	Mesh& mesh = m_meshs[id];
+	DBG_ASSERT(mesh.active == true);
+	DBG_ASSERT(mesh.primitive_counter < mesh.primitive_count);
+
+	Primitive tri;
+	tri.vertex_1 = vertex1;
+	tri.vertex_2 = vertex2;
+	tri.vertex_3 = -1;
+
+	mesh.primitives[mesh.primitive_counter] = tri;
+	return mesh.primitive_counter++;
 }
 
 void OpenGL_Renderer::Draw_Line(float x1, float y1, float z1, float x2, float y2, float z2, float size)
@@ -1022,6 +1192,16 @@ void OpenGL_Renderer::Draw_Line(float x1, float y1, float z1, float x2, float y2
 	glBegin(GL_LINES);
 	glVertex3f(x1, y1, z1);
 	glVertex3f(x2, y2, z2);
+	glEnd();
+}
+
+void OpenGL_Renderer::Draw_Quad(Vector3 v1, Vector3 v2, Vector3 v3, Vector3 v4)
+{
+	glBegin(GL_QUADS);
+		glVertex3f(v1.X, v1.Y, v1.Z);
+		glVertex3f(v2.X, v2.Y, v2.Z);
+		glVertex3f(v3.X, v3.Y, v3.Z);
+		glVertex3f(v4.X, v4.Y, v4.Z);
 	glEnd();
 }
 

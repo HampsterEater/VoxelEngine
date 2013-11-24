@@ -16,10 +16,12 @@ Win32_Display::Win32_Display(const char* title, int width, int height, bool full
 	, m_instance_handle(NULL)
 	, m_active(false)
 {	
-	memset(m_key_down, 0, KEY_COUNT * sizeof(bool));
-	memset(m_key_press, 0, KEY_COUNT * sizeof(bool));
-
 	Setup_Window();
+}
+	
+HWND Win32_Display::Get_Window_Handle()
+{
+	return m_window_handle;
 }
 
 Win32_Display::~Win32_Display()
@@ -104,70 +106,10 @@ void Win32_Display::Tick(const FrameTime& time)
 //			Sleep(100);
 //		}
 //#endif
-
-		// Work out which keys were pressed.
-		for (int i = 0; i < KEY_COUNT; i++)
-		{
-			m_key_press[i] = (m_key_down[i] == true) && (m_prev_key_down[i] == false);
-		}
-		memcpy(m_prev_key_down, m_key_down, KEY_COUNT * sizeof(bool));
 //	} 
 //#ifndef DEBUG_BUILD
 //	while (m_active == false);
 //#endif
-}
-
-Point Win32_Display::Get_Mouse()
-{	
-	POINT point;
-	GetCursorPos(&point);
-	ScreenToClient(m_window_handle, &point);
-
-	return Point(point.x, point.y);
-}
-
-void Win32_Display::Set_Mouse(Point pos)
-{
-	POINT point;
-	point.x = (int)pos.X;
-	point.y = (int)pos.Y;
-
-	ClientToScreen(m_window_handle, &point);
-	SetCursorPos(point.x, point.y);
-}
-
-bool Win32_Display::Is_Key_Down(Key::Type key)
-{
-	switch (key)
-	{
-	case Key::Up:		return m_key_down['W'];
-	case Key::Down:		return m_key_down['S'];
-	case Key::Left:		return m_key_down['A'];
-	case Key::Right:	return m_key_down['D'];
-	case Key::Escape:	return m_key_down[VK_ESCAPE];
-	case Key::F1:		return m_key_down[VK_F1];
-	default:
-		DBG_ASSERT(0);
-	}
-
-	return false;
-}
-
-bool Win32_Display::Is_Key_Pressed(Key::Type key)
-{
-	switch (key)
-	{
-	case Key::Up:		return m_key_press['W'];
-	case Key::Down:		return m_key_press['S'];
-	case Key::Left:		return m_key_press['A'];
-	case Key::Right:	return m_key_press['D'];
-	case Key::Escape:	return m_key_press[VK_ESCAPE];
-	case Key::F1:		return m_key_press[VK_F1];
-	default:
-		DBG_ASSERT(0);
-	}
-
-	return false;
 }
 
 LRESULT CALLBACK Win32_Display::Static_Event_Handler(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam)
@@ -204,13 +146,11 @@ LRESULT CALLBACK Win32_Display::Event_Handler(HWND hwnd, UINT umsg, WPARAM wpara
 
 	case WM_KEYDOWN:
 		{
-			m_key_down[wparam] = true;
 			return 0;
 		}
 
 	case WM_KEYUP:
 		{
-			m_key_down[wparam] = false;
 			return 0;
 		}
 	}

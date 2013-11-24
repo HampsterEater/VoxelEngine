@@ -42,48 +42,75 @@ class TextureAtlas;
 // chunks on the cameras "level"
 #define CHUNK_LOAD_Y_BIAS 2
 
+struct ChunkRaycastResult
+{
+	Chunk*			Chunk;
+	IntVector3		RelativeVoxel;
+	IntVector3		AbsoluteVoxel;
+	IntVector3		Normal;
+};
+
+struct ChunkRaycastBoundries
+{
+	bool  Use_YBoundry;
+	float YBoundry;
+
+	bool  Use_XBoundry;
+	float XBoundry;
+
+	bool  Use_ZBoundry;
+	float ZBoundry;
+
+	ChunkRaycastBoundries()
+		: Use_XBoundry(false)
+		, Use_YBoundry(false)
+		, Use_ZBoundry(false)
+	{
+	}
+};
+
 class ChunkManager : public Drawable, public Tickable
 {
 private:
-	const ChunkManagerConfig& m_config;
+	const ChunkManagerConfig&				m_config;
 
-	VirtualArray3<Chunk*>		m_chunks;
-	LinkedList<Chunk*>			m_chunk_list;
+	VirtualArray3<Chunk*>					m_chunks;
+	LinkedList<Chunk*>						m_chunk_list;
 
-	IntVector3					m_last_camera_chunk_position;
-	Vector3						m_last_camera_position;
+	IntVector3								m_last_camera_chunk_position;
+	Vector3									m_last_camera_position;
 
-	int							m_drawn_voxels;
+	int										m_drawn_voxels;
 
-	int							m_max_chunks;
-	int							m_voxels_per_chunk;
+	int										m_max_chunks;
+	int										m_voxels_per_chunk;
 
-	FixedMemoryPool<Chunk>		m_chunk_memory_pool;
-	FixedMemoryPool<Voxel>		m_voxel_memory_pool;
+	FixedMemoryPool<Chunk>					m_chunk_memory_pool;
+	FixedMemoryPool<Voxel>					m_voxel_memory_pool;
 
 	LinkedList<ChunkLoadTask*>				m_load_tasks;
 	LinkedList<ChunkUnloadTask*>			m_unload_tasks;
 	LinkedList<ChunkRegenerateMeshTask*>	m_regenerate_mesh_tasks;	
 
-	LinkedList<IntVector3>		 m_chunk_unload_list;
-	LinkedList<IntVector3>		 m_chunk_load_list;
+	LinkedList<IntVector3>					m_chunk_unload_list;
+	LinkedList<IntVector3>					m_chunk_load_list;
 
-	LinkedList<Chunk*>			m_visible_chunks;
-	LinkedList<Chunk*>			m_dirty_chunks;
+	LinkedList<Chunk*>						m_visible_chunks;
+	LinkedList<Chunk*>						m_dirty_chunks;
 
-	int							m_seed;
+	int										m_seed;
 
-	TextureHandle*				m_voxel_face_atlas_texture;
-	TextureAtlas*				m_voxel_face_atlas;
-	Material*					m_voxel_face_atlas_material;
+	TextureHandle*							m_voxel_face_atlas_texture;
+	TextureAtlas*							m_voxel_face_atlas;
+	Material*								m_voxel_face_atlas_material;
 
-	WorldFile*					m_world_file;
-	VirtualArray3<RegionFile*>	m_region_files_array;
-	LinkedList<RegionFile*>		m_region_files;
+	WorldFile*								m_world_file;
+	VirtualArray3<RegionFile*>				m_region_files_array;
+	LinkedList<RegionFile*>					m_region_files;
 
-	Mutex*						m_region_access_mutex;
+	Mutex*									m_region_access_mutex;
 
-	bool						m_dirty_chunks_sorted;
+	bool									m_dirty_chunks_sorted;
 
 	// Chunk access. Generally chunk manager should be responsible
 	// for creating/setting chunks, so these are private.
@@ -139,10 +166,21 @@ public:
 	IntVector3  Get_Chunk_Position(Vector3 position);
 	IntVector3	Get_Last_Camera_Chunk_Position();
 	AABB		Calculate_Chunk_AABB(IntVector3 position);
+	IntVector3	Get_Absolute_Voxel_Position(Vector3 position);
+	IntVector3	Get_Relative_Voxel_Position(Vector3 position);
+	void		Get_Chunk_By_Absolute_Voxel_Position(IntVector3 absolute_position, Chunk** chunk, IntVector3* relative_position);
 
 	// Serialization access.
 	WorldFile*  Get_World_File ();
 	RegionFile* Get_Region_File(IntVector3 position); // Warning: Blocking!
+
+	// Raycasting functionality.
+	int Raycast(Vector3 start, Vector3 end, std::vector<ChunkRaycastResult>& results, int max_hits = 0, ChunkRaycastBoundries* boundries = NULL);
+	int RaycastIntBound(float s, float ds);
+	int RaycastMod(int value, int modulus);
+	
+	// Voxel modification.
+	void Change_Voxel(IntVector3 absolute_position, IntVector3 face_normal, VoxelType::Type type, Color color, bool overwrite);
 
 };
 

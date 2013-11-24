@@ -3,7 +3,10 @@
 // ===================================================================
 #include "Game\Scene\Cameras\FirstPersonCamera.h"
 #include "Engine\Display\Display.h"
+#include "Engine\Input\Input.h"
 #include "Generic\Math\Math.h"
+
+#include "Engine\Renderer\RenderPipeline.h"
 
 FirstPersonCamera::FirstPersonCamera(float fov, Rect viewport)
 {
@@ -19,7 +22,18 @@ FirstPersonCamera::FirstPersonCamera(float fov, Rect viewport)
 
 void FirstPersonCamera::Tick(const FrameTime& time)
 {
-	Display* display = Display::Get();
+	// Don't update if we are not the active camera.
+	if (this != RenderPipeline::Get()->Get_Active_Camera())
+	{
+		m_display_active_last_frame = false;
+		return;
+	}
+
+	Display*		display		= Display::Get();
+	Input*			input		= Input::Get();
+	KeyboardState*	keyboard	= input->Get_Keyboard_State();
+	MouseState*		mouse		= input->Get_Mouse_State();
+
 	int display_width = display->Get_Width();
 	int display_height = display->Get_Height();
 	float delta = time.Get_Delta();
@@ -47,7 +61,7 @@ void FirstPersonCamera::Tick(const FrameTime& time)
 			if (m_display_active_last_frame == true)
 			{
 				// Work out how far the mouse moved.
-				Point mouse_position = display->Get_Mouse();
+				Point mouse_position = mouse->Get_Position();
 				float mouse_delta_x = mouse_position.X - (display_width / 2);
 				float mouse_delta_y = mouse_position.Y - (display_height / 2);
 
@@ -59,8 +73,8 @@ void FirstPersonCamera::Tick(const FrameTime& time)
 				float deg90 = DegToRad(90);
 				m_rotation.Z = Clamp(m_rotation.Z, -deg90, deg90);
 			}
-
-			display->Set_Mouse(Point(display_width / 2, display_height / 2));
+			
+			mouse->Set_Position(Point(display_width / 2, display_height / 2));
 			m_display_active_last_frame = true;
 		}
 		else
@@ -73,19 +87,19 @@ void FirstPersonCamera::Tick(const FrameTime& time)
 	{
 		Vector3 velocity(0.0f, 0.0f, 0.0f);
 
-		if (display->Is_Key_Down(Key::Left))
+		if (keyboard->Is_Key_Down(KeyboardKey::A))
 		{
 			m_position = m_position - (right * m_speed_x * delta);
 		}
-		if (display->Is_Key_Down(Key::Right))
+		if (keyboard->Is_Key_Down(KeyboardKey::D))
 		{
 			m_position = m_position + (right * m_speed_x * delta);
 		}
-		if (display->Is_Key_Down(Key::Up))
+		if (keyboard->Is_Key_Down(KeyboardKey::W))
 		{
 			m_position = m_position + (direction * m_speed_z * delta);
 		}
-		if (display->Is_Key_Down(Key::Down))
+		if (keyboard->Is_Key_Down(KeyboardKey::S))
 		{
 			m_position = m_position - (direction * m_speed_z * delta);
 		}

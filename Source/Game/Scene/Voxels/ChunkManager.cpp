@@ -13,6 +13,12 @@
 #include "Engine\Renderer\Textures\TextureAtlas.h"
 #include "Engine\Renderer\RenderPipeline.h"
 
+#include "Engine\Platform\Platform.h"
+
+#include "Game\Runner\Game.h"
+
+#include "Engine\Input\Input.h"
+
 #include "Engine\Tasks\TaskManager.h"
 
 #include "Engine\Renderer\Shaders\Shader.h"
@@ -105,7 +111,7 @@ void ChunkManager::Tick(const FrameTime& time)
 {
 	// Do we have a camera?
 	Renderer* renderer	= Renderer::Get();
-	Camera* camera		= GameEngine::Get()->Get_RenderPipeline()->Get_Active_Camera();
+	Camera* camera		= Game::Get()->Get_Camera(CameraID::Game);
 	if (camera == NULL)
 	{
 		return;
@@ -401,6 +407,60 @@ void ChunkManager::Draw(const FrameTime& time, RenderPipeline* pipeline)
 		}
 	}
 	
+	/*
+	// ================================================================================
+	// Raycasting test 
+	Game*			game			= Game::Get();
+	ChunkManager*	chunk_manager	= game->Get_Chunk_Manager();
+	Input*			input			= Input::Get();
+	MouseState*		mouse_state		= input->Get_Mouse_State();
+	Point			mouse_position	= mouse_state->Get_Position();
+	Vector3			voxel_size		= m_config.voxel_size;
+
+	Camera* camera		= game->Get_Camera(CameraID::Editor_Main);
+	Vector3 near		= camera->Unproject(Vector3(mouse_position.X, mouse_position.Y, 0.0f));
+	Vector3	far			= camera->Unproject(Vector3(mouse_position.X, mouse_position.Y, 1.0f));
+	//Vector3 start		= camera->Unproject(Vector3(mouse_position.X, mouse_position.Y, 0.0f));
+	Vector3 direction	= (far - near).Normalize();
+	//Vector3 direction	= (far - start).Normalize();
+	Vector3 end			= near + (direction * 10.f);
+	
+//	near  = Vector3(1.234f, 0.123f, 2.234f);
+//	end   = Vector3(9.8f, 6.2f, 9.3f);
+	
+	std::vector<ChunkRaycastResult> results;
+	
+	if (Raycast(near, end, results, 1) > 0)
+	{
+		Renderer*				renderer	= Renderer::Get();
+		RenderPipeline_Shader*	shader		= pipeline->Get_Shader_From_Name("solid_quad");
+	
+		pipeline->Apply_Shader(time, shader); 
+		pipeline->Update_Shader_Uniforms();
+		shader->Shader_Program->Bind_Vector("g_color", Color::Red.To_Vector4());	
+	
+		renderer->Set_World_Matrix(Matrix4::Identity());
+		pipeline->Update_Shader_Uniforms();
+		renderer->Draw_Line(near.X, near.Y, near.Z, end.X, end.Y, end.Z, 8.0f);
+		
+		for (auto iter = results.begin(); iter != results.end(); iter++)
+		{
+			ChunkRaycastResult& result = *iter;
+			renderer->Set_World_Matrix(Matrix4::Translate(Vector3(result.AbsoluteVoxel.X, result.AbsoluteVoxel.Y, result.AbsoluteVoxel.Z) * voxel_size));
+			//renderer->Set_World_Matrix(Matrix4::Translate(Vector3(result.Test.X, result.Test.Y, result.Test.Z)));
+			pipeline->Apply_Shader(time, shader); 
+			pipeline->Update_Shader_Uniforms();
+			shader->Shader_Program->Bind_Vector("g_color", Color::Green.To_Vector4());	
+		
+		renderer->Draw_Cube(m_config.voxel_size.X, m_config.voxel_size.Y, m_config.voxel_size.Z);
+		}
+
+		renderer->Set_World_Matrix(Matrix4::Identity());
+		pipeline->Update_Shader_Uniforms();
+	}
+	// ================================================================================
+	*/
+
 	// Emit stats.
 // DEBUG =======================================================================================
 	static float s_emit_fps_time = 0.0f;
@@ -483,8 +543,6 @@ void ChunkManager::Regenerate_Dirty_Chunks()
 		m_dirty_chunks.Sort(Visible_List_Sort_Comparer, false, &m_last_camera_chunk_position);
 		m_dirty_chunks_sorted = true;
 	}
-
-//	printf("Chunks:%i Tasks:%i Load:%i Tasks:%i\n", m_dirty_chunks.Size(), m_regenerate_mesh_tasks.Size(), m_chunk_load_list.Size(), m_load_tasks.Size());
 
 	// Get regenerating chunks.
 	while (m_regenerate_mesh_tasks.Size() < m_config.chunk_max_regenerate_tasks &&
@@ -645,6 +703,79 @@ IntVector3 ChunkManager::Get_Chunk_Position(Vector3 position)
 				 	  floor( position.Z / chunk_depth));
 }
 
+IntVector3 ChunkManager::Get_Absolute_Voxel_Position(Vector3 position)
+{
+	int x = floor(position.X / m_config.voxel_size.X);
+	int y = floor(position.Y / m_config.voxel_size.Y);
+	int z = floor(position.Z / m_config.voxel_size.Z);
+
+	return IntVector3(x, y, z); 
+}
+
+void ChunkManager::Get_Chunk_By_Absolute_Voxel_Position(IntVector3 position, Chunk** chunk, IntVector3* relative_position)
+{
+	int x = floor(position.X / (float)m_config.chunk_size.X);
+	int y = floor(position.Y / (float)m_config.chunk_size.Y);
+	int z = floor(position.Z / (float)m_config.chunk_size.Z);
+	
+	int s_x = x * m_config.chunk_size.X;
+	int s_y = y * m_config.chunk_size.Y;
+	int s_z = z * m_config.chunk_size.Z;
+
+	*chunk = Get_Chunk(IntVector3(x, y, z));
+
+	*relative_position = IntVector3
+	(
+		position.X - s_x,
+		position.Y - s_y,
+		position.Z - s_z
+	);
+}
+
+IntVector3 ChunkManager::Get_Relative_Voxel_Position(Vector3 position)
+{
+	float chunk_width  = m_config.chunk_size.X * m_config.voxel_size.X;
+	float chunk_height = m_config.chunk_size.Y * m_config.voxel_size.Y;
+	float chunk_depth  = m_config.chunk_size.Z * m_config.voxel_size.Z;
+	
+	IntVector3 chunk_offset = Get_Chunk_Position(position);
+	Vector3 voxel_offset = Vector3
+	(
+		position.X - (chunk_offset.X * chunk_width),
+		position.Y - (chunk_offset.Y * chunk_height),
+		position.Z - (chunk_offset.Z * chunk_depth)
+	);
+
+	return IntVector3
+	(
+		floor(voxel_offset.X / m_config.voxel_size.X),
+		floor(voxel_offset.Y / m_config.voxel_size.Y),
+		floor(voxel_offset.Z / m_config.voxel_size.Z)
+	);
+
+	/*
+	IntVector3 rel = Get_Absolute_Voxel_Position(position);
+	IntVector3 a = rel;
+
+	if (a.X >= 0)
+		a.X = (a.X % m_config.chunk_size.X);
+	else
+		a.X = m_config.chunk_size.X - ((abs(a.X) % m_config.chunk_size.X) + 1);
+
+	if (a.Y >= 0)
+		a.Y = (a.Y % m_config.chunk_size.Y);
+	else
+		a.Y = m_config.chunk_size.Y - ((abs(a.Y) % m_config.chunk_size.Y) + 1);
+
+	if (a.Z >= 0)
+		a.Z = (a.Z % m_config.chunk_size.Z);
+	else
+		a.Z = m_config.chunk_size.Z - ((abs(a.Z) % m_config.chunk_size.Z) + 1);
+
+	return a;
+	*/
+}
+
 IntVector3 ChunkManager::Get_Last_Camera_Chunk_Position()	
 {
 	return m_last_camera_chunk_position;
@@ -652,13 +783,15 @@ IntVector3 ChunkManager::Get_Last_Camera_Chunk_Position()
 
 AABB ChunkManager::Calculate_Chunk_AABB(IntVector3 position)
 {
-	return AABB(position.X * (m_config.chunk_size.X * m_config.voxel_size.X),
-				position.Y * (m_config.chunk_size.Y * m_config.voxel_size.Y),
-				position.Z * (m_config.chunk_size.Z * m_config.voxel_size.Z),
-				(m_config.chunk_size.X * m_config.voxel_size.X),
-				(m_config.chunk_size.Y * m_config.voxel_size.Y),
-				(m_config.chunk_size.Z * m_config.voxel_size.Z)
-				);
+	return AABB
+	(
+		position.X * (m_config.chunk_size.X * m_config.voxel_size.X),
+		position.Y * (m_config.chunk_size.Y * m_config.voxel_size.Y),
+		position.Z * (m_config.chunk_size.Z * m_config.voxel_size.Z),
+		(m_config.chunk_size.X * m_config.voxel_size.X),
+		(m_config.chunk_size.Y * m_config.voxel_size.Y),
+		(m_config.chunk_size.Z * m_config.voxel_size.Z)
+	);
 }
 
 WorldFile* ChunkManager::Get_World_File()
@@ -682,4 +815,689 @@ RegionFile* ChunkManager::Get_Region_File(IntVector3 position)
 	}
 
 	return region;
+}
+
+void ChunkManager::Change_Voxel(IntVector3 absolute_position, IntVector3 face_normal, VoxelType::Type type, Color color, bool overwrite)
+{
+	Chunk*	   chunk				= NULL;
+	IntVector3 relative_position	= IntVector3(0, 0, 0);
+	Get_Chunk_By_Absolute_Voxel_Position(absolute_position, &chunk, &relative_position);
+
+	if (chunk != NULL)
+	{
+		IntVector3 voxel_position = relative_position;
+		Voxel	   voxel		  = *chunk->Get_Voxel(relative_position.X, relative_position.Y, relative_position.Z);
+
+		// If we are not allowed to overwrite, then choose then place the voxel on the face-normal instead.
+		if (overwrite == false && voxel.Type != VoxelType::Empty && type != VoxelType::Empty)
+		{
+			voxel_position = absolute_position + face_normal;
+
+			Get_Chunk_By_Absolute_Voxel_Position(voxel_position, &chunk, &voxel_position);
+			if (chunk == NULL)
+			{
+				return;
+			}
+
+			voxel = *chunk->Get_Voxel(relative_position.X, relative_position.Y, relative_position.Z);
+		}
+		
+		// Work out resulting voxel state.
+		voxel.ColorIndex	= chunk->Color_To_Palette_Index(color);
+		voxel.Type			= type;
+
+		chunk->Set_Voxel(voxel_position.X, voxel_position.Y, voxel_position.Z, voxel);
+
+		// Make sure chunk is in render-list.		
+		if (!m_visible_chunks.Contains(chunk))
+		{
+			m_visible_chunks.Add(chunk);		
+		}
+	}
+}
+
+int ChunkManager::Raycast(Vector3 start, Vector3 end, std::vector<ChunkRaycastResult>& results, int max_hits, ChunkRaycastBoundries* boundries)
+{
+	// Get voxel information.
+	float voxel_size = m_config.voxel_size.X; // Should deal with different dimensional voxels.
+	float voxel_size_inverse = 1.0f / voxel_size;
+
+	// Work out direction.
+	Vector3 direction = (end - start).Normalize();
+
+	// Work out length of ray.
+	float length = (end - start).Length();
+	
+	// Calculate the step.
+	Vector3 step = (direction * voxel_size) * 0.2f;	// 5 sample points per voxels "length", accurate enough >_>, we need to do a proper line-tracing algorithm for this.
+	float step_length = step.Length();
+
+	// Resize vector to a rough estimate of how many hits at max we could have at max.	
+	if (max_hits > 0)
+		results.reserve(Min(ceilf(length / voxel_size), max_hits));
+	else
+		results.reserve(ceilf(length / voxel_size));
+
+	// Voxel positioning.
+	IntVector3	chunk_size					= m_config.chunk_size;
+	float		chunk_width					= m_config.chunk_size.X * m_config.voxel_size.X;
+	float		chunk_height				= m_config.chunk_size.Y * m_config.voxel_size.Y;
+	float		chunk_depth					= m_config.chunk_size.Z * m_config.voxel_size.Z;
+	float		inverse_chunk_width			= 1.0f / chunk_width;
+	float		inverse_chunk_height		= 1.0f / chunk_height;
+	float		inverse_chunk_depth			= 1.0f / chunk_depth;
+	float		inverse_voxels_width		= 1.0f / m_config.voxel_size.X;
+	float		inverse_voxels_height		= 1.0f / m_config.voxel_size.Y;
+	float		inverse_voxels_depth		= 1.0f / m_config.voxel_size.Z;
+
+	// Tracking variables.
+	Vector3		offset				= start - step;
+	int			hits				= 0;
+	Chunk*		chunk				= NULL;
+	IntVector3	last_chunk_position;
+	IntVector3	last_voxel_position;
+	bool		has_last_voxel_position = false;
+
+	// Boundry tracking.
+	//bool				found_boundry_result = false;
+//	ChunkRaycastResult	boundry_result;
+
+	// Increment over the length of the ray.
+	while (length > 0)
+	{
+		// Get the current chunk (inlined here with inverse sizes for a bit of extra speeedz).
+		IntVector3 chunk_position = IntVector3
+		(
+			floor(offset.X * inverse_chunk_width),
+			floor(offset.Y * inverse_chunk_height),
+			floor(offset.Z * inverse_chunk_depth)
+		);
+		if (chunk == NULL || last_chunk_position != chunk_position)
+		{
+			chunk = Get_Chunk(chunk_position);
+		}
+
+		// Calculate what relative voxel we are.
+		Vector3 voxel_offset = Vector3
+		(
+			offset.X - (chunk_position.X * chunk_width),
+			offset.Y - (chunk_position.Y * chunk_height),
+			offset.Z - (chunk_position.Z * chunk_depth)
+		);
+
+		IntVector3 rel_voxel_position = IntVector3
+		(
+			floor(voxel_offset.X * inverse_voxels_width),
+			floor(voxel_offset.Y * inverse_voxels_height),
+			floor(voxel_offset.Z * inverse_voxels_depth)
+		);
+		
+		IntVector3 abs_voxel_position = IntVector3
+		(
+			floor(offset.X * inverse_voxels_width),
+			floor(offset.Y * inverse_voxels_height),
+			floor(offset.Z * inverse_voxels_depth)
+		);
+		// Is this a hit?
+		if (chunk != NULL && has_last_voxel_position == true)
+		{
+			ChunkRaycastResult result;
+			result.Chunk			= chunk;
+			result.Normal			= last_voxel_position - abs_voxel_position;
+			result.AbsoluteVoxel	= (chunk_position * m_config.chunk_size) + rel_voxel_position;
+			result.RelativeVoxel	= rel_voxel_position;
+
+			Voxel* voxel = chunk->Get_Voxel(result.RelativeVoxel.X, result.RelativeVoxel.Y, result.RelativeVoxel.Z);
+			if (voxel != NULL)
+			{
+				bool store = false;
+
+				if (voxel->Type != VoxelType::Empty)
+				{
+					store = true;
+				}
+				else
+				{
+					if (boundries != NULL)
+					{
+						if ((boundries->Use_XBoundry == true && result.AbsoluteVoxel.X == boundries->XBoundry) ||
+							(boundries->Use_YBoundry == true && result.AbsoluteVoxel.Y == boundries->YBoundry) ||
+							(boundries->Use_ZBoundry == true && result.AbsoluteVoxel.Z == boundries->ZBoundry))
+						{
+							store = true;
+						}
+					}
+				}
+
+				if (store == true)
+				{
+					// Store result.
+					results.push_back(result);
+
+					// Maximum hits?
+					hits++;
+					if (max_hits > 0 && hits >= max_hits)
+					{
+						break;
+					}
+				}
+			}
+		}
+
+		// Step through ray.
+		while (true)
+		{
+			Vector3 old = offset;
+			offset = offset + step;
+			length -= step_length;
+
+			// Have we got to a new voxel yet.
+			if (floor(offset.X * voxel_size_inverse) != floor(old.X * voxel_size_inverse) ||
+				floor(offset.Y * voxel_size_inverse) != floor(old.Y * voxel_size_inverse) ||
+				floor(offset.Z * voxel_size_inverse) != floor(old.Z * voxel_size_inverse))
+			{
+				break;
+			}
+		}
+
+		last_voxel_position = abs_voxel_position;
+		has_last_voxel_position = true;
+	}
+
+	// No hits? Did we find a hit on the boundry?
+	//if (hits == 0 && found_boundry_result == true)
+	//{
+	//	results.push_back(boundry_result);
+	//	hits++;
+	//}
+
+	// Return the number of voxels we found!
+	return hits;
+}
+
+
+/*
+int ChunkManager::Raycast(Vector3 start, Vector3 end, std::vector<ChunkRaycastResult>& results, int max_hits)
+{
+	// Reset the results array.
+	results.clear();
+
+	// Get voxel information.
+	Vector3 voxel_size = m_config.voxel_size; // Should deal with different dimensional voxels.
+
+	// Convert to 'cube' coordinates.
+	float start_x	= (start.X / voxel_size.X);
+	float start_y	= (start.Y / voxel_size.Y);
+	float start_z	= (start.Z / voxel_size.Z);
+	float end_x		= (end.X / voxel_size.X);
+	float end_y		= (end.Y / voxel_size.Y);
+	float end_z		= (end.Z / voxel_size.Z);
+	float radius	= (end - start).Length();
+
+	// Work out cube containing origin.
+	float x = floor(start_x); 
+	float y = floor(start_y); 
+	float z = floor(start_z); 
+
+	// Work out direction.
+	Vector3 direction = (end - start).Normalize();
+	float dx = direction.X;
+	float dy = direction.Y;
+	float dz = direction.Z;
+
+	// 0 length direction D:
+	if (dx == 0 && dy == 0 && dz == 0)
+	{
+		return 0;
+	}
+
+	// Step increment.
+	float stepX = (dx);
+	float stepY = (dy);
+	float stepZ = (dz);
+
+	// Max values.
+	float tMaxX = RaycastIntBound(start_x, dx);
+	float tMaxY = RaycastIntBound(start_y, dy);
+	float tMaxZ = RaycastIntBound(start_z, dz);
+
+	// Delta change.
+	float tDeltaX = dx == 0 ? 0 : stepX / dx;
+	float tDeltaY = dy == 0 ? 0 : stepY / dy;
+	float tDeltaZ = dz == 0 ? 0 : stepZ / dz;
+
+	// Face delta.
+	Vector3 face(0, 0, 0);
+
+	// Rescale units to 1 cube-edge units.
+	radius /= sqrtf(dx * dx + dy * dy + dz * dz) * voxel_size.X;
+	radius = floor(radius);
+
+	// Get casting.
+	while (true)
+	{
+		// Store cube!
+		IntVector3	chunk_size				= m_config.chunk_size;
+		Vector3		voxel_position			= (Vector3(x, y, z) * voxel_size);
+		IntVector3	chunk_position			= Get_Chunk_Position(voxel_position);
+		//IntVector3  abs_voxel_position	= Get_Absolute_Voxel_Position(voxel_position);
+		IntVector3  rel_voxel_position		= Get_Relative_Voxel_Position(voxel_position);
+
+		// Is this a hit?
+		Chunk* chunk = Get_Chunk(chunk_position);
+		if (chunk != NULL)
+		{
+			ChunkRaycastResult result;
+			result.Chunk			= chunk;
+			result.Normal			= face;
+			result.AbsoluteVoxel	= (chunk_position * m_config.chunk_size) + rel_voxel_position;//abs_voxel_position;
+			result.RelativeVoxel	= rel_voxel_position;
+
+			Voxel* voxel = chunk->Get_Voxel(result.RelativeVoxel.X, result.RelativeVoxel.Y, result.RelativeVoxel.Z);
+			if (voxel != NULL && voxel->Type != VoxelType::Empty)
+			{
+				results.push_back(result);
+			}
+		}
+
+		// Maximum hits?
+		if (max_hits > 0)
+		{
+			if (results.size() >= max_hits)
+			{
+				break;
+			}
+		}
+
+		// Step onwards.
+		if (tMaxX < tMaxY)
+		{
+			if (tMaxX < tMaxZ)
+			{
+				if (tMaxX > radius)
+					break;
+
+				x += stepX;
+				tMaxX += tDeltaX;
+				face = Vector3(-stepX, 0, 0);
+			}
+			else
+			{
+				if (tMaxZ > radius)
+					break;
+
+				z += stepZ;
+				tMaxZ += tDeltaZ;
+				face = Vector3(0, 0, -stepZ);
+			}
+		}
+		else
+		{
+			if (tMaxY < tMaxZ)
+			{
+				if (tMaxY > radius)
+					break;
+
+				y += stepY;
+				tMaxY += tDeltaY;
+				face = Vector3(0, -stepY, 0);
+			}
+			else
+			{
+				if (tMaxZ > radius)
+					break;
+
+				z += stepZ;
+				tMaxZ += tDeltaZ;
+				face = Vector3(0, 0, -stepZ);
+			}
+		}
+	}
+
+	// Return the number of chunks we found!
+	return results.size();
+}
+*/
+
+
+
+/*
+int ChunkManager::Raycast(Vector3 start, Vector3 end, std::vector<ChunkRaycastResult>& results, int max_hits)
+{
+	// Reset the results array.
+	results.clear();
+
+	// Get voxel information.
+	Vector3 voxel_size = m_config.voxel_size; // Should deal with different dimensional voxels.
+
+	// Offset by half a cube.
+	//start.X -= (voxel_size.X * 0.5f);
+	//start.Y -= (voxel_size.Y * 0.5f);
+	//start.Z -= (voxel_size.Z * 0.5f);
+	//end.X -= (voxel_size.X * 0.5f);
+	//end.Y -= (voxel_size.Y * 0.5f);
+	//end.Z -= (voxel_size.Z * 0.5f);
+
+	// Convert to 'cube' coordinates.
+	float start_x	= RoundToNonZero(start.X / voxel_size.X);
+	float start_y	= RoundToNonZero(start.Y / voxel_size.Y);
+	float start_z	= RoundToNonZero(start.Z / voxel_size.Z);
+	float end_x		= RoundToNonZero(end.X / voxel_size.X);
+	float end_y		= RoundToNonZero(end.Y / voxel_size.Y);
+	float end_z		= RoundToNonZero(end.Z / voxel_size.Z);
+	float radius	= (end - start).Length();
+
+	// Work out cube containing origin.
+	float x = RoundToNonZero(start_x); 
+	float y = RoundToNonZero(start_y); 
+	float z = RoundToNonZero(start_z); 
+
+	// Work out direction.
+	Vector3 direction = (end - start).Normalize();
+	float dx = direction.X;
+	float dy = direction.Y;
+	float dz = direction.Z;
+
+	// 0 length direction D:
+	if (dx == 0 && dy == 0 && dz == 0)
+	{
+		return 0;
+	}
+
+	// Step increment.
+	float stepX = (dx);
+	float stepY = (dy);
+	float stepZ = (dz);
+
+	// Max values.
+	int tMaxX = RaycastIntBound(start_x, dx);
+	int tMaxY = RaycastIntBound(start_y, dy);
+	int tMaxZ = RaycastIntBound(start_z, dz);
+
+	// Delta change.
+	float tDeltaX = dx == 0 ? 0 : stepX / dx;
+	float tDeltaY = dy == 0 ? 0 : stepY / dy;
+	float tDeltaZ = dz == 0 ? 0 : stepZ / dz;
+
+	// Face delta.
+	Vector3 face(0, 0, 0);
+
+	// Rescale units to 1 cube-edge units.
+	radius /= sqrtf(dx * dx + dy * dy + dz * dz) * voxel_size.X;
+	radius = floor(radius);
+
+	//IntVector3 last_abs_position;
+	//IntVector3 last_rel_position;
+	//IntVector3 last_chunk_position;
+
+	// Get casting.
+	while (true)
+	{
+		// Store cube!
+		IntVector3	chunk_size				= m_config.chunk_size;
+		Vector3		voxel_position			= (Vector3(x, y, z) * voxel_size);
+		IntVector3	chunk_position			= Get_Chunk_Position(voxel_position);
+		//IntVector3  abs_voxel_position	= Get_Absolute_Voxel_Position(voxel_position);
+		IntVector3  rel_voxel_position		= Get_Relative_Voxel_Position(voxel_position);
+
+		// Is this a hit?
+		Chunk* chunk = Get_Chunk(chunk_position);
+		if (chunk != NULL)
+		{
+			ChunkRaycastResult result;
+			result.Chunk			= chunk;
+			result.Normal			= face;
+			result.AbsoluteVoxel	= (chunk_position * m_config.chunk_size) + rel_voxel_position;//abs_voxel_position;
+			result.RelativeVoxel	= rel_voxel_position;
+
+			Voxel* voxel = chunk->Get_Voxel(result.RelativeVoxel.X, result.RelativeVoxel.Y, result.RelativeVoxel.Z);
+			if (voxel != NULL)// && voxel->Type != VoxelType::Empty)
+			{
+				results.push_back(result);
+			}
+		}
+
+		// Maximum hits?
+		if (max_hits > 0)
+		{
+			if (results.size() >= max_hits)
+			{
+				break;
+			}
+		}
+
+		// Step onwards.
+		if (tMaxX < tMaxY)
+		{
+			if (tMaxX < tMaxZ)
+			{
+				if (tMaxX >= radius)
+					break;
+
+				x += stepX;
+				tMaxX += tDeltaX;
+				face = Vector3(-stepX, 0, 0);
+			}
+			else
+			{
+				if (tMaxZ >= radius)
+					break;
+
+				z += stepZ;
+				tMaxZ += tDeltaZ;
+				face = Vector3(0, 0, -stepZ);
+			}
+		}
+		else
+		{
+			if (tMaxY <= tMaxZ)
+			{
+				if (tMaxY > radius)
+					break;
+
+				y += stepY;
+				tMaxY += tDeltaY;
+				face = Vector3(0, -stepY, 0);
+			}
+			else
+			{
+				if (tMaxZ >= radius)
+					break;
+
+				z += stepZ;
+				tMaxZ += tDeltaZ;
+				face = Vector3(0, 0, -stepZ);
+			}
+		}
+	}
+
+	// Return the number of chunks we found!
+	return results.size();
+}
+*/
+
+/*
+int ChunkManager::Raycast(Vector3 start, Vector3 end, std::vector<ChunkRaycastResult>& results, int max_hits)
+{
+	// Reset the results array.
+	results.clear();
+
+	// Get voxel information.
+	Vector3 voxel_size = m_config.voxel_size; // Should deal with different dimensional voxels.
+
+	// Offset by half a cube.
+	//start.X += (voxel_size.X * 0.5f);
+//	start.Y += (voxel_size.Y * 0.5f);
+	//start.Z += (voxel_size.Z * 0.5f);
+//	end.X += (voxel_size.X * 0.5f);
+//	end.Y += (voxel_size.Y * 0.5f);
+//	end.Z += (voxel_size.Z * 0.5f);
+
+	// Convert to 'cube' coordinates.
+	float start_x	= (start.X / voxel_size.X);
+	float start_y	= (start.Y / voxel_size.Y);
+	float start_z	= (start.Z / voxel_size.Z);
+	float end_x		= (end.X / voxel_size.X);
+	float end_y		= (end.Y / voxel_size.Y);
+	float end_z		= (end.Z / voxel_size.Z);
+	float radius	= (end - start).Length();
+
+	// Work out cube containing origin.
+	float x = floor(start_x); 
+	float y = floor(start_y); 
+	float z = floor(start_z); 
+
+	// Work out direction.
+	Vector3 direction = (end - start).Normalize();
+	float dx = direction.X;
+	float dy = direction.Y;
+	float dz = direction.Z;
+
+	// 0 length direction D:
+	if (dx == 0 && dy == 0 && dz == 0)
+	{
+		return 0;
+	}
+
+	// Step increment.
+	float stepX = (dx);
+	float stepY = (dy);
+	float stepZ = (dz);
+
+	// Max values.
+	int tMaxX = RaycastIntBound(start_x, dx);
+	int tMaxY = RaycastIntBound(start_y, dy);
+	int tMaxZ = RaycastIntBound(start_z, dz);
+
+	// Delta change.
+	float tDeltaX = dx == 0 ? 0 : stepX / dx;
+	float tDeltaY = dy == 0 ? 0 : stepY / dy;
+	float tDeltaZ = dz == 0 ? 0 : stepZ / dz;
+
+	// Face delta.
+	Vector3 face(0, 0, 0);
+
+	// Rescale units to 1 cube-edge units.
+	radius /= sqrtf(dx * dx + dy * dy + dz * dz) * voxel_size.X;
+
+	//IntVector3 last_abs_position;
+	//IntVector3 last_rel_position;
+	//IntVector3 last_chunk_position;
+
+	// Get casting.
+	while (true)
+	{
+		// Store cube!
+		IntVector3	chunk_size			= m_config.chunk_size;
+		Vector3		voxel_position		= (Vector3(x, y, z) * voxel_size) + (voxel_size * 0.5f);
+		IntVector3	chunk_position		= Get_Chunk_Position(voxel_position);
+		//IntVector3  abs_voxel_position	= Get_Absolute_Voxel_Position(voxel_position);
+		IntVector3  rel_voxel_position	= Get_Relative_Voxel_Position(voxel_position);
+
+		// Is this a hit?
+		Chunk* chunk = Get_Chunk(chunk_position);
+		if (chunk != NULL)
+		{
+			ChunkRaycastResult result;
+			result.Chunk			= chunk;
+			result.Normal			= face;
+			result.AbsoluteVoxel	= (chunk_position * m_config.chunk_size) + rel_voxel_position;//abs_voxel_position;
+			result.RelativeVoxel	= rel_voxel_position;
+
+			Voxel* voxel = chunk->Get_Voxel(result.RelativeVoxel.X, result.RelativeVoxel.Y, result.RelativeVoxel.Z);
+			if (voxel != NULL && voxel->Type != VoxelType::Empty)
+			{
+				results.push_back(result);
+			}
+		}
+
+		// Maximum hits?
+		if (max_hits > 0)
+		{
+			if (results.size() >= max_hits)
+			{
+				break;
+			}
+		}
+
+		// Step onwards.
+		if (tMaxX < tMaxY)
+		{
+			if (tMaxX < tMaxZ)
+			{
+				if (tMaxX > radius)
+					break;
+
+				x += stepX;
+				tMaxX += tDeltaX;
+				face = Vector3(-stepX, 0, 0);
+			}
+			else
+			{
+				if (tMaxZ > radius)
+					break;
+
+				z += stepZ;
+				tMaxZ += tDeltaZ;
+				face = Vector3(0, 0, -stepZ);
+			}
+		}
+		else
+		{
+			if (tMaxY < tMaxZ)
+			{
+				if (tMaxY > radius)
+					break;
+
+				y += stepY;
+				tMaxY += tDeltaY;
+				face = Vector3(0, -stepY, 0);
+			}
+			else
+			{
+				if (tMaxZ > radius)
+					break;
+
+				z += stepZ;
+				tMaxZ += tDeltaZ;
+				face = Vector3(0, 0, -stepZ);
+			}
+		}
+	}
+
+	// Return the number of chunks we found!
+	return results.size();
+}
+*/
+
+int ChunkManager::RaycastIntBound(float s, float ds)
+{
+	if (ds == 0)
+	{
+		return 9999999.0f;
+	}
+	else
+	{
+		return (ds > 0 ? ceilf(s) - s : s - floorf(s)) / abs(ds);
+	}
+
+/*	if (ds == 0)
+	{
+		return 9999999.0f;
+	}
+	if (ds < 0)
+	{
+		return RaycastIntBound(-s, -ds);
+	}
+	else
+	{
+		s = RaycastMod(s, 1);
+		return (1.0f - s) / ds;
+	}
+*/
+}
+
+int ChunkManager::RaycastMod(int value, int modulus)
+{
+	return (value % modulus + modulus) % modulus;
 }

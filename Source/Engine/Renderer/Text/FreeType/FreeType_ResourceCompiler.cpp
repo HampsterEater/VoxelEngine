@@ -178,7 +178,6 @@ bool FreeType_ResourceCompiler::Compile()
 		config.Set("texture",		ft_glyph->TextureIndex,				node, true);
 		config.Set("ftindex",		(int)ft_glyph->FreeType_GlyphIndex, node, true);
 		config.Set("advance",		ft_glyph->Glyph.Advance,			node, true);
-		config.Set("baseline",		ft_glyph->Glyph.Baseline,			node, true);
 		config.Set("glyph",			(int)ft_glyph->Glyph.Glyph,			node, true);
 		config.Set("offset",		ft_glyph->Glyph.Offset,				node, true);
 		config.Set("size",			ft_glyph->Glyph.Size,				node, true);
@@ -249,7 +248,7 @@ FreeType_Font* FreeType_ResourceCompiler::Load_Compiled()
 	// Create the font.
 	SAFE_DELETE(stream);
 	FreeType_Font* font = new FreeType_Font(library, face, buffer);
-	if (font->Load_Compiled_Config(&config))
+	if (!font->Load_Compiled_Config(&config))
 	{
 		SAFE_DELETE(font);
 		SAFE_DELETE(stream);

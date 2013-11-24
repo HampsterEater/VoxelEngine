@@ -1,0 +1,12 @@
+<xml>
+	<generation>
+		<ttf>Data/Fonts/Source/din1451altG.ttf</ttf>
+		<sdf-spread>32</sdf-spread>
+		<sdf-downscale>16</sdf-downscale>
+		<sdf-threshold>32</sdf-threshold>
+		<texture-size>2048</texture-size>        
+		<max-textures>8</max-textures>
+		<glyph-size>96</glyph-size>
+		<glyph-spacing>20</glyph-spacing>
+	</generation> 
+</xml>      

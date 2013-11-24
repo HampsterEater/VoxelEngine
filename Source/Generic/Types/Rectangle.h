@@ -6,6 +6,8 @@
 
 #include <string>
 
+#include "Generic\Types\Point.h"
+
 class Rect
 {
 public:
@@ -17,6 +19,8 @@ public:
 	// To/From string.
 	std::string To_String();
 	static bool Parse(std::string value, Rect& result);
+
+	bool Intersects(Point p);
 
 };
 

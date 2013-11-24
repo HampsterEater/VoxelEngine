@@ -47,6 +47,11 @@ Vector3 Vector3::operator* (const float a) const
 	return Vector3(X * a, Y * a, Z * a);
 }
 
+Vector3 Vector3::operator* (const Vector3 a) const
+{
+	return Vector3(X * a.X, Y * a.Y, Z * a.Z);
+}
+
 Vector3 Vector3::operator+ (const Vector3 a) const
 {
 	return Vector3(X + a.X, Y + a.Y, Z + a.Z);

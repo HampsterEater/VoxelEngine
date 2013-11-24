@@ -2,7 +2,7 @@
 //	Copyright (C) 2013 Tim Leonard
 // ===================================================================
 #include "Engine\Renderer\Textures\Texture.h"
-#include "Engine\Renderer\Textures\PNG\PNGTextureFactory.h"
+#include "Engine\Renderer\Textures\PNG\PNGPixmapFactory.h"
 
 #include "Engine\Renderer\Renderer.h"
 
@@ -10,19 +10,19 @@
 
 #include <string>
 
-void PNGTextureFactory::libpng_read_function(png_structp png_ptr, png_bytep data, png_size_t length)
+void PNGPixmapFactory::libpng_read_function(png_structp png_ptr, png_bytep data, png_size_t length)
 {
 	png_voidp ptr = png_get_io_ptr(png_ptr);
 	((Stream*)ptr)->Read((char*)data, 0, length);
 }
 
-void PNGTextureFactory::libpng_write_function(png_structp png_ptr, png_bytep data, png_size_t length)
+void PNGPixmapFactory::libpng_write_function(png_structp png_ptr, png_bytep data, png_size_t length)
 {
 	png_voidp ptr = png_get_io_ptr(png_ptr);
 	((Stream*)ptr)->Write((char*)data, 0, length);
 }
 
-bool PNGTextureFactory::Try_Save(const char* url, Texture* texture, TextureFlags::Type flags)
+bool PNGPixmapFactory::Try_Save(const char* url, Pixmap* texture)
 {
 	// Can we open this path as a file?
 	Stream* stream = StreamFactory::Open(url, (StreamMode::Type)(StreamMode::Write|StreamMode::Truncate));
@@ -32,29 +32,29 @@ bool PNGTextureFactory::Try_Save(const char* url, Texture* texture, TextureFlags
 	}
 
 	// Calculate format specifications for saving.
-	int color_type		= 0;
-	int width			= texture->Get_Width();
-	int pitch			= texture->Get_Pitch();
-	int height			= texture->Get_Height();
-	int bpp				= 0;
-	const char* buffer	= texture->Get_Data();
+	int color_type				= 0;
+	int width					= texture->Get_Width();
+	int pitch					= texture->Get_Pitch();
+	int height					= texture->Get_Height();
+	int bpp						= 0;
+	const unsigned char* buffer	= texture->Get_Data();
 
 	switch (texture->Get_Format())
 	{
 	// Greyscale
-	case TextureFormat::Luminosity:
+	case PixmapFormat::R8:
         color_type = PNG_COLOR_TYPE_GRAY;
 		bpp = 1;
 		break;
 
 	// RGB
-	case TextureFormat::R8G8B8:
+	case PixmapFormat::R8G8B8:
         color_type = PNG_COLOR_TYPE_RGB;
 		bpp = 3;
 		break;
 
 	// RGBA
-	case TextureFormat::R8G8B8A8:
+	case PixmapFormat::R8G8B8A8:
         color_type = PNG_COLOR_TYPE_RGB_ALPHA;
 		bpp = 4;
 		break;
@@ -106,7 +106,7 @@ bool PNGTextureFactory::Try_Save(const char* url, Texture* texture, TextureFlags
 
     for (int y = 0; y < height; ++y) 
 	{
-    	image_data[height - (y + 1)] = (png_byte*)buffer + (y * (pitch * bpp));
+    	image_data[height - (y + 1)] = (png_byte*)buffer + (y * pitch);
     }
 
 	// Setup custom writing.
@@ -123,7 +123,7 @@ bool PNGTextureFactory::Try_Save(const char* url, Texture* texture, TextureFlags
 	return true;
 }
 
-Texture* PNGTextureFactory::Try_Load(const char* url, TextureFlags::Type flags)
+Pixmap* PNGPixmapFactory::Try_Load(const char* url)
 {
 	// Can we open this path as a file?
 	Stream* stream = StreamFactory::Open(url, StreamMode::Read);
@@ -216,16 +216,16 @@ Texture* PNGTextureFactory::Try_Load(const char* url, TextureFlags::Type flags)
     png_read_update_info(png_ptr, info_ptr);
 
 	// Calculate pitch.	
-	TextureFormat::Type format;
+	PixmapFormat::Type format;
 	int bytes_per_pixel = 0;
 	if (has_alpha == true)
 	{
-		format = TextureFormat::R8G8B8A8;
+		format = PixmapFormat::R8G8B8A8;
 		bytes_per_pixel = 4;
 	}
 	else
 	{
-		format = TextureFormat::R8G8B8;
+		format = PixmapFormat::R8G8B8;
 		bytes_per_pixel = 3;
 	}
 
@@ -249,18 +249,8 @@ Texture* PNGTextureFactory::Try_Load(const char* url, TextureFlags::Type flags)
 	// Read in all the image data.
 	png_read_image(png_ptr, row_pointers);
 	
-	// Create texture.
-	Texture* texture = Renderer::Get()->Create_Texture((char*)image_data, temp_width, temp_height, pitch_bytes / bytes_per_pixel, format, flags);
-	if (texture == NULL)
-	{
-		platform_free(row_pointers);
-		platform_free(image_data);
-
-        png_destroy_read_struct(&png_ptr, &info_ptr, &end_info);
-
-		delete stream;
-		return NULL;
-	}
+	// Create pixmap.
+	Pixmap* pixmap = new Pixmap((unsigned char*)image_data, temp_width, temp_height, temp_width * bytes_per_pixel, format);
 
 	// Cleanup.	
 	platform_free(row_pointers);
@@ -268,5 +258,5 @@ Texture* PNGTextureFactory::Try_Load(const char* url, TextureFlags::Type flags)
 	delete stream;
 
 	// Return texture.
-	return texture;
+	return pixmap;
 }

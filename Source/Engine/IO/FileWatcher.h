@@ -11,8 +11,13 @@ class Thread;
 class Mutex;
 class Thread;
 
+#ifdef DEBUG_BUILD
+#define FILE_WATCHER_INTERVAL	1 * 1000.0f
+#define FILE_WATCHER_YIELD_TIME	1.0f
+#else
 #define FILE_WATCHER_INTERVAL	10 * 1000.0f
 #define FILE_WATCHER_YIELD_TIME	1.0f
+#endif
 
 class FileWatcher
 {

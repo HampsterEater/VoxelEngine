@@ -17,10 +17,15 @@ varying vec3 g_vertex_normal;
 varying float g_vertex_depth;
 varying float g_vertex_depth_nonlinear;
 
+varying vec4 g_vertex_color;
+
 void main()
 {
 	gl_Position 			= g_world_view_projection_matrix  * gl_Vertex; 
 	gl_TexCoord[0] 			= gl_MultiTexCoord0;
+	
+	// Vertex color!
+	g_vertex_color			= gl_Color;
 	
 	// Get normal in screen space.
 	g_vertex_normal   		= mat3(g_world_view_matrix) * gl_Normal;

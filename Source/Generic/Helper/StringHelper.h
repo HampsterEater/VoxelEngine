@@ -31,6 +31,8 @@ public:
 		return ss.str();
 	}
 
+	static std::string Format(const char* format, ...);
+
 };
 
 #endif

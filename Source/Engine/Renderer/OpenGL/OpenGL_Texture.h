@@ -17,7 +17,8 @@ private:
 
 private:
 	// Constructor!
-	OpenGL_Texture(GLuint texture_id, char* data, int width, int height, int pitch, TextureFormat::Type format);
+	OpenGL_Texture(GLuint texture_id, int width, int height, int pitch, TextureFormat::Type format);
+	OpenGL_Texture(GLuint texture_id, Pixmap* pixmap);
 
 public:
 
@@ -27,7 +28,8 @@ public:
 	// Binding information.
 	GLuint Get_ID() const;
 	
-	void Set_Data(char* buffer);
+	void Set_Pixmap(Pixmap* pixmap);
+
 
 };
 

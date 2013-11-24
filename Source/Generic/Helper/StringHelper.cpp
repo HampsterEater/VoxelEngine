@@ -3,6 +3,8 @@
 // ===================================================================
 #include "Generic\Helper\StringHelper.h"
 
+#include <stdarg.h> 
+
 int StringHelper::Split(const char* v, char deliminator, std::vector<std::string>& segments)
 {
 	std::string value = v;
@@ -65,7 +67,6 @@ std::string StringHelper::Trim(const char* value)
 	{
 		if (!iswspace(value[start_offset]))
 		{
-			start_offset--;
 			break;
 		}
 	}
@@ -74,7 +75,7 @@ std::string StringHelper::Trim(const char* value)
 	{
 		if (!iswspace(value[end_offset]))
 		{
-			start_offset++;
+			end_offset++;
 			break;
 		}
 	}
@@ -116,4 +117,26 @@ int StringHelper::Hash(const char* value)
 	hash += (hash << 15);
 
 	return hash;
+}
+
+std::string StringHelper::Format(const char* format, ...)
+{
+	va_list va;
+	va_start(va, format);
+
+	char buffer[512];
+	int num = vsnprintf(buffer, 512, format, va);
+	if (num >= 511)
+	{
+		char* new_buffer = new char[num + 1];
+		vsnprintf(buffer, num + 1, format, va);
+		delete[] new_buffer;
+		
+		va_end(va);
+		return new_buffer;
+	}
+
+	va_end(va);
+
+	return buffer;
 }

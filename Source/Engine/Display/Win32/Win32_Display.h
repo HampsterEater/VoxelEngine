@@ -28,10 +28,6 @@ private:
 	HWND		m_window_handle;
 	HINSTANCE	m_instance_handle;
 
-	bool		m_key_down[KEY_COUNT];
-	bool		m_key_press[KEY_COUNT];
-	bool		m_prev_key_down[KEY_COUNT];
-
 	void Setup_Window();
 	void Destroy_Window();
 
@@ -40,6 +36,9 @@ public:
 	// Constructors.
 	Win32_Display(const char* title, int width, int height, bool fullscreen);
 	~Win32_Display();
+
+	// Win32 specific.
+	HWND Get_Window_Handle();
 	
 	// Base functions.	
 	void Tick(const FrameTime& time);
@@ -61,11 +60,7 @@ public:
 	void Toggle_Fullscreen();
 
 	// Input.
-	Point Get_Mouse();
-	void  Set_Mouse(Point pos);
 	bool  Is_Active();
-	bool  Is_Key_Down(Key::Type key);
-	bool  Is_Key_Pressed(Key::Type key);
 
 };
 

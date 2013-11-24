@@ -9,6 +9,9 @@
 #include "Engine\Display\Display.h"
 #include "Engine\Scene\Scene.h"
 #include "Engine\Localise\Locale.h"
+#include "Engine\Input\Input.h"
+
+#include "Engine\UI\Layouts\UILayoutFactory.h"
 
 #include "Engine\Tasks\TaskManager.h"
 
@@ -26,11 +29,6 @@ GameEngine::GameEngine(GameRunner* runner)
 	, m_frame_time(0)
 	, m_render_pipeline(NULL)
 {
-	DBG_LOG("-------------------------------------------------------------");
-	DBG_LOG(" Voxel Engine, Compiled " __TIMESTAMP__);
-	DBG_LOG(" Copyright (C) 2013-2014 Tim Leonard");
-	DBG_LOG("-------------------------------------------------------------");
-
 	DBG_LOG("Initialising platform singleton.");
 	{
 		m_platform = Platform::Create();
@@ -60,6 +58,12 @@ GameEngine::GameEngine(GameRunner* runner)
 	{
 		bool result = m_renderer->Set_Display(m_display);
 		DBG_ASSERT(result);
+	}
+
+	DBG_LOG("Initialising input.");
+	{
+		m_input = Input::Create();
+		DBG_ASSERT(m_input != NULL);
 	}
 
 	DBG_LOG("Initialising rendering pipeline.");
@@ -125,11 +129,17 @@ GameEngine::~GameEngine()
 	SAFE_DELETE(m_scene);
 	SAFE_DELETE(m_ui_manager);
 
+	// Destroy resources.
+	UILayoutFactory::Dispose();
+	TextureFactory::Dispose();
+	SoundFactory::Dispose();
+
 	// Destroy singletons.
 	TaskManager::Destroy();
 	Locale::Destroy();
 	RenderPipeline::Destroy();
 	AudioRenderer::Destroy();
+	Input::Destroy();
 	Display::Destroy();
 	Renderer::Destroy();
 	Platform::Destroy();
@@ -194,6 +204,7 @@ void GameEngine::Tick(const FrameTime& time)
 	Reloadable::Check_For_Reloads();
 
 	// Tick all the main elements.
+	m_input->Tick(m_frame_time);
 	m_scene->Tick(time);
 	m_display->Tick(time);
 	m_audio_renderer->Tick(time);
@@ -203,7 +214,7 @@ void GameEngine::Tick(const FrameTime& time)
 	m_runner->Tick(time);
 
 	// Exit on escape.
-	if (m_display->Is_Key_Pressed(Key::Escape))
+	if (m_input->Get_Keyboard_State()->Was_Key_Pressed(KeyboardKey::Escape))
 	{	
 		DBG_LOG("Game stopping due to escape key.");
 		Stop();

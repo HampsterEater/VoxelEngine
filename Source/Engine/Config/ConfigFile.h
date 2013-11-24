@@ -47,9 +47,9 @@ public:
 	// ==============================================================
 	// Node functions
 	// ==============================================================
-	ConfigFileNode Get_Node(const char* name, bool create = false, bool force_create_last = false)
+	ConfigFileNode Get_Node(const char* name, bool create = false, bool force_create_last = false, ConfigFileNode base_node = NULL, bool error_out = true)
 	{
-		rapidxml::xml_node<>* element = m_xml_document->first_node("xml");
+		rapidxml::xml_node<>* element = base_node != NULL ? base_node : m_xml_document->first_node("xml");
 		if (element == NULL)
 		{
 			if (create == true)
@@ -59,7 +59,14 @@ public:
 			}
 			else
 			{
-				DBG_ASSERT_STR(false, "Expecting config node '%s'.", "xml");
+				if (error_out == true)
+				{
+					DBG_ASSERT_STR(false, "Expecting config node '%s'.", "xml");
+				}
+				else
+				{
+					return NULL;
+				}
 			}
 		}
 
@@ -81,7 +88,14 @@ public:
 					}
 					else
 					{
-						DBG_ASSERT_STR(false, "Expecting config node '%s'.", node_name.c_str());
+						if (error_out == true)
+						{
+							DBG_ASSERT_STR(false, "Expecting config node '%s'.", node_name.c_str());
+						}
+						else
+						{
+							return NULL;
+						}
 					}
 				}
 
@@ -115,7 +129,14 @@ public:
 					}
 					else
 					{
-						DBG_ASSERT_STR(false, "Expecting config node '%s'.", node_name.c_str());
+						if (error_out == true)
+						{
+							DBG_ASSERT_STR(false, "Expecting config node '%s'.", node_name.c_str());
+						}
+						else
+						{
+							return NULL;
+						}
 					}
 				}
 			}
@@ -126,9 +147,23 @@ public:
 		return element;
 	}
 	
-	ConfigFileNode New_Node(const char* name)
+	ConfigFileNode New_Node(const char* name, ConfigFileNode node = NULL)
 	{
-		return Get_Node(name, true, true);
+		return Get_Node(name, true, true, node);
+	}
+	
+	bool Contains(const char* name, ConfigFileNode node = NULL, bool as_attribute = false)
+	{
+		if (as_attribute != NULL)
+		{
+			rapidxml::xml_attribute<>* attribute = node->first_attribute(name, 0, false);
+			return (attribute != NULL);
+		}
+		else
+		{
+			ConfigFileNode n = Get_Node(name, false, false, NULL, false);
+			return (n != NULL);
+		}
 	}
 
 	// ==============================================================
@@ -166,7 +201,14 @@ public:
 			return n->value();
 		}
 	}
-
+	
+	template<>
+	std::string Get<std::string>(const char* name, ConfigFileNode node, bool as_attribute)
+	{
+		const char* source = Get<const char*>(name, node, as_attribute);
+		return source;
+	}
+	
 	template<>
 	int Get<int>(const char* name, ConfigFileNode node, bool as_attribute)
 	{
@@ -178,7 +220,9 @@ public:
 	unsigned int Get<unsigned int>(const char* name, ConfigFileNode node, bool as_attribute)
 	{
 		const char* source = Get<const char*>(name, node, as_attribute);
-		return (unsigned int)atoi(source);
+		unsigned int s = 0;
+		sscanf(source, "%u", &s);
+		return s;
 	}
 
 	template<>
@@ -240,7 +284,7 @@ public:
 	{
 		std::vector<ConfigFileNode> result;
 
-		const rapidxml::xml_node<>* element = m_xml_document->first_node("xml");
+		const rapidxml::xml_node<>* element = node != NULL ? node : m_xml_document->first_node("xml");
 		DBG_ASSERT(element != NULL);
 
 		const int name_len = strlen(name);

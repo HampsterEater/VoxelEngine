@@ -38,6 +38,16 @@ Vector4 Color::To_Vector4()
 	return Vector4(R / 255.0f, G / 255.0f, B / 255.0f, A / 255.0f);
 }
 
+bool Color::operator==(Color& rhs) const
+{
+	return (R == rhs.R && G == rhs.G && B == rhs.B && A == rhs.A);
+}
+
+bool Color::operator!=(Color& rhs) const
+{
+	return !operator==(rhs);
+}
+
 bool Color::Parse(const char* value, Color& output)
 {
 	int r = 255, g = 255, b = 255, a = 255;

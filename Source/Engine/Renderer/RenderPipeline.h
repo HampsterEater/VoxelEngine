@@ -12,6 +12,7 @@
 #include "Generic\Types\Frustum.h"
 #include "Generic\Types\Color.h"
 
+#include "Engine\Renderer\Renderer.h"
 #include "Engine\Renderer\Textures\TextureHandle.h"
 #include "Engine\Renderer\Textures\Texture.h"
 #include "Engine\Renderer\Shaders\Shader.h"
@@ -30,6 +31,7 @@ class Camera;
 class RenderTarget;
 class ShaderProgram;
 class Light;
+class Drawable;
 class Texture;
 
 struct RenderPipeline_StateSettingType
@@ -209,6 +211,29 @@ struct RenderPipeline_Pass
 	std::vector<RenderPipeline_Pass*>			SubPasses;
 };
 
+struct RenderPipeline_SlotSortType
+{
+	enum Type
+	{
+		None,
+		Front_To_Back
+	};
+};
+
+struct RenderPipeline_Slot
+{
+	RenderPipeline_Slot();
+	~RenderPipeline_Slot();
+
+	std::string									Name;
+	int											NameHash;
+	RenderPipeline_Shader*						Shader;
+	RenderPipeline_SlotSortType::Type			SortType;
+	std::vector<RenderPipeline_Pass*>			Passes;
+
+	static bool Sort_Front_To_Back(Drawable* a, Drawable* b); 
+};
+
 class RenderPipeline : public Singleton<RenderPipeline>, public Reloadable
 {
 private:
@@ -218,6 +243,7 @@ private:
 	std::vector<RenderPipeline_Target*>		m_targets;
 	std::vector<RenderPipeline_Shader*>		m_shaders;
 	std::vector<RenderPipeline_Pass*>		m_passes;
+	std::vector<RenderPipeline_Slot*>		m_slots;
 
 	Renderer*								m_renderer;
 
@@ -227,6 +253,8 @@ private:
 	Light*									m_active_light;
 
 	std::string								m_config_path;
+
+	RenderPipeline_Pass*					m_current_pass;
 
 protected:
 	std::string Get_Attribute_Value(rapidxml::xml_node<>* node, const char* name, const char* def);
@@ -244,6 +272,7 @@ protected:
 	void Load_Targets	(rapidxml::xml_node<>* node);
 	void Load_Shaders	(rapidxml::xml_node<>* node);
 	void Load_Passes	(rapidxml::xml_node<>* node);
+	void Load_Slots		(rapidxml::xml_node<>* node);
 	
 	RenderPipeline_State*	Load_State	(rapidxml::xml_node<>* node);
 	RenderPipeline_Mesh*	Load_Mesh	(rapidxml::xml_node<>* node);
@@ -251,6 +280,7 @@ protected:
 	RenderPipeline_Target*	Load_Target	(rapidxml::xml_node<>* node);
 	RenderPipeline_Shader*	Load_Shader	(rapidxml::xml_node<>* node);
 	RenderPipeline_Pass*	Load_Pass	(rapidxml::xml_node<>* node);
+	RenderPipeline_Slot*	Load_Slot	(rapidxml::xml_node<>* node);
 
 public:
 
@@ -265,17 +295,21 @@ public:
 
 	// Base functions.	
 	void Draw(const FrameTime& time);
+	void Draw_Game(const FrameTime& time);
 	void Reload();
 
 	// Get/Set method.
 	Camera*					Get_Active_Camera		();
 	Light*					Get_Active_Light		();
 
+	void					Set_Active_Camera		(Camera* camera);
+
 	RenderPipeline_Texture* Get_Texture_From_Name	(const char* name);
 	RenderPipeline_Mesh*    Get_Mesh_From_Name		(const char* name);
 	RenderPipeline_Target*  Get_Target_From_Name	(const char* name);
 	RenderPipeline_Shader*  Get_Shader_From_Name	(const char* name);
 	RenderPipeline_Pass*	Get_Pass_From_Name		(const char* name);
+	RenderPipeline_Slot*	Get_Slot_From_Name		(const char* name);
 
 	void Apply_Outputs(const FrameTime& time, RenderPipeline_Pass* pass);
 	void Apply_State(const FrameTime& time, RenderPipeline_State* state);

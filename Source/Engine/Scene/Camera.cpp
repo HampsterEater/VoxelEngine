@@ -4,11 +4,15 @@
 #include "Engine\Scene\Camera.h"
 #include "Engine\Platform\Platform.h"
 
+#include "Engine\Display\Display.h"
+
+#include "Generic\Math\Math.h"
+
 Camera::Camera() 
 	: m_fov(60)
 	, m_viewport(0, 0, 800, 600)
 	, m_near_clip(0.1f)
-	, m_far_clip(18.0f)
+	, m_far_clip(40.0f)
 {
 }
 
@@ -118,4 +122,42 @@ Matrix4 Camera::Get_View_Matrix()
 	Vector3 up = right.Cross(direction);
 	
 	return Matrix4::LookAt(position, center, up);
+}
+
+Vector3 Camera::Unproject(Vector3 position)
+{
+	Display* display = Display::Get();
+
+	// Calculate viewport.
+	Rect viewport	= m_viewport; 
+	viewport.X		= viewport.X;
+	viewport.Y		= viewport.Y;
+	viewport.Width	= Max(viewport.Width, 0);
+	viewport.Height	= Max(viewport.Height, 0);
+
+	// Get inverse transform of projection*view matrix.
+	Matrix4 inverseTransform = (Get_Projection_Matrix() * Get_View_Matrix()).Inverse();
+
+	// Transformation to normalised coordinates.
+	Vector4 inVector = Vector4
+	(
+		((position.X - viewport.X) / viewport.Width) * 2.0 - 1.0,
+		-((position.Y - viewport.Y) / viewport.Height) * 2.0 + 1.0,
+		2.0 * position.Z - 1.0,
+		1.0
+	);
+
+	// Transform to world coordinates.
+	Vector4 outVector = inverseTransform * inVector;
+	if (outVector.W == 0.0)
+	{
+		return Vector3(0, 0, 0);
+	}
+
+	return Vector3 
+	(
+		outVector.X / outVector.W,
+		outVector.Y / outVector.W,
+		outVector.Z / outVector.W
+	);
 }

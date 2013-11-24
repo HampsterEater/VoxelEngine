@@ -16,23 +16,20 @@
 class TextureFactory
 {
 private:
-	static LinkedList<TextureFactory*>		m_factories;
-	static HashTable<TextureHandle*, int>	m_loaded_textures;
+	static HashTable<TextureHandle*, int> m_loaded_textures;
+	
+	// Static class!
+	virtual ~TextureFactory() {} 
 
 public:
 		
+	// Dispose.
+	static void Dispose();
+
 	// Static methods.
 	static bool			  Save				 (const char* url, Texture* texture, TextureFlags::Type flags);
 	static TextureHandle* Load				 (const char* url, TextureFlags::Type flags);
 	static Texture*		  Load_Without_Handle(const char* url, TextureFlags::Type flags);
-	
-	// Constructors
-	TextureFactory();	
-	virtual ~TextureFactory();	
-
-	// Derived factory methods.
-	virtual Texture* Try_Load(const char* url, TextureFlags::Type flags) = 0;
-	virtual bool     Try_Save(const char* url, Texture* texture, TextureFlags::Type flags) = 0;
 
 };
 

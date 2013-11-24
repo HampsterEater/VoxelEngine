@@ -17,7 +17,6 @@ struct FontGlyph
 	Point		 Size;
 	Point		 Offset;
 	Point		 Advance;
-	float		 Baseline;
 };
 
 struct FontFlags

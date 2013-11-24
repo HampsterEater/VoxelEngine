@@ -41,6 +41,10 @@ public:
 	static Matrix4 Orthographic (float x_n, float x_f, float y_n, float y_f, float z_n, float z_f);
 	static Matrix4 LookAt		(Vector3 eye, Vector3 center, Vector3 up);
 	static Matrix4 Translate	(Vector3 vector);
+	static Matrix4 RotateX		(float angle);
+	static Matrix4 RotateY		(float angle);
+	static Matrix4 RotateZ		(float angle);
+	static Matrix4 Rotate		(Vector3 vector);
 
 };
 

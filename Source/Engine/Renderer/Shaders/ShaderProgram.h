@@ -33,6 +33,7 @@ public:
 	virtual void Bind_Vector	(const char* name, Vector4 vector) = 0;
 	virtual void Bind_Float		(const char* name, float value) = 0;
 	virtual void Bind_Int		(const char* name, int value) = 0;
+	virtual void Bind_Bool		(const char* name, bool value) = 0;
 
 	// Create shader programs.
 	static ShaderProgram* Create(Shader* s1);

@@ -3,7 +3,13 @@
 // ===================================================================
 #include "Game\Runner\Game.h"
 #include "Game\Scene\Cameras\FirstPersonCamera.h"
+#include "Game\Scene\Cameras\GameCamera.h"
+#include "Game\Scene\Cameras\EditorCamera.h"
+#include "Game\Scene\Cameras\OrthoCamera.h"
 #include "Game\Scene\Voxels\ChunkManager.h"
+
+#include "Game\Scene\Editor\EditorGrid.h"
+#include "Game\Scene\Editor\EditorSelectionPrimitive.h"
 
 #include "Engine\Platform\Platform.h"
 
@@ -13,7 +19,7 @@
 #include "Engine\Engine\GameEngine.h"
 
 #include "Engine\Renderer\Textures\TextureFactory.h"
-#include "Engine\Renderer\Textures\PNG\PNGTextureFactory.h"
+#include "Engine\Renderer\Textures\PNG\PNGPixmapFactory.h"
 
 #include "Engine\Audio\AudioRenderer.h"
 #include "Engine\Audio\Sounds\Sound.h"
@@ -28,12 +34,30 @@
 #include "Engine\Renderer\Text\FontFactory.h"
 #include "Engine\Renderer\Text\FontRenderer.h"
 
+#include "Game\UI\Scenes\UIScene_Game.h"
+
+#include "Game\Version.h"
+
 #include "Generic\Math\Math.h"
 
-Game::Game()
-	: m_camera(NULL)
-	, m_config_location("Data/Config/Game.xml")
+void Print_Game_Version()
 {
+#ifdef DEBUG_BUILD
+	DBG_LOG(" Dat Rougelike Debug    Version %s, Built %s/%s/%s %s:%s", GameAutoVersion::FULLVERSION_STRING, GameAutoVersion::DAY, GameAutoVersion::MONTH, GameAutoVersion::YEAR, GameAutoVersion::HOUR, GameAutoVersion::MINUTE);
+#else
+	DBG_LOG(" Dat Rougelike Release  Version %s, Built %s/%s/%s %s:%s", GameAutoVersion::FULLVERSION_STRING, GameAutoVersion::DAY, GameAutoVersion::MONTH, GameAutoVersion::YEAR, GameAutoVersion::HOUR, GameAutoVersion::MINUTE);
+#endif
+}
+
+GameRunner* New_Game()
+{
+	return new Game();
+}
+
+Game::Game()
+	: m_config_location("Data/Config/Game.xml")
+{
+	memset(m_cameras, 0, sizeof(Camera*) * CameraID::COUNT);
 }
 
 void Game::Load_Config()
@@ -69,25 +93,134 @@ const GameEngineConfig& Game::Get_Engine_Config()
 	return m_config.engine_config;
 }
 
+ChunkManager* Game::Get_Chunk_Manager()
+{
+	return m_chunk_manager;
+}
+
+EditorSelectionPrimitive* Game::Get_Editor_Mouse_Selection_Primitive()
+{
+	return m_editor_mouse_selection_primitive;
+}
+
+EditorSelectionPrimitive* Game::Get_Editor_Main_Selection_Primitive()
+{
+	return m_editor_main_selection_primitive;
+}
+
 void Game::Preload()
 {
 	// Load configuration information.
 	Load_Config();
 }
 
+void Game::Setup_Cameras()
+{
+	Display* display = Display::Get();
+	GameEngine* engine = GameEngine::Get();
+
+	float distance = 5.0f;
+	float rotation = -DegToRad(90.0f);
+
+	// Setup cameras.
+	m_cameras[CameraID::Game]			= new GameCamera  (70, Rect(0.0f, 0.0f, (float)display->Get_Width(), (float)display->Get_Height()));
+	m_cameras[CameraID::UI]				= new OrthoCamera (70, Rect(0.0f, 0.0f, (float)display->Get_Width(), (float)display->Get_Height()));
+	m_cameras[CameraID::Editor_Main]	= new EditorCamera(EditorCameraType::Projection, 70, Rect(0.0f, 0.0f, (float)display->Get_Width(), (float)display->Get_Height()), Vector3(0, 0, 0), Vector3(0, 0, 0));
+	m_cameras[CameraID::Editor_OrthoX]	= new EditorCamera(EditorCameraType::OrthoX, 70, Rect(0.0f, 0.0f, (float)display->Get_Width(), (float)display->Get_Height()), Vector3(distance, 0, 0), Vector3(-rotation, rotation, 0));
+	m_cameras[CameraID::Editor_OrthoY]	= new EditorCamera(EditorCameraType::OrthoY, 70, Rect(0.0f, 0.0f, (float)display->Get_Width(), (float)display->Get_Height()), Vector3(0, distance, 0), Vector3(0, 0, rotation));
+	m_cameras[CameraID::Editor_OrthoZ]	= new EditorCamera(EditorCameraType::OrthoZ, 70, Rect(0.0f, 0.0f, (float)display->Get_Width(), (float)display->Get_Height()), Vector3(0, 0, -distance), Vector3(0, 0, 0));
+
+	m_cameras[CameraID::Editor_Main]->Set_Enabled(false);
+	m_cameras[CameraID::Editor_OrthoX]->Set_Enabled(false);
+	m_cameras[CameraID::Editor_OrthoY]->Set_Enabled(false);
+	m_cameras[CameraID::Editor_OrthoZ]->Set_Enabled(false);
+
+	// Add cameras to scene.
+	for (int i = 0; i < CameraID::COUNT; i++)
+	{
+		GameEngine::Get()->Get_Scene()->Add_Camera(m_cameras[i]);
+		GameEngine::Get()->Get_Scene()->Add_Tickable(m_cameras[i]);
+	}
+
+	// Set HUD camera.
+	engine->Get_UIManager()->Set_Camera(m_cameras[CameraID::UI]);
+}
+
+void Game::Setup_Editor()
+{
+	EditorCamera* editor_main_camera   = static_cast<EditorCamera*>(Game::Get()->Get_Camera(CameraID::Editor_Main));
+	EditorCamera* editor_orthox_camera = static_cast<EditorCamera*>(Game::Get()->Get_Camera(CameraID::Editor_OrthoX));
+	EditorCamera* editor_orthoy_camera = static_cast<EditorCamera*>(Game::Get()->Get_Camera(CameraID::Editor_OrthoY));
+	EditorCamera* editor_orthoz_camera = static_cast<EditorCamera*>(Game::Get()->Get_Camera(CameraID::Editor_OrthoZ));
+	Scene* scene = GameEngine::Get()->Get_Scene();
+
+	// Projection grid.
+	m_editor_projection_grid = new EditorGrid();
+	m_editor_projection_grid->Set_Render_Slot("solid_color_editor_geometry");
+	scene->Add_Drawable(m_editor_projection_grid);
+	scene->Add_Tickable(m_editor_projection_grid);
+	m_editor_projection_grid->Set_Draw_Camera(editor_main_camera);
+	editor_main_camera->Set_Editor_Grid(m_editor_projection_grid);
+
+	// Side-on (X) grid.
+	m_editor_orthox_grid = new EditorGrid();
+	m_editor_orthox_grid->Set_Render_Slot("solid_color_editor_geometry");
+	m_editor_orthox_grid->Set_Rotation(Vector3(0, 0, DegToRad(90)));
+	scene->Add_Drawable(m_editor_orthox_grid);
+	scene->Add_Tickable(m_editor_orthox_grid);
+	m_editor_orthox_grid->Set_Draw_Camera(editor_orthox_camera);
+	editor_orthox_camera->Set_Editor_Grid(m_editor_orthox_grid);
+	
+	// Side-on (Z) grid.
+	m_editor_orthoy_grid = new EditorGrid();
+	m_editor_orthoy_grid->Set_Render_Slot("solid_color_editor_geometry");
+	m_editor_orthoy_grid->Set_Rotation(Vector3(DegToRad(90), 0, 0));
+	scene->Add_Drawable(m_editor_orthoy_grid);
+	scene->Add_Tickable(m_editor_orthoy_grid);
+	m_editor_orthoy_grid->Set_Draw_Camera(editor_orthoz_camera);
+	editor_orthoz_camera->Set_Editor_Grid(m_editor_orthoy_grid);
+
+	// Top-down grid.
+	m_editor_orthoz_grid = new EditorGrid();
+	m_editor_orthoz_grid->Set_Render_Slot("solid_color_editor_geometry");
+	scene->Add_Drawable(m_editor_orthoz_grid);
+	scene->Add_Tickable(m_editor_orthoz_grid);
+	m_editor_orthoz_grid->Set_Draw_Camera(editor_orthoy_camera);
+	editor_orthoy_camera->Set_Editor_Grid(m_editor_orthoz_grid);
+
+	// Mouse selector primitive.
+	m_editor_mouse_selection_primitive = new EditorSelectionPrimitive();
+	m_editor_mouse_selection_primitive->Set_Render_Slot("solid_color_editor_geometry");
+	scene->Add_Drawable(m_editor_mouse_selection_primitive);
+	scene->Add_Tickable(m_editor_mouse_selection_primitive);	
+
+	// Main selector primitive (cube/sphere/etc).
+	m_editor_main_selection_primitive = new EditorSelectionPrimitive();
+	m_editor_main_selection_primitive->Set_Render_Slot("solid_color_editor_geometry");
+	scene->Add_Drawable(m_editor_main_selection_primitive);
+	scene->Add_Tickable(m_editor_main_selection_primitive);
+}
+
 void Game::Start()
 {
 	Display* display = Display::Get();
 
-	// Setup camera.
-	m_camera = new FirstPersonCamera(70, Rect(0.0f, 0.0f, (float)display->Get_Width(), (float)display->Get_Height()));
-	GameEngine::Get()->Get_Scene()->Add_Camera(m_camera);
-	GameEngine::Get()->Get_Scene()->Add_Tickable(m_camera);
+	// Setup cameras.
+	Setup_Cameras();
+
+	// Setup editor related stuff.
+	Setup_Editor();
 
 	// Setup chunk manager.
 	m_chunk_manager = new ChunkManager(m_config.chunk_config);
+	m_chunk_manager->Set_Render_Slot("geometry");
 	GameEngine::Get()->Get_Scene()->Add_Drawable(m_chunk_manager);
 	GameEngine::Get()->Get_Scene()->Add_Tickable(m_chunk_manager);
+
+
+	// -----------------------------------------------------------------------------------------
+	// Testing shit
+	// -----------------------------------------------------------------------------------------
 
 	// Random light!
 	Light* light3 = new Light(LightType::Ambient, 0.0f, Color(5, 5, 5, 255));
@@ -126,11 +259,28 @@ void Game::Start()
 	sound->Get()->Play(channel, true);
 	channel->Resume();
 	*/
+
+	// -----------------------------------------------------------------------------------------
+	// Testing shit
+	// -----------------------------------------------------------------------------------------
+
+	// Push the game state.
+	UIManager* manager = GameEngine::Get()->Get_UIManager();
+	manager->Push(new UIScene_Game());
+}
+
+Camera* Game::Get_Camera(CameraID::Type camera)
+{
+	return m_cameras[(int)camera];
 }
 
 void Game::End()
 {
-	SAFE_DELETE(m_camera);
+	for (int i = 0; i < CameraID::COUNT; i++)
+	{
+		SAFE_DELETE(m_cameras[i]);
+	}
+
 	SAFE_DELETE(m_chunk_manager);
 }
 

@@ -2,9 +2,17 @@
 //	Copyright (C) 2013 Tim Leonard
 // ===================================================================
 #include "Engine\Renderer\OpenGL\OpenGL_Texture.h"
+#include "Engine\Renderer\Textures\Pixmap.h"
 
-OpenGL_Texture::OpenGL_Texture(GLuint texture_id, char* data, int width, int height, int pitch, TextureFormat::Type format)
-	: Texture(data, width, height, pitch, format)
+OpenGL_Texture::OpenGL_Texture(GLuint texture_id, int width, int height, int pitch, TextureFormat::Type format)
+	: Texture(width, height, pitch, format)
+	, m_texture_id(texture_id)
+{
+
+}
+
+OpenGL_Texture::OpenGL_Texture(GLuint texture_id, Pixmap* pixmap)
+	: Texture(pixmap)
 	, m_texture_id(texture_id)
 {
 
@@ -20,7 +28,7 @@ OpenGL_Texture::~OpenGL_Texture()
 	glDeleteTextures(1, &m_texture_id);
 }
 
-void OpenGL_Texture::Set_Data(char* data)
+void OpenGL_Texture::Set_Pixmap(Pixmap* pixmap)
 {
 	// Generate and bind texture.
 	GLint original_bind = 0;
@@ -28,41 +36,42 @@ void OpenGL_Texture::Set_Data(char* data)
 	glActiveTexture(0);
 	glBindTexture(GL_TEXTURE_2D, m_texture_id);
 	
-	TextureFormat::Type format	= m_format;
-	int width					= m_width;
-	int height					= m_height;
-	
+	m_format			= pixmap->Get_Texture_Format();
+	m_width				= pixmap->Get_Width();
+	m_height			= pixmap->Get_Height();
+	unsigned char* data	= pixmap->Get_Data();
+
 	// Upload data to GPU.
-	switch (format)
+	switch (m_format)
 	{
 	case TextureFormat::R8G8B8:
 		{
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, m_width, m_height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
 			break;
 		}
 	case TextureFormat::R32FG32FB32FA32F:
 		{
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, data);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, m_width, m_height, 0, GL_RGBA, GL_FLOAT, data);
 			break;
 		}
 	case TextureFormat::R8G8B8A8:
 		{
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, m_width, m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 			break;
 		}
 	case TextureFormat::DepthFormat:
 		{
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, data);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, m_width, m_height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, data);
 			break;
 		}
 	case TextureFormat::StencilFormat:
 		{
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_STENCIL_INDEX, width, height, 0, GL_STENCIL_INDEX, GL_FLOAT, data);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_STENCIL_INDEX, m_width, m_height, 0, GL_STENCIL_INDEX, GL_FLOAT, data);
 			break;
 		}
 	case TextureFormat::Luminosity:
 		{
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, data);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, m_width, m_height, 0, GL_RED, GL_UNSIGNED_BYTE, data);
 			break;
 		}
 
@@ -77,9 +86,10 @@ void OpenGL_Texture::Set_Data(char* data)
 	glBindTexture(GL_TEXTURE_2D, original_bind);
 
 	// Replace current buffer with new one.
-	if (data != m_data)
+	if (pixmap != m_pixmap)
 	{
-		SAFE_DELETE(m_data);
-		m_data = data;
+		SAFE_DELETE(m_pixmap);
+		m_pixmap = pixmap;
 	}
 }
+

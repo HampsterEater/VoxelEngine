@@ -170,15 +170,32 @@ bool Locale::Change_Language(const char* name)
 	return true;
 }
 
+const char* Locale::Get_String(std::string& id)
+{
+	return Get_String(id.c_str());
+}
+
 const char* Locale::Get_String(const char* id)
 {
-	return Get_String(StringHelper::Hash(id));
+	if (id[0] == '#')
+	{
+		return Get_String(StringHelper::Hash(id + 1));
+	}
+	else
+	{
+		return id;
+	}
 }
 
 const char* Locale::Get_String(int id)
 {
 	DBG_ASSERT(m_current_language != NULL);
 	const char* str = m_current_language->Strings.Get(id);
-	DBG_ASSERT_STR(str != NULL, "Missing string for hash code : 0x%08x", id);
+	if (str == NULL)
+	{
+		DBG_LOG("Missing string for hash code : 0x%08x", id);
+		str = "##_MISSING_STRING_##";
+		m_current_language->Strings.Set(id, "##_MISSING_STRING_##");
+	}
 	return str;
 }

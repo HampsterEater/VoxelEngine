@@ -16,6 +16,25 @@ Point::Point(float x, float y)
 	Y = y;
 }
 
+Point Point::Round() const
+{
+	return Point
+	(
+		ceilf(X),
+		ceilf(Y)
+	);
+}
+
+bool Point::operator==(Point& rhs) const
+{
+	return (X == rhs.X && Y == rhs.Y);
+}
+
+bool Point::operator!=(Point& rhs) const
+{
+	return !operator==(rhs);
+}
+
 std::string Point::To_String()
 {
 	return StringHelper::To_String(X) + "," + StringHelper::To_String(Y);

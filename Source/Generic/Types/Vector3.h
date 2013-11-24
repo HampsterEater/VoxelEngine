@@ -19,6 +19,7 @@ public:
 
 	// Operator overloads.
 	Vector3 operator* (const float a) const;
+	Vector3 operator* (const Vector3 a) const;
 	Vector3 operator+ (const Vector3 a) const;
 	Vector3 operator/ (const Vector3 a) const;
 	Vector3 operator/ (const float a) const;

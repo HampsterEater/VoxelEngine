@@ -110,6 +110,30 @@ RenderPipeline_Pass::~RenderPipeline_Pass()
 	SAFE_DELETE(State);
 }
 
+RenderPipeline_Slot::RenderPipeline_Slot()
+	: Shader(NULL)
+	, Name("")
+	, NameHash(0)
+	, SortType(RenderPipeline_SlotSortType::None)
+{
+}
+
+RenderPipeline_Slot::~RenderPipeline_Slot()
+{
+}
+
+bool RenderPipeline_Slot::Sort_Front_To_Back(Drawable* a, Drawable* b)
+{
+	/*Vector3 camera_position = RenderPipeline::Get()->Get_Active_Camera()->Get_Position();
+
+	float distance_a = (camera_position - a->Get_Position()).Length_Squared();
+	float distance_b = (camera_position - b->Get_Position()).Length_Squared();
+
+	return (distance_a < distance_b);*/
+
+	return true;
+}
+
 RenderPipeline_PassOutput::RenderPipeline_PassOutput()
 	: Texture(NULL)
 {
@@ -155,7 +179,12 @@ void RenderPipeline::Reset()
 	{
 		delete *iter;
 	}
+	for (std::vector<RenderPipeline_Slot*>::iterator iter = m_slots.begin(); iter != m_slots.end(); iter++)
+	{
+		delete *iter;
+	}
 	
+	m_slots.clear();
 	m_meshes.clear();
 	m_textures.clear();
 	m_targets.clear();
@@ -253,6 +282,13 @@ bool RenderPipeline::Load_Config(const char* path)
 		Load_Passes(passes);
 	}
 
+	// Load in slots.
+	rapidxml::xml_node<>* slots = root->first_node("slots", 0, false);
+	if (passes != NULL)
+	{
+		Load_Slots(slots);
+	}
+
 	// Clean up and return.
 	delete stream;
 	delete buffer;
@@ -262,6 +298,17 @@ bool RenderPipeline::Load_Config(const char* path)
 Camera* RenderPipeline::Get_Active_Camera()
 {
 	return m_active_camera;
+}
+
+void RenderPipeline::Set_Active_Camera(Camera* camera)
+{	
+	m_active_camera = camera;
+
+	m_renderer->Set_Projection_Matrix(camera->Get_Projection_Matrix());
+	m_renderer->Set_View_Matrix(camera->Get_View_Matrix());
+	m_renderer->Set_World_Matrix(Matrix4::Identity());
+
+	//m_renderer->Set_Viewport(camera->Get_Viewport());
 }
 
 Light* RenderPipeline::Get_Active_Light()
@@ -329,20 +376,39 @@ RenderPipeline_Pass* RenderPipeline::Get_Pass_From_Name(const char* name)
 	return NULL;
 }
 
+RenderPipeline_Slot* RenderPipeline::Get_Slot_From_Name(const char* name)
+{
+	for (std::vector<RenderPipeline_Slot*>::iterator iter = m_slots.begin(); iter != m_slots.end(); iter++)
+	{
+		if (stricmp((*iter)->Name.c_str(), name) == 0)
+		{
+			return *iter;
+		}
+	}
+	return NULL;
+}
+
 void RenderPipeline::Draw(const FrameTime& time)
 {
-	// Check we have a camera to use!
-	std::vector<Camera*>& cameras = GameEngine::Get()->Get_Scene()->Get_Cameras();
-	if (cameras.size() < 0)
-	{
-		return;
-	}
-	if (m_active_camera == NULL)
-	{
-		m_active_camera = *cameras.begin();
-	}
+	Display* display = Display::Get();
 
-	Rect viewport = m_active_camera->Get_Viewport();
+	// Clear back buffer.
+	m_renderer->Set_Viewport(Rect(0, 0, display->Get_Width(), display->Get_Height())); 
+	m_renderer->Clear_Buffer();
+
+	// Draw the scene/UI.
+	UIManager* ui = GameEngine::Get()->Get_UIManager();
+	Set_Active_Camera(ui->Get_Camera());
+	ui->Draw(time);
+
+	// Flip buffers.
+	m_renderer->Flip(time);
+}
+
+void RenderPipeline::Draw_Game(const FrameTime& time)
+{
+	Display* display = Display::Get();
+	Rect full_viewport = Rect(0, 0, display->Get_Width(), display->Get_Height());
 
 	// Apply the default state.
 	if (m_default_state != NULL)
@@ -359,26 +425,23 @@ void RenderPipeline::Draw(const FrameTime& time)
 	// Remove some temp state variables we no longer need.
 	m_active_light = NULL;
 
-	// Render the UI in orthographic projection.
-	UIManager* ui = GameEngine::Get()->Get_UIManager();
-	m_renderer->Set_Projection_Matrix(Matrix4::Orthographic(0, viewport.Width, viewport.Height, 0, -1.0f, 1.0f));
-	m_renderer->Set_View_Matrix(Matrix4::Identity());
-	m_renderer->Set_World_Matrix(Matrix4::Identity());
-	ui->Draw(time);
-
-	// Flip buffers.
-	m_renderer->Flip(time);
+	// Reset some stuff.
+	m_renderer->Set_Viewport(full_viewport);
 }
 
 void RenderPipeline::Apply_State(const FrameTime& time, RenderPipeline_State* state)
 {
+	Display* display = Display::Get();
+	Rect full_viewport = Rect(0, 0, display->Get_Width(), display->Get_Height());
+	Rect camera_viewport = m_active_camera->Get_Viewport();
+
 	for (std::vector<RenderPipeline_StateSetting*>::iterator iter = state->Settings.begin(); iter != state->Settings.end(); iter++)
 	{
 		RenderPipeline_StateSetting* setting = *iter;
 		switch (setting->Type)
 		{
-		case RenderPipeline_StateSettingType::ClearColor:		m_renderer->Set_Clear_Color(setting->ColorValue);		break;
-		case RenderPipeline_StateSettingType::ClearDepth:		m_renderer->Set_Clear_Depth(setting->FloatValue);		break;
+		case RenderPipeline_StateSettingType::ClearColorValue:	m_renderer->Set_Clear_Color(setting->ColorValue);		break;
+		case RenderPipeline_StateSettingType::ClearDepthValue:	m_renderer->Set_Clear_Depth(setting->FloatValue);		break;
 		case RenderPipeline_StateSettingType::CullFace:			m_renderer->Set_Cull_Face(setting->EnumValue);			break;
 		case RenderPipeline_StateSettingType::DepthFunction:	m_renderer->Set_Depth_Function(setting->EnumValue);		break;
 		case RenderPipeline_StateSettingType::DepthTest:		m_renderer->Set_Depth_Test(setting->BoolValue);			break;
@@ -387,13 +450,31 @@ void RenderPipeline::Apply_State(const FrameTime& time, RenderPipeline_State* st
 			{
 				if (setting->BoolValue == true)
 				{
-					m_renderer->Clear_Buffer();							
+					m_renderer->Clear_Buffer(true, false);							
+				}
+				break;	
+			}
+		case RenderPipeline_StateSettingType::ClearDepth:			
+			{
+				if (setting->BoolValue == true)
+				{
+					m_renderer->Clear_Buffer(false, true);							
 				}
 				break;	
 			}
 
 		case RenderPipeline_StateSettingType::Blend:			m_renderer->Set_Blend(setting->BoolValue);				break;
 		case RenderPipeline_StateSettingType::BlendFunction:	m_renderer->Set_Blend_Function(setting->EnumValue);		break;
+		case RenderPipeline_StateSettingType::Viewport:
+			{
+				switch (setting->EnumValue)
+				{
+				case RendererOption::Output:					m_renderer->Set_Viewport(camera_viewport);				break;
+				case RendererOption::Full:						m_renderer->Set_Viewport(full_viewport);				break;
+				default:										DBG_ASSERT(false); 
+				}
+				break;
+			}
 		default:												DBG_ASSERT(false); 
 		}
 	}
@@ -401,9 +482,12 @@ void RenderPipeline::Apply_State(const FrameTime& time, RenderPipeline_State* st
 
 void RenderPipeline::Apply_Shader(const FrameTime& time, RenderPipeline_Shader* shader)
 {
-	ShaderProgram* prog = shader == NULL ? NULL : shader->Shader_Program;
-	m_renderer->Bind_Shader_Program(prog);
-	m_binded_shader_program = shader;
+	if (shader != m_binded_shader_program)
+	{
+		ShaderProgram* prog = shader == NULL ? NULL : shader->Shader_Program;
+		m_renderer->Bind_Shader_Program(prog);
+		m_binded_shader_program = shader;
+	}
 }
 
 void RenderPipeline::Update_Shader_Uniforms()
@@ -454,26 +538,29 @@ void RenderPipeline::Update_Shader_Uniforms()
 				}
 			case RenderPipeline_ShaderUniformType::MaterialTexture:			
 				{
-					DBG_ASSERT(material != NULL && material->Get_Texture() != NULL);
-					m_renderer->Bind_Texture(material->Get_Texture()->Get(), binded_texture_index);
-					prog->Bind_Texture(uniform->Name.c_str(), binded_texture_index);
-					binded_texture_index++;
+					if (material != NULL)
+					{
+						//DBG_ASSERT(material != NULL && material->Get_Texture() != NULL);
+						m_renderer->Bind_Texture(material->Get_Texture()->Get(), binded_texture_index);
+						prog->Bind_Texture(uniform->Name.c_str(), binded_texture_index);
+						binded_texture_index++;
+					}
 					break;
 				}
 
 			// Floats
-			case RenderPipeline_ShaderUniformType::CameraNearClip:						prog->Bind_Float(uniform->Name.c_str(), m_active_camera->Get_Near_Clip());			break;
-			case RenderPipeline_ShaderUniformType::CameraFarClip:						prog->Bind_Float(uniform->Name.c_str(), m_active_camera->Get_Far_Clip());			break;
-			case RenderPipeline_ShaderUniformType::CameraFOV:							prog->Bind_Float(uniform->Name.c_str(), m_active_camera->Get_FOV());				break;
-			case RenderPipeline_ShaderUniformType::MaterialShininess:					prog->Bind_Float(uniform->Name.c_str(), material->Get_Shininess());					break;
-			case RenderPipeline_ShaderUniformType::LightRadius:							prog->Bind_Float(uniform->Name.c_str(), m_active_light->Get_Radius());				break;
-			case RenderPipeline_ShaderUniformType::LightOuterRadius:					prog->Bind_Float(uniform->Name.c_str(), m_active_light->Get_Outer_Radius());		break;
+			case RenderPipeline_ShaderUniformType::CameraNearClip:						prog->Bind_Float(uniform->Name.c_str(), m_active_camera->Get_Near_Clip());							break;
+			case RenderPipeline_ShaderUniformType::CameraFarClip:						prog->Bind_Float(uniform->Name.c_str(), m_active_camera->Get_Far_Clip());							break;
+			case RenderPipeline_ShaderUniformType::CameraFOV:							prog->Bind_Float(uniform->Name.c_str(), m_active_camera->Get_FOV());								break;
+			case RenderPipeline_ShaderUniformType::MaterialShininess:					prog->Bind_Float(uniform->Name.c_str(), material == NULL ? 0.0f : material->Get_Shininess());		break;
+			case RenderPipeline_ShaderUniformType::LightRadius:							prog->Bind_Float(uniform->Name.c_str(), m_active_light->Get_Radius());								break;
+			case RenderPipeline_ShaderUniformType::LightOuterRadius:					prog->Bind_Float(uniform->Name.c_str(), m_active_light->Get_Outer_Radius());						break;
 
 			// Ints
-			case RenderPipeline_ShaderUniformType::LightType:							prog->Bind_Int(uniform->Name.c_str(), m_active_light->Get_Type());					break;
+			case RenderPipeline_ShaderUniformType::LightType:							prog->Bind_Int(uniform->Name.c_str(), m_active_light->Get_Type());									break;
 
 			// Vector3's
-			case RenderPipeline_ShaderUniformType::MaterialSpecular:					prog->Bind_Vector(uniform->Name.c_str(), material->Get_Specular());												break;
+			case RenderPipeline_ShaderUniformType::MaterialSpecular:					prog->Bind_Vector(uniform->Name.c_str(), material == NULL ? Vector3(0.f, 0.f, 0.f) : material->Get_Specular());					break;
 			case RenderPipeline_ShaderUniformType::CameraPosition:						prog->Bind_Vector(uniform->Name.c_str(), m_active_camera->Get_Position());										break;
 			case RenderPipeline_ShaderUniformType::Resolution:							prog->Bind_Vector(uniform->Name.c_str(), Vector3((float)display_width, (float)display_height, 1.0f));			break;
 			case RenderPipeline_ShaderUniformType::LightPosition:						prog->Bind_Vector(uniform->Name.c_str(), world_view_matrix * Vector4(m_active_light->Get_Position(), 1.0f));	break;
@@ -554,25 +641,17 @@ void RenderPipeline::Apply_Outputs(const FrameTime& time, RenderPipeline_Pass* p
 	}
 	
 	m_renderer->Set_Output_Buffers(outputs);
-	m_renderer->Set_Viewport(m_active_camera->Get_Viewport());
+	//m_renderer->Set_Viewport(m_active_camera->Get_Viewport());
 }
 
 void RenderPipeline::Draw_Scene(const FrameTime& time)
 {
-	std::vector<Camera*>& cameras = GameEngine::Get()->Get_Scene()->Get_Cameras();
-	for (auto iter = cameras.begin(); iter != cameras.end(); iter++)
-	{
-		Camera* camera = *iter;
+	// Calculate matricies.
+	Matrix4 projection_matrix = m_active_camera->Get_Projection_Matrix();
+	Matrix4 view_matrix       = m_active_camera->Get_View_Matrix();
+	Matrix4 world_matrix	  = Matrix4::Identity();
 
-		m_active_camera = camera;
-
-		// Calculate matricies.
-		Matrix4 projection_matrix = camera->Get_Projection_Matrix();
-		Matrix4 view_matrix       = camera->Get_View_Matrix();
-		Matrix4 world_matrix	  = Matrix4::Identity();
-
-		Draw_Scene_With_Matrices(time, projection_matrix, view_matrix, world_matrix);
-	}
+	Draw_Scene_With_Matrices(time, projection_matrix, view_matrix, world_matrix);
 }
 
 void RenderPipeline::Draw_Scene_With_Matrices(const FrameTime& time, Matrix4& projection_matrix, Matrix4& view_matrix, Matrix4& world_matrix)
@@ -584,12 +663,60 @@ void RenderPipeline::Draw_Scene_With_Matrices(const FrameTime& time, Matrix4& pr
 
 	// Render all drawables.
 	std::vector<Drawable*>& drawable = GameEngine::Get()->Get_Scene()->Get_Drawables();
-	for (auto iter = drawable.begin(); iter != drawable.end(); iter++)
+	int counter = 0;
+	for (auto iter = m_slots.begin(); iter != m_slots.end(); iter++)
 	{
-		Drawable* drawable = *iter;
-		drawable->Draw(time, this);
+		RenderPipeline_Slot* slot = *iter;
+
+		// Do we render this slot on this pass?
+		bool on_pass = false;
+		for (auto passiter = slot->Passes.begin(); passiter != slot->Passes.end(); passiter++)
+		{
+			if (*passiter == m_current_pass)
+			{
+				on_pass = true;
+				break;
+			}
+		}
+		if (on_pass == false)
+			continue;
+
+		// Gather all drawables in this slot (we should really do this as and when things are added to slots >_>).
+		std::vector<Drawable*> slot_contents;
+		for (auto iter2 = drawable.begin(); iter2 != drawable.end(); iter2++)
+		{
+			Drawable* drawable = *iter2;
+			Camera* draw_camera = drawable->Get_Draw_Camera();
+
+			if (drawable->Get_Render_Slot_Hash() == slot->NameHash &&
+				(draw_camera == NULL || draw_camera == m_active_camera))
+			{
+				slot_contents.push_back(drawable);
+			}
+		}
+
+		// Sort slot contents.
+		switch (slot->SortType)
+		{
+		case RenderPipeline_SlotSortType::Front_To_Back:
+			// TODO: Implement this stuff.
+			//std::sort(slot_contents.begin(), slot_contents.end(), RenderPipeline_Slot::Sort_Front_To_Back);
+			break;
+		}
+
+		// Apply shader.
+		Apply_Shader(time, slot->Shader);
+		Update_Shader_Uniforms();
+
+		// Render contents.
+		for (auto iter2 = slot_contents.begin(); iter2 != slot_contents.end(); iter2++)
+		{
+			Drawable* drawable = *iter2;
+			drawable->Draw(time, this);
+		}
 	}
 
+	/*
 	// Render all lights.
 	std::vector<Light*>& lights = GameEngine::Get()->Get_Scene()->Get_Lights();
 	for (auto iter = lights.begin(); iter != lights.end(); iter++)
@@ -604,6 +731,7 @@ void RenderPipeline::Draw_Scene_With_Matrices(const FrameTime& time, Matrix4& pr
 		m_renderer->Draw_Wireframe_Sphere(0.1f);
 		m_renderer->Draw_Arrow(light->Get_Direction());
 	}
+	*/
 }
 
 void RenderPipeline::Draw_Pass(const FrameTime& time, RenderPipeline_Pass* pass)
@@ -613,6 +741,9 @@ void RenderPipeline::Draw_Pass(const FrameTime& time, RenderPipeline_Pass* pass)
 	{
 		return;
 	}
+
+	// Store current pass.
+	m_current_pass = pass;
 
 	// Attach target.
 	if (pass->Target != NULL)
@@ -675,6 +806,7 @@ void RenderPipeline::Draw_Pass(const FrameTime& time, RenderPipeline_Pass* pass)
 			for (std::vector<RenderPipeline_Pass*>::iterator passiter = pass->SubPasses.begin(); passiter != pass->SubPasses.end(); passiter++)
 			{
 				Draw_Pass(time, *passiter);
+				m_current_pass = pass;
 			}
 		}
 	}
@@ -693,6 +825,7 @@ void RenderPipeline::Draw_Pass(const FrameTime& time, RenderPipeline_Pass* pass)
 				for (std::vector<RenderPipeline_Pass*>::iterator passiter = pass->SubPasses.begin(); passiter != pass->SubPasses.end(); passiter++)
 				{
 					Draw_Pass(time, *passiter);
+					m_current_pass = pass;
 				}
 			}
 		}
@@ -829,6 +962,19 @@ void RenderPipeline::Load_Passes(rapidxml::xml_node<>* parent_node)
 	}
 }
 
+void RenderPipeline::Load_Slots(rapidxml::xml_node<>* parent_node)
+{
+	rapidxml::xml_node<>* node = parent_node->first_node("slot", 0, false);
+	while (node != NULL)
+	{
+		RenderPipeline_Slot* slot = Load_Slot(node);
+		m_slots.push_back(slot);
+			
+		node = node->next_sibling("slot", 0, false);
+		DBG_LOG("Loaded pipeline render slot: %s", slot->Name.c_str());
+	}
+}
+
 RenderPipeline_State* RenderPipeline::Load_State(rapidxml::xml_node<>* node)
 {
 	RenderPipeline_State* state = new RenderPipeline_State();
@@ -938,7 +1084,7 @@ RenderPipeline_Mesh* RenderPipeline::Load_Mesh(rapidxml::xml_node<>* node)
 
 		int quad_count = (int)ceil(vertices.size() / 12);
 		int tri_count  = quad_count * 2;
-		state->Mesh_ID = m_renderer->Start_Mesh(tri_count * 3, tri_count);
+		state->Mesh_ID = m_renderer->Start_Mesh(MeshPrimitiveType::Triangle, tri_count * 3, tri_count);
 		
 		DBG_ASSERT_STR(vertices.size()  == quad_count * 12, "Incorrect number of verticies in mesh '%s'.",				state->Name.c_str());
 		DBG_ASSERT_STR(normals.size()   == quad_count * 12, "Incorrect number of normals in mesh '%s'.",				state->Name.c_str());
@@ -1016,8 +1162,8 @@ RenderPipeline_Mesh* RenderPipeline::Load_Mesh(rapidxml::xml_node<>* node)
 			int v3 = m_renderer->Add_Mesh_Vertex(state->Mesh_ID, p3, n3, 1.0f, 1.0f, 1.0f, 1.0f, uv3.X, uv3.Y);
 			int v4 = m_renderer->Add_Mesh_Vertex(state->Mesh_ID, p4, n4, 1.0f, 1.0f, 1.0f, 1.0f, uv4.X, uv4.Y);
 
-			m_renderer->Add_Mesh_Triangle(state->Mesh_ID, v1, v2, v4);
-			m_renderer->Add_Mesh_Triangle(state->Mesh_ID, v2, v3, v4);
+			m_renderer->Add_Mesh_Primitive(state->Mesh_ID, v1, v2, v4);
+			m_renderer->Add_Mesh_Primitive(state->Mesh_ID, v2, v3, v4);
 		}
 
 		m_renderer->End_Mesh(state->Mesh_ID);
@@ -1374,6 +1520,63 @@ RenderPipeline_Pass* RenderPipeline::Load_Pass(rapidxml::xml_node<>* node)
 			
 			sub_pass = sub_pass->next_sibling("pass", 0, false);
 			DBG_LOG("Loaded pipeline sub-pass: %s", spass->Name.c_str());
+		}
+	}
+
+	return state;
+}
+	
+RenderPipeline_Slot* RenderPipeline::Load_Slot(rapidxml::xml_node<>* node)
+{
+	std::string enabled_string = Get_Attribute_Value(node, "enabled", "");
+
+	RenderPipeline_Slot* state = new RenderPipeline_Slot();
+	state->Name		= Get_Attribute_Value(node, "name", NULL);
+	state->NameHash	= StringHelper::Hash(state->Name.c_str());
+	
+	DBG_ASSERT_STR(Get_Slot_From_Name(state->Name.c_str()) == NULL, "Duplicate slot name '%s'.", state->Name.c_str());
+	
+	// Parse sort type.
+	std::string sort_string = Get_Node_Value(node, "sort", NULL);
+	if (sort_string != "")
+	{
+		if (stricmp(sort_string.c_str(), "front_to_back") == 0)
+		{
+			state->SortType = RenderPipeline_SlotSortType::Front_To_Back;
+		}
+		else if (stricmp(sort_string.c_str(), "none") == 0)
+		{		
+			state->SortType = RenderPipeline_SlotSortType::None;
+		}
+		else
+		{
+			DBG_ASSERT_STR(false, "Invalid sort-type '%s' in slot '%s'.", sort_string.c_str(), state->Name.c_str());
+		}
+	}
+
+	// Parse shader.
+	std::string shader_name = Get_Node_Value(node, "shader", "");
+	if (shader_name != "")
+	{
+		state->Shader = Get_Shader_From_Name(shader_name.c_str());
+		DBG_ASSERT_STR(state->Shader != NULL, "Unknown shader '%s' in slot '%s'.", shader_name.c_str(), state->Name.c_str());	
+	}
+
+	// Parse passes
+	std::string passes = Get_Node_Value(node, "passes", "");
+	if (passes != "")
+	{
+		std::vector<std::string> split;
+		if (StringHelper::Split(passes.c_str(), ',', split) > 0)
+		{
+			for (std::vector<std::string>::iterator passiter = split.begin(); passiter != split.end(); passiter++)
+			{
+				std::string pass_name = StringHelper::Trim((*passiter).c_str());
+				RenderPipeline_Pass* pass = Get_Pass_From_Name(pass_name.c_str());
+				DBG_ASSERT_STR(pass != NULL, "Unknown pass '%s' in slot '%s'.", pass_name.c_str(), state->Name.c_str());	
+
+				state->Passes.push_back(pass);
+			}
 		}
 	}
 

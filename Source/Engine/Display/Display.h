@@ -7,7 +7,6 @@
 #include "Generic\Patterns\Singleton.h"
 #include "Generic\Types\Point.h"
 #include "Engine\Engine\FrameTime.h"
-#include "Engine\Display\Keys.h"
 
 class Display : public Singleton<Display>
 {
@@ -29,13 +28,8 @@ public:
 	virtual void Resize(int width, int height, bool fullscreen) = 0;
 	virtual void Toggle_Fullscreen() = 0;
 
-	// Input
-	// TODO: Move this into its own input platform-independent input class.
-	virtual Point Get_Mouse() = 0;
-	virtual void  Set_Mouse(Point pos) = 0;
+	// State of window.
 	virtual bool  Is_Active() = 0;
-	virtual bool  Is_Key_Down(Key::Type key) = 0;
-	virtual bool  Is_Key_Pressed(Key::Type key) = 0;
 
 };
 

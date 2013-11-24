@@ -1,29 +1,27 @@
 // ===================================================================
 //	Copyright (C) 2013 Tim Leonard
 // ===================================================================
+#include "Engine\Renderer\Textures\PixmapFactory.h"
 #include "Engine\Renderer\Textures\TextureFactory.h"
 #include "Engine\Renderer\Textures\Texture.h"
+#include "Engine\Renderer\Renderer.h"
 
 #include "Generic\Helper\StringHelper.h"
 
-LinkedList<TextureFactory*>		TextureFactory::m_factories;
 HashTable<TextureHandle*, int>	TextureFactory::m_loaded_textures;
 
 bool TextureFactory::Save(const char* url, Texture* texture, TextureFlags::Type flags)
 {
-	for (LinkedList<TextureFactory*>::Iterator iter = m_factories.Begin(); iter != m_factories.End(); iter++)
+	bool result = PixmapFactory::Save(url, texture->Get_Pixmap());
+	if (result == true)
 	{
-		TextureFactory* factory = *iter;
-		bool result = factory->Try_Save(url, texture, flags);
-		if (result != false)
-		{
-			DBG_LOG("Saved texture: %s", url);
-			return result;
-		}
+		DBG_LOG("Saved texture: %s", url);
 	}
-
-	DBG_LOG("Failed to save texture: %s", url);
-	return NULL;
+	else
+	{
+		DBG_LOG("Failed to save texture: %s", url);
+	}
+	return result;
 }
 
 TextureHandle* TextureFactory::Load(const char* url, TextureFlags::Type flags)
@@ -53,34 +51,35 @@ TextureHandle* TextureFactory::Load(const char* url, TextureFlags::Type flags)
 
 Texture* TextureFactory::Load_Without_Handle(const char* url, TextureFlags::Type flags)
 {
-	for (LinkedList<TextureFactory*>::Iterator iter = m_factories.Begin(); iter != m_factories.End(); iter++)
+	Pixmap* result = PixmapFactory::Load(url);
+	if (result != NULL)
 	{
-		TextureFactory* factory = *iter;
-		Texture* result = factory->Try_Load(url, flags);
-		if (result != NULL)
+		// Create texture.
+		Texture* texture = Renderer::Get()->Create_Texture(result, flags);
+		if (texture == NULL)
+		{
+			DBG_LOG("Failed to load texture: %s", url);
+			delete result;
+			return NULL;
+		}
+		else
 		{
 			DBG_LOG("Loaded texture: %s", url);
-			return result;
+			return texture;
 		}
 	}
-
-	DBG_LOG("Failed to load texture: %s", url);
-	return NULL;
+	else
+	{
+		DBG_LOG("Failed to load texture: %s", url);
+	}
 }
 
-TextureFactory::TextureFactory()
-{
-	m_factories.Add(this);
-}
-
-TextureFactory::~TextureFactory()
+void TextureFactory::Dispose()
 {
 	for (HashTable<TextureHandle*, int>::Iterator iter = m_loaded_textures.Begin(); iter != m_loaded_textures.End(); iter++)
 	{
 		TextureHandle* handle = *iter;
 		SAFE_DELETE(handle);
 	}
-
 	m_loaded_textures.Clear();
-	m_factories.Remove(m_factories.Find(this));
 }

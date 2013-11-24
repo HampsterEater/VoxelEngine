@@ -20,6 +20,11 @@ Rect::Rect(float x, float y, float w, float h)
 	Height = h;
 }
 
+bool Rect::Intersects(Point p)
+{
+	return (p.X >= X && p.Y >= Y && p.X < X + Width && p.Y < Y + Height);
+}
+
 std::string Rect::To_String()
 {
 	return StringHelper::To_String(X) + "," + StringHelper::To_String(Y) + "," + StringHelper::To_String(Width)+ "," + StringHelper::To_String(Height);	

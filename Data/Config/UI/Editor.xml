@@ -1,0 +1,137 @@
+<xml>
+	<layout>
+	
+		<!-- Menu/Main Panel Container -->
+		<element name="main_container" type="SplitContainer" box="0,0,1,1" direction="horizontal" resizable="false">
+
+			<!-- Menu -->		
+			<element name="menu_container_item" type="SplitContainerItem" size="26" fixed="true">
+
+				<element name="menu" type="MenuBar" box="0,0,1,1" itempadding="8,7,8,13">
+					
+					<element name="file_menu" type="MenuItem" value="File">
+						<element name="new_menu" type="MenuItem" value="New Map" icon="icon_new_file" />				
+						<element name="open_menu" type="MenuItem" value="Open Map" />				
+						<element name="save_menu" type="MenuItem" value="Save Map" />			
+						<element name="sep1" type="MenuItem" value="" />
+						<element name="recent_files_menu" type="MenuItem" value="Recent Files">
+							<element name="recent_file_0_menu" type="MenuItem" value="File 0" />				
+							<element name="recent_file_1_menu" type="MenuItem" value="File 1" />				
+							<element name="recent_file_2_menu" type="MenuItem" value="File 2" />				
+							<element name="recent_file_3_menu" type="MenuItem" value="File 3" />				
+							<element name="recent_file_4_menu" type="MenuItem" value="File 4" />				
+						</element>	
+						<element name="sep1" type="MenuItem" value="" />
+						<element name="quit_menu" type="MenuItem" value="Close Editor" />				
+					</element>
+					
+					<element name="edit_menu" type="MenuItem" value="Edit">		
+						<element name="A" type="MenuItem" value="Undo" />				
+						<element name="B" type="MenuItem" value="Redo" />				
+						<element name="C" type="MenuItem" value="" />				
+						<element name="C" type="MenuItem" value="Cut" />				
+						<element name="C" type="MenuItem" value="Copy" />				
+						<element name="C" type="MenuItem" value="Paste" />				
+						<element name="C" type="MenuItem" value="" />				
+						<element name="C" type="MenuItem" value="Add" />				
+						<element name="C" type="MenuItem" value="Subtract" />					
+					</element>
+					
+					<element name="map_menu"  type="MenuItem" value="Map">
+						<element name="C" type="MenuItem" value="Map Properties" />										
+					</element>
+					
+					<element name="windows_menu"  type="MenuItem" value="Windows">
+						<element name="C" type="MenuItem" value="Prefab Viewer" />	
+						<element name="C" type="MenuItem" value="Palette Viewer" />		
+						<element name="C" type="MenuItem" value="" />					
+						<element name="C" type="MenuItem" value="UI Editor" />										
+						<element name="C" type="MenuItem" value="Profiler" />										
+					</element>
+					
+					<element name="help_menu" type="MenuItem" value="Help">
+						<element name="C" type="MenuItem" value="Help" />				
+						<element name="C" type="MenuItem" value="" />				
+						<element name="C" type="MenuItem" value="About" />							
+					</element>
+					
+				</element>	
+				
+			</element>
+		
+			<!-- Toolbar/Camera Panel -->
+			<element name="toolbarcamera_container_item" type="SplitContainerItem" fixed="false">
+			
+				<element name="toolbar_container" type="SplitContainer" box="0,0,1,1" direction="vertical" resizable="false">
+
+					<!-- Toolbar -->		
+					<element name="toolbar_container_item" type="SplitContainerItem" size="40" fixed="true">					
+						<element name="toolbar" type="Toolbar" box="0,0,1,1" backcolor="255,255,255,255">
+							<element name="pencil_toolbar_item" type="ToolbarItem" icon="icon_pencil" />		
+							<element name="rect_toolbar_item" type="ToolbarItem" icon="icon_rect" />						
+							<element name="circle_toolbar_item" type="ToolbarItem" icon="icon_circle" />						
+							<element name="" type="ToolbarItem" icon="" />						
+							<element name="add_toolbar_item" type="ToolbarItem" icon="icon_add" />						
+							<element name="subtract_toolbar_item" type="ToolbarItem" icon="icon_subtract" />						
+							<element name="" type="ToolbarItem" icon="" />						
+							<element name="cut_toolbar_item" type="ToolbarItem" icon="icon_cut" />						
+							<element name="copy_toolbar_item" type="ToolbarItem" icon="icon_copy" />						
+							<element name="paste_toolbar_item" type="ToolbarItem" icon="icon_paste" />						
+						</element>
+					</element>					
+						
+					<!-- Camera Panel -->		
+					<element name="camera_container_item" type="SplitContainerItem" fixed="false">					
+						
+						<element name="camera_horizontal_split_container" type="SplitContainer" box="0,0,1,1" direction="vertical" resizable="true">
+							<element name="camera_horizontal_split_container_1" type="SplitContainerItem" fixed="false">
+							
+								<element name="camera_vertical_split_container_1" type="SplitContainer" box="0,0,1,1" direction="horizontal" resizable="true">
+									<element name="camera_vertical_split_container_1_1" type="SplitContainerItem" fixed="false">
+										<element name="camera_panel_tl" type="Panel" box="0,0,1,1" backcolor="128,128,128,255" /> 
+									</element>
+									<element name="camera_vertical_split_container_1_2" type="SplitContainerItem" fixed="false">
+										<element name="camera_panel_bl" type="Panel" box="0,0,1,1" backcolor="128,128,128,255" />
+									</element>
+								</element>
+							
+							</element>
+							<element name="camera_horizontal_split_container_2" type="SplitContainerItem" fixed="false">
+														
+								<element name="camera_vertical_split_container_2" type="SplitContainer" box="0,0,1,1" direction="horizontal" resizable="true">
+									<element name="camera_vertical_split_container_2_1" type="SplitContainerItem" fixed="false">
+										<element name="camera_panel_tr" type="Panel" box="0,0,1,1" backcolor="128,128,128,255" />
+									</element>
+									<element name="camera_vertical_split_container_2_2" type="SplitContainerItem" fixed="false">
+										<element name="camera_panel_br" type="Panel" box="0,0,1,1" backcolor="128,128,128,255" />
+									</element>
+								</element>
+							
+							</element>
+						</element>
+
+					</element>
+
+				</element>
+					
+			</element>
+
+		</element>
+		
+		<!-- Version Info -->
+		<element name="versioninfo" type="Label" forecolor="64,64,64,64" box="0,0,1,20" padding="0,0,7,00" halign="right" valign="bottom" value="##PLACEHOLDER##"/>
+		
+		<!--
+		<element name="versioninfo2" type="Label" forecolor="255,255,255,255" box="0.1,0.1,0.8,0.8" padding="0,0,5,5" halign="center" valign="center" value="Lorem Ipsum is simply dummy text of the printing and 
+typesetting industry. Lorem Ipsum has been the industry's standard dummy 
+text ever since the 1500s, when an unknown printer took a galley of type
+and scrambled it to make a type specimen book. It has survived not only 
+five centuries, but also the leap into electronic typesetting, remaining 
+essentially unchanged. It was popularised in the 1960s with the release 
+of Letraset sheets containing Lorem Ipsum passages, and more recently 
+with desktop publishing software like Aldus PageMaker including versions 
+of Lorem Ipsum."/>
+		-->
+		
+	</layout>
+</xml>

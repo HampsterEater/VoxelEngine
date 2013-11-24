@@ -22,6 +22,51 @@
 #define DEBUG_BUILD
 #endif
 
+// Architecture types.
+#if defined(__i386__) || defined(_M_IX86) || defined(_X86_)
+	#define PLATFORM_32BIT
+    #define PLATFORM_X86     
+#elif defined(__x86_64__) || defined(_M_X64) || defined(__amd64__)
+	#define PLATFORM_64BIT
+    #define PLATFORM_X64     
+    #define PLATFORM_AMD64   
+#elif defined(__amd64__) || defined(_M_IA64)
+	#define PLATFORM_64BIT
+    #define PLATFORM_ITANIUM64   
+#elif defined(_M_PPC)
+	#define PLATFORM_32BIT
+	#define PLATFORM_PPC		
+#else
+	#error "Unsupported platform."
+#endif
+
+// Endianness defines
+#if defined(_M_PPCBE) || defined(__BIG_ENDIAN__) || defined(_BIG_ENDIAN)
+    #define PLATFORM_BIG_ENDIAN  1
+#elif defined(_M_PPC) || defined(__LITTLE_ENDIAN__) || defined(_LITTLE_ENDIAN)
+    #define PLATFORM_LITTLE_ENDIAN   1
+#elif defined(__BYTE_ORDER) && __BYTE_ORDER == _LITTLE_ENDIAN
+    #define PLATFORM_LITTLE_ENDIAN   1
+#elif defined(__BYTE_ORDER) && __BYTE_ORDER == _BIG_ENDIAN
+    #define PLATFORM_BIG_ENDIAN      1
+#elif defined(__sparc) || defined(__sparc__) \
+    || defined(_POWER) || defined(__powerpc__) \
+    || defined(__ppc__) || defined(__hpux) \
+    || defined(_MIPSEB) || defined(_POWER) \
+    || defined(__s390__)
+    #define PLATFORM_BIG_ENDIAN      1
+#elif defined(__i386__) || defined(__alpha__) \
+    || defined(__ia64) || defined(__ia64__) \
+    || defined(_M_IX86) || defined(_M_IA64) \
+    || defined(_M_ALPHA) || defined(__amd64) \
+    || defined(__amd64__) || defined(_M_AMD64) \
+    || defined(__x86_64) || defined(__x86_64__) \
+    || defined(_M_X64) || defined(__bfin__)
+    #define PLATFORM_LITTLE_ENDIAN   1
+#else
+	#error "Unsupported platform."
+#endif
+
 // Libraries always included for each platform.
 #ifdef PLATFORM_WIN32
 #include <stdio.h>
@@ -51,7 +96,6 @@
 
 	#define DBG_LOG(format, ...) \
 		printf(format "\n", __VA_ARGS__); 
-	//"[" __FUNCTION__  ":%i] " 
 #else
 	#error "Unsupported platform."
 #endif

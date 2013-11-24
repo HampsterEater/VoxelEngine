@@ -28,6 +28,10 @@ public:
 
 	Vector3 To_Vector3();
 	Vector4 To_Vector4();
+	
+	// Operators.
+	bool operator==(Color& rhs) const;
+	bool operator!=(Color& rhs) const;
 
 	static bool Parse(const char* value, Color& output);
 

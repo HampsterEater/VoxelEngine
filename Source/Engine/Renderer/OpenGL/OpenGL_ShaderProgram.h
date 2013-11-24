@@ -32,6 +32,7 @@ public:
 	void Bind_Vector	(const char* name, Vector4 vector);
 	void Bind_Float		(const char* name, float value);
 	void Bind_Int		(const char* name, int value);
+	void Bind_Bool		(const char* name, bool value);
 
 	GLuint Get_ID();
 

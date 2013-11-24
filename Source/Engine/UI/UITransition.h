@@ -21,8 +21,8 @@ public:
 
 	virtual bool Is_Complete() = 0;
 
-	virtual void Tick(const FrameTime& time, UIManager* manager, UIScene* prev, UIScene* next, int scene_index) = 0;
-	virtual void Draw(const FrameTime& time, UIManager* manager, UIScene* prev, UIScene* next, int scene_index) = 0;
+	virtual void Tick(const FrameTime& time, UIManager* manager, UIScene* prev, UIScene* next, int scene_index, int next_scene_index) = 0;
+	virtual void Draw(const FrameTime& time, UIManager* manager, UIScene* prev, UIScene* next, int scene_index, int next_scene_index) = 0;
 
 };
 

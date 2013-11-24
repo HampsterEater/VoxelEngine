@@ -26,7 +26,7 @@ public:
 	Camera();
 
 	// Get modifiers.
-	Frustum Get_Frustum();
+	virtual Frustum Get_Frustum();
 
 	virtual Rect Get_Viewport();
 	virtual void Set_Viewport(Rect rect);
@@ -42,6 +42,9 @@ public:
 
 	virtual Matrix4 Get_Projection_Matrix();
 	virtual Matrix4 Get_View_Matrix();
+
+	// Unproject screen coordinates.
+	virtual Vector3 Unproject(Vector3 position);
 
 };
 

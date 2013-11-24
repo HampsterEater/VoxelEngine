@@ -16,13 +16,25 @@
 
 // TODO: Buffered rendering.
 
-FontRenderer::FontRenderer(FontHandle* font, bool buffered)
+FontRenderer::FontRenderer()
+	: m_buffered(NULL)
+	, m_font(NULL)
+	, m_buffer_target(NULL)
+	, m_buffer_texture(NULL)
+	, m_buffer_text(NULL)
+	, m_buffer_text_length(0)
+	, m_shadow(true)
+{
+}
+
+FontRenderer::FontRenderer(FontHandle* font, bool buffered, bool shadow)
 	: m_buffered(buffered)
 	, m_font(font)
 	, m_buffer_target(NULL)
 	, m_buffer_texture(NULL)
 	, m_buffer_text(NULL)
 	, m_buffer_text_length(0)
+	, m_shadow(shadow)
 {
 }
 
@@ -33,7 +45,7 @@ FontRenderer::~FontRenderer()
 	SAFE_DELETE(m_buffer_text);
 }
 
-void FontRenderer::Draw_String(const FrameTime& time, const char* text, Point location, float size, Point extra_spacing)
+void FontRenderer::Draw_String(const FrameTime& time, const char* text, Point location, Color color, float size, Point extra_spacing)
 {
 	Font*					font		= m_font->Get();
 	Renderer*				renderer	= Renderer::Get();
@@ -51,15 +63,19 @@ void FontRenderer::Draw_String(const FrameTime& time, const char* text, Point lo
 
 	pipeline->Apply_Shader(time, shader); 
 	pipeline->Update_Shader_Uniforms();
-	shader->Shader_Program->Bind_Texture("g_texture", 0);
-	shader->Shader_Program->Bind_Float	("g_scale", scale);
-	shader->Shader_Program->Bind_Float	("g_spread", sdf_spread);
+	shader->Shader_Program->Bind_Texture("g_texture",		0);
+	shader->Shader_Program->Bind_Float	("g_scale",			scale);
+	shader->Shader_Program->Bind_Float	("g_spread",		sdf_spread);
+	shader->Shader_Program->Bind_Vector	("g_color",			color.To_Vector4());	
+	shader->Shader_Program->Bind_Bool	("g_draw_shadow",	m_shadow);
 
 	// Draw each glyph!
 	Texture* glyph_texture = NULL;
-	float offset_x = location.X;
-	float offset_y = location.Y + size;// - size;
-	int length = strlen(text);
+	float pen_x = (location.X);
+	float pen_y = (location.Y + baseline);// - (baseline * scale);// - size;
+	int length = strlen(text); 
+
+	float glyph_padding_px = 2;
 
 	for (int i = 0; i < length; i++)
 	{
@@ -69,8 +85,8 @@ void FontRenderer::Draw_String(const FrameTime& time, const char* text, Point lo
 		// Newline?
 		if (glyph == '\n')
 		{
-			offset_y += size + extra_spacing.Y;
-			offset_x = location.X;
+			pen_y += size + 1 + extra_spacing.Y;
+			pen_x = location.X;
 			continue;
 		}
 
@@ -80,47 +96,58 @@ void FontRenderer::Draw_String(const FrameTime& time, const char* text, Point lo
 			renderer->Bind_Texture(font_glyph.Texture, 0);
 			glyph_texture = font_glyph.Texture;
 		}
+			
+		// Calculate padding.
+		float glyph_padding_uv = (glyph_padding_px / glyph_texture->Get_Width()) ;
 
 		// Calculate position of glyph.
+		// TODO: Pad glyph
 		Rect uv = font_glyph.UV;
+		uv.X		-= glyph_padding_uv;
+		uv.Y		+= glyph_padding_uv;
+		uv.Width	+= glyph_padding_uv * 4;
+		uv.Height	+= glyph_padding_uv * 4;
+
 		Rect rect = Rect(
-				ceilf(offset_x + (font_glyph.Offset.X * scale)), 
-				ceilf(offset_y + (font_glyph.Offset.Y * scale)), 
-				ceilf(font_glyph.Size.X * scale), 
-				ceilf(font_glyph.Size.Y * scale)
+				((pen_x) + (font_glyph.Offset.X * scale)) - glyph_padding_px, 
+				((pen_y) + (font_glyph.Offset.Y * scale)) - glyph_padding_px, 
+				Max((font_glyph.Size.X * scale), 2) + (glyph_padding_px*2), 
+				(font_glyph.Size.Y * scale) + (glyph_padding_px*2)
 			);
 		
 		// Draw!
 		renderer->Draw_Quad(rect, uv);
 
 		// Advance the char offset.
-		offset_x += (font_glyph.Advance.X * scale) + extra_spacing.X;
+		pen_x += (font_glyph.Advance.X * scale) + extra_spacing.X;
 	}
 	
 	// Finished!
 	renderer->Set_Alpha_Test(true);
 }
 
-void FontRenderer::Draw_String(const FrameTime& time, const char* text, Rect bounds, TextAlignment::Type horizontal_align, TextAlignment::Type vertical_align)
+void FontRenderer::Draw_String(const FrameTime& time, const char* text, Rect bounds, Color color, TextAlignment::Type horizontal_align, TextAlignment::Type vertical_align)
 { 
 	// Has we already buffered this string?
 	// TO
 
 	// Measure string size and scale font to fit it in.
-	Point string_size = Calculate_String_Size(time, text, 16.0f);
+	Point string_size = Calculate_String_Size(text, 16.0f);
 
-	float x_delta = string_size.X - bounds.Width;
-	float y_delta = string_size.Y - bounds.Height;
+	float x_delta = abs(string_size.X - bounds.Width);
+	float y_delta = abs(string_size.Y - bounds.Height);
 	float scale	  = 1.0f;
 
-	if (x_delta > y_delta)
-	{
-		scale = Min(1.0f, bounds.Width / string_size.X);
-	}
-	else
-	{
+//	if (x_delta > y_delta)
+//	{
+//		scale = Min(1.0f, bounds.Width / string_size.X);
+//	}
+//	else
+//	{
 		scale = Min(1.0f, bounds.Height / string_size.Y);
-	}
+//	}
+
+	//scale = 16.0f;
 
 	float font_size = 16.0f * scale;
 	string_size = Point(string_size.X * scale, string_size.Y * scale);
@@ -158,7 +185,7 @@ void FontRenderer::Draw_String(const FrameTime& time, const char* text, Rect bou
 	}
 
 	// Render each line individually with appropriate alignment.
-	float pen_y = y_offset;
+	float pen_y = bounds.Y + y_offset;
 	for (std::vector<std::string>::iterator iter = lines.begin(); iter != lines.end(); iter++)
 	{
 		std::string& line = *iter;
@@ -168,36 +195,36 @@ void FontRenderer::Draw_String(const FrameTime& time, const char* text, Rect bou
 		{
 		case TextAlignment::Left:	
 			{
-				Draw_String(time, line.c_str(), Point(bounds.X, pen_y), font_size, Point(0, extra_spacing_y));
+				Draw_String(time, line.c_str(), Point(bounds.X, pen_y), color, font_size, Point(0, extra_spacing_y));
 				break;
 			}
 		case TextAlignment::Center:
 			{
-				Point size = Calculate_String_Size(time, line.c_str(), font_size);
-				Draw_String(time, line.c_str(), Point((bounds.X + (bounds.Width / 2)) - (size.X / 2), pen_y), font_size, Point(0, extra_spacing_y));
+				Point size = Calculate_String_Size(line.c_str(), font_size);
+				Draw_String(time, line.c_str(), Point((bounds.X + (bounds.Width / 2)) - (size.X / 2), pen_y), color, font_size, Point(0, extra_spacing_y));
 				break;
 			}
 		case TextAlignment::Right:	
 			{
-				Point size = Calculate_String_Size(time, line.c_str(), font_size);
-				Draw_String(time, line.c_str(), Point(bounds.X + bounds.Width - size.X, pen_y), font_size, Point(0, extra_spacing_y));
+				Point size = Calculate_String_Size(line.c_str(), font_size);
+				Draw_String(time, line.c_str(), Point(bounds.X + bounds.Width - size.X, pen_y), color, font_size, Point(0, extra_spacing_y));
 				break;
 			}		
 		case TextAlignment::Justified:
 			{
-				Point size = Calculate_String_Size(time, line.c_str(), font_size);
+				Point size = Calculate_String_Size(line.c_str(), font_size);
 				float extra_spacing = (bounds.Width - size.X) / line.length(); // TODO: Utf8 decoding for length.
-				Draw_String(time, line.c_str(), Point(bounds.X, pen_y), font_size, Point(extra_spacing, 0));
+				Draw_String(time, line.c_str(), Point(bounds.X, pen_y), color, font_size, Point(extra_spacing, 0));
 				break;
 			}
 		default: DBG_ASSERT_STR(false, "Invalid horizontal alignment.");
 		}
 		
-		pen_y += font_size + extra_spacing_y;
+		pen_y += font_size + 1 + extra_spacing_y;
 	}
 }
 
-Point FontRenderer::Calculate_String_Size(const FrameTime& time, const char* text, float size)
+Point FontRenderer::Calculate_String_Size(const char* text, float size)
 {
 	Font*	font		= m_font->Get();
 	float	sdf_spread	= font->Get_SDF_Spread();
@@ -208,9 +235,9 @@ Point FontRenderer::Calculate_String_Size(const FrameTime& time, const char* tex
 	Texture* glyph_texture = NULL;
 	float max_x			= 0;
 	float max_y			= 0;
-	float offset_x		= 0;
-	float offset_y		= size;
-	float line_height	= size;
+	float line_height	= font->Get_SDF_Source_Size();
+	float pen_x			= 0;
+	float pen_y			= line_height * scale;
 	int   length		= strlen(text);
 
 	for (int i = 0; i < length; i++)
@@ -221,28 +248,28 @@ Point FontRenderer::Calculate_String_Size(const FrameTime& time, const char* tex
 		// Newline?
 		if (glyph == '\n')
 		{
-			offset_y += font->Get_SDF_Source_Size();
-			offset_x = 0;
+			pen_y += line_height;
+			pen_x = 0;
 			continue;
 		}
 
 		// Calculate position of glyph.
 		Rect rect = Rect(
-				(offset_x + (font_glyph.Offset.X)), 
-				(offset_y + (font_glyph.Offset.Y)), 
-				(font_glyph.Size.X), 
-				(font_glyph.Size.Y)
-			);		
+				((pen_x) + (font_glyph.Offset.X * scale)), 
+				((pen_y) + (font_glyph.Offset.Y * scale)), 
+				Max((font_glyph.Size.X * scale), 2), 
+				(font_glyph.Size.Y * scale)
+			);
 		
 		// Measure size.
-		if (rect.Y + rect.Height > max_y)
-			max_y = rect.Y + rect.Height;
+		if (pen_y > max_y)
+			max_y = pen_y;
 		if (rect.X + rect.Width > max_x)
 			max_x = rect.X + rect.Width;
 
 		// Advance the char offset.
-		offset_x += (font_glyph.Advance.X );
+		pen_x += (font_glyph.Advance.X * scale);
 	}
 
-	return Point(ceilf(max_x * scale), ceilf(max_y * scale));
+	return Point(max_x, max_y);
 }

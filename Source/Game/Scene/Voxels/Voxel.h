@@ -11,8 +11,8 @@ struct VoxelType
 {
 	enum Type
 	{
-		Empty,
-		Solid
+		Empty	= 0,
+		Solid	= 1
 	};
 };
 
@@ -22,7 +22,8 @@ struct VoxelType
 struct Voxel
 {
 public:
-	char Type ;
+	unsigned char Type			: 2;	// range: 0-3
+	unsigned char ColorIndex	: 6;	// range: 0-63
 };
 
 #endif

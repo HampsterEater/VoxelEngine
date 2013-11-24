@@ -340,6 +340,41 @@ Matrix4 Matrix4::Translate(Vector3 vector)
 	m2.SetRow(1, 0, 1, 0, vector.Y);
 	m2.SetRow(2, 0, 0, 1, vector.Z);
 	m2.SetRow(3, 0, 0, 0, 1);
-
 	return m2;
 }
+
+Matrix4 Matrix4::RotateX(float a)
+{
+	Matrix4 m2;
+	m2.SetRow(0, 1, 0,		0,		0);
+	m2.SetRow(1, 0, cos(a),-sin(a), 0);
+	m2.SetRow(2, 0, sin(a),	cos(a), 0);
+	m2.SetRow(3, 0, 0,		0,		1);
+	return m2;
+}
+
+Matrix4 Matrix4::RotateY(float a)
+{
+	Matrix4 m2;
+	m2.SetRow(0,  cos(a),	0,	sin(a),	0);
+	m2.SetRow(1,  0,		1,	0,		0);
+	m2.SetRow(2, -sin(a),	0,	cos(a), 0);
+	m2.SetRow(3,  0,		0,	0,		1);
+	return m2;
+}
+
+Matrix4 Matrix4::RotateZ(float a)
+{
+	Matrix4 m2;
+	m2.SetRow(0,  cos(a),	-sin(a),	0,	0);
+	m2.SetRow(1,  sin(a),	cos(a),		0,	0);
+	m2.SetRow(2,  0,		0,			1,	0);
+	m2.SetRow(3,  0,		0,			0,	1);
+	return m2;
+}
+
+Matrix4 Matrix4::Rotate(Vector3 vector)
+{
+	return RotateX(vector.X) * RotateY(vector.Y) * RotateZ(vector.Z);
+}
+

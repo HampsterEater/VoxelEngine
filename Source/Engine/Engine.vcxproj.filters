@@ -163,6 +163,30 @@
     <Filter Include="Header Files\Tasks">
       <UniqueIdentifier>{dc225c88-2db0-4644-9a13-9a503bb3d3b5}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Renderer\Atlases">
+      <UniqueIdentifier>{a7f7b384-282b-44e3-84d6-410661c09ecb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Renderer\Atlases">
+      <UniqueIdentifier>{21458556-8340-478a-89e1-9a1581a2bb20}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\UI\Layouts">
+      <UniqueIdentifier>{74f18b68-8013-4450-b9f1-25d4c08af89a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\UI\Layouts">
+      <UniqueIdentifier>{6b3ee5c5-7d46-4679-a0a8-881e54e64b7a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Input">
+      <UniqueIdentifier>{650de775-5db5-40ee-95cb-56591d590ff1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Input">
+      <UniqueIdentifier>{dd7c6f12-d977-4481-9ee7-066c215347fb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Input\Win32">
+      <UniqueIdentifier>{fed32da2-9825-429b-9adb-193c0bb83efe}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Input\Win32">
+      <UniqueIdentifier>{815148a2-71b7-4a30-90b3-20bc33411a91}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Engine\GameEngine.cpp">
@@ -224,9 +248,6 @@
     </ClCompile>
     <ClCompile Include="IO\Win32\Win32_FileStreamFactory.cpp">
       <Filter>Source Files\IO\Win32</Filter>
-    </ClCompile>
-    <ClCompile Include="Renderer\Textures\PNG\PNGTextureFactory.cpp">
-      <Filter>Source Files\Renderer\Textures\PNG</Filter>
     </ClCompile>
     <ClCompile Include="Renderer\OpenGL\OpenGL_Texture.cpp">
       <Filter>Source Files\Renderer\OpenGL</Filter>
@@ -315,9 +336,6 @@
     <ClCompile Include="UI\UITransition.cpp">
       <Filter>Source Files\UI</Filter>
     </ClCompile>
-    <ClCompile Include="UI\UILayout.cpp">
-      <Filter>Source Files\UI</Filter>
-    </ClCompile>
     <ClCompile Include="Localise\Locale.cpp">
       <Filter>Source Files\Localise</Filter>
     </ClCompile>
@@ -356,6 +374,87 @@
     </ClCompile>
     <ClCompile Include="Tasks\Task.cpp">
       <Filter>Source Files\Tasks</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Atlases\Atlas.cpp">
+      <Filter>Source Files\Renderer\Atlases</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Atlases\AtlasFactory.cpp">
+      <Filter>Source Files\Renderer\Atlases</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Atlases\AtlasHandle.cpp">
+      <Filter>Source Files\Renderer\Atlases</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Atlases\AtlasResourceCompiler.cpp">
+      <Filter>Source Files\Renderer\Atlases</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Atlases\AtlasRenderer.cpp">
+      <Filter>Source Files\Renderer\Atlases</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Layouts\UILayout.cpp">
+      <Filter>Source Files\UI\Layouts</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Layouts\UILayoutHandle.cpp">
+      <Filter>Source Files\UI\Layouts</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Layouts\UILayoutFactory.cpp">
+      <Filter>Source Files\UI\Layouts</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Elements\UIMenuBar.cpp">
+      <Filter>Source Files\UI\Elements</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Elements\UIMenuItem.cpp">
+      <Filter>Source Files\UI\Elements</Filter>
+    </ClCompile>
+    <ClCompile Include="Platform\Win32\Win32_EntryPoint.cpp">
+      <Filter>Source Files\Platform\Win32</Filter>
+    </ClCompile>
+    <ClCompile Include="Input\Input.cpp">
+      <Filter>Source Files\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="Input\Win32\Win32_Input.cpp">
+      <Filter>Source Files\Input\Win32</Filter>
+    </ClCompile>
+    <ClCompile Include="Input\Win32\Win32_KeyboardState.cpp">
+      <Filter>Source Files\Input\Win32</Filter>
+    </ClCompile>
+    <ClCompile Include="Input\Win32\Win32_MouseState.cpp">
+      <Filter>Source Files\Input\Win32</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\UIFrame.cpp">
+      <Filter>Source Files\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Elements\UILabel.cpp">
+      <Filter>Source Files\UI\Elements</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Textures\Pixmap.cpp">
+      <Filter>Source Files\Renderer\Textures</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Textures\PNG\PNGPixmapFactory.cpp">
+      <Filter>Source Files\Renderer\Textures\PNG</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Textures\PixmapFactory.cpp">
+      <Filter>Source Files\Renderer\Textures</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Elements\UISplitContainer.cpp">
+      <Filter>Source Files\UI\Elements</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Elements\UISplitContainerItem.cpp">
+      <Filter>Source Files\UI\Elements</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Elements\UIPanel.cpp">
+      <Filter>Source Files\UI\Elements</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\PrimitiveRenderer.cpp">
+      <Filter>Source Files\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Elements\UIToolbar.cpp">
+      <Filter>Source Files\UI\Elements</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Elements\UIToolbarItem.cpp">
+      <Filter>Source Files\UI\Elements</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\UIEvent.cpp">
+      <Filter>Source Files\UI</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -398,9 +497,6 @@
     <ClInclude Include="Engine\GameRunner.h">
       <Filter>Header Files\Engine</Filter>
     </ClInclude>
-    <ClInclude Include="Display\Keys.h">
-      <Filter>Header Files\Display</Filter>
-    </ClInclude>
     <ClInclude Include="Renderer\Drawable.h">
       <Filter>Header Files\Renderer</Filter>
     </ClInclude>
@@ -421,9 +517,6 @@
     </ClInclude>
     <ClInclude Include="IO\Win32\Win32_FileStreamFactory.h">
       <Filter>Header Files\IO\Win32</Filter>
-    </ClInclude>
-    <ClInclude Include="Renderer\Textures\PNG\PNGTextureFactory.h">
-      <Filter>Header Files\Renderer\Textures\PNG</Filter>
     </ClInclude>
     <ClInclude Include="Renderer\OpenGL\OpenGL_Texture.h">
       <Filter>Header Files\Renderer\OpenGL</Filter>
@@ -515,9 +608,6 @@
     <ClInclude Include="UI\UITransition.h">
       <Filter>Header Files\UI</Filter>
     </ClInclude>
-    <ClInclude Include="UI\UILayout.h">
-      <Filter>Header Files\UI</Filter>
-    </ClInclude>
     <ClInclude Include="Localise\Locale.h">
       <Filter>Header Files\Localise</Filter>
     </ClInclude>
@@ -554,6 +644,102 @@
     <ClInclude Include="Tasks\Task.h">
       <Filter>Header Files\Tasks</Filter>
     </ClInclude>
+    <ClInclude Include="Renderer\Atlases\Atlas.h">
+      <Filter>Header Files\Renderer\Atlases</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Atlases\AtlasFactory.h">
+      <Filter>Header Files\Renderer\Atlases</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Atlases\AtlasHandle.h">
+      <Filter>Header Files\Renderer\Atlases</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Atlases\AtlasResourceCompiler.h">
+      <Filter>Header Files\Renderer\Atlases</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Atlases\AtlasRenderer.h">
+      <Filter>Header Files\Renderer\Atlases</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Layouts\UILayout.h">
+      <Filter>Header Files\UI\Layouts</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Layouts\UILayoutHandle.h">
+      <Filter>Header Files\UI\Layouts</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Layouts\UILayoutFactory.h">
+      <Filter>Header Files\UI\Layouts</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Elements\UIMenuBar.h">
+      <Filter>Header Files\UI\Elements</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Elements\UIMenuItem.h">
+      <Filter>Header Files\UI\Elements</Filter>
+    </ClInclude>
+    <ClInclude Include="Version.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Platform\Win32\Win32_EntryPoint.h">
+      <Filter>Header Files\Platform\Win32</Filter>
+    </ClInclude>
+    <ClInclude Include="Input\Input.h">
+      <Filter>Header Files\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="Input\Win32\Win32_Input.h">
+      <Filter>Header Files\Input\Win32</Filter>
+    </ClInclude>
+    <ClInclude Include="Input\KeyboardState.h">
+      <Filter>Header Files\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="Input\MouseState.h">
+      <Filter>Header Files\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="Input\Win32\Win32_KeyboardState.h">
+      <Filter>Header Files\Input\Win32</Filter>
+    </ClInclude>
+    <ClInclude Include="Input\Win32\Win32_MouseState.h">
+      <Filter>Header Files\Input\Win32</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\UIFrame.h">
+      <Filter>Header Files\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Elements\UILabel.h">
+      <Filter>Header Files\UI\Elements</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Textures\Pixmap.h">
+      <Filter>Header Files\Renderer\Textures</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Textures\PNG\PNGPixmapFactory.h">
+      <Filter>Header Files\Renderer\Textures\PNG</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Textures\PixmapFactory.h">
+      <Filter>Header Files\Renderer\Textures</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Textures\TextureFormat.h">
+      <Filter>Header Files\Renderer\Textures</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Textures\PixmapFormat.h">
+      <Filter>Header Files\Renderer\Textures</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Elements\UISplitContainer.h">
+      <Filter>Header Files\UI\Elements</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Elements\UISplitContainerItem.h">
+      <Filter>Header Files\UI\Elements</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Elements\UIPanel.h">
+      <Filter>Header Files\UI\Elements</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\PrimitiveRenderer.h">
+      <Filter>Header Files\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Elements\UIToolbar.h">
+      <Filter>Header Files\UI\Elements</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Elements\UIToolbarItem.h">
+      <Filter>Header Files\UI\Elements</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\UIEvent.h">
+      <Filter>Header Files\UI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Engine\GameEngineConfig.inc">
@@ -567,6 +753,12 @@
     </None>
     <None Include="Renderer\Renderer_RenderOptions.inc">
       <Filter>Header Files\Renderer</Filter>
+    </None>
+    <None Include="UI\Elements\UIElementDefinitions.inc">
+      <Filter>Header Files\UI\Elements</Filter>
+    </None>
+    <None Include="UI\UIEventList.inc">
+      <Filter>Header Files\UI</Filter>
     </None>
   </ItemGroup>
 </Project>

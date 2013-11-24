@@ -16,7 +16,6 @@
 
 Chunk::Chunk()
 {
-	// This is just here so we work with embedded linked lists.
 }
 
 Chunk::Chunk(ChunkManager* manager, int x, int y, int z, int width, int height, int depth, float voxel_width, float voxel_height, float voxel_depth)
@@ -44,6 +43,7 @@ Chunk::Chunk(ChunkManager* manager, int x, int y, int z, int width, int height, 
 	, m_is_regenerating(false)
 	, m_regeneration_count(0)
 	, m_hash(0)
+	, m_voxel_color_palette_insert_index(0)
 {	
 	int chunk_size = sizeof(Voxel) * m_width * m_height * m_depth;
 		
@@ -52,8 +52,13 @@ Chunk::Chunk(ChunkManager* manager, int x, int y, int z, int width, int height, 
 
 	m_voxels = (Voxel*)mem;
 	memset(m_voxels, 0, sizeof(Voxel) * m_width * m_height * m_depth);
+	memset(m_voxel_color_palette, 0xFF, sizeof(Color) * CHUNK_VOXEL_PALETTE_SIZE);
 
 	memset(m_neighbour_chunks, 0, sizeof(Chunk*) * 3 * 3 * 3);
+
+	// First (default) color is always white :).
+	m_voxel_color_palette[0] = Color::White;
+	m_voxel_color_palette_insert_index = 1;
 }
 
 Chunk::~Chunk()
@@ -158,12 +163,14 @@ void Chunk::Mark_Dirty(bool dirty)
 	m_is_dirty = dirty;
 }
 
-void Chunk::Fill(VoxelType::Type type, int ix, int iy, int iz, int width, int height, int depth)
+void Chunk::Fill(VoxelType::Type type, int ix, int iy, int iz, int width, int height, int depth, Color color)
 {
 	if (width <= 0 && height <= 0 && depth <= 0)
 	{
 		return;
 	}
+
+	int palette_index = Color_To_Palette_Index(color);
 
 	for (int x = ix; x < ix + m_width; x++)
 	{
@@ -174,15 +181,43 @@ void Chunk::Fill(VoxelType::Type type, int ix, int iy, int iz, int width, int he
 				int hash = Flatten_Index(x, y, z);
 
 				m_voxels[hash].Type = type;
+				m_voxels[hash].ColorIndex = palette_index;
 			}
 		}
 	}
 }
 
-void Chunk::Set(VoxelType::Type type, int x, int y, int z)
+void Chunk::Set(VoxelType::Type type, int x, int y, int z, Color color)
 {
-	int hash = Flatten_Index(x, y, z);
+	int hash = Flatten_Index(x, y, z);	
+	int palette_index = Color_To_Palette_Index(color);
+
 	m_voxels[hash].Type = type;
+	m_voxels[hash].ColorIndex = palette_index;
+}
+
+int Chunk::Color_To_Palette_Index(Color color)
+{
+	// Already in palette?
+	for (int i = 0; i < CHUNK_VOXEL_PALETTE_SIZE; i++)
+	{
+		if (m_voxel_color_palette[i] == color)
+		{
+			m_voxel_color_palette[i] = color;
+			return i;
+		}
+	}
+
+	// Insert new index.
+	int index = (m_voxel_color_palette_insert_index++ % CHUNK_VOXEL_PALETTE_SIZE);
+	m_voxel_color_palette[index] = color;
+
+	return index;
+}
+
+Color Chunk::Palette_Index_To_Color(int index)
+{
+	return m_voxel_color_palette[index];
 }
 
 void Chunk::Recalculate_State()
@@ -222,9 +257,9 @@ void Chunk::Regenerate_Voxel(Renderer* renderer, const Render_Voxel& voxel, int 
 	float half_h = m_voxel_height / 2.0f;
 	float half_d = m_voxel_depth / 2.0f;
 
-	float x = (m_x * m_width * m_voxel_width) + ((ix * m_voxel_width) + (half_w / 2.0f));
-	float y = (m_y * m_height * m_voxel_height) + ((iy * m_voxel_height) + (half_h / 2.0f));
-	float z = (m_z * m_depth * m_voxel_depth) + ((iz * m_voxel_depth) + (half_d / 2.0f));
+	float x = (m_x * m_width * m_voxel_width) + ((ix * m_voxel_width) + (half_w));
+	float y = (m_y * m_height * m_voxel_height) + ((iy * m_voxel_height) + (half_h));
+	float z = (m_z * m_depth * m_voxel_depth) + ((iz * m_voxel_depth) + (half_d));
 
 	Vector3 p1(x - half_w, y - half_h, z + half_d);
 	Vector3 p2(x + half_w, y - half_h, z + half_d);
@@ -237,8 +272,13 @@ void Chunk::Regenerate_Voxel(Renderer* renderer, const Render_Voxel& voxel, int 
 	
 	Vector3 n1;
     int v1, v2, v3, v4, v5, v6, v7, v8;	
-    float r = 1.0f, g = 1.0f, b = 1.0f, a = 1.0f;
 	float uv_t = 1.0f, uv_l = 0.0f, uv_b = 0.0f, uv_r = 0.0f;
+
+	Color color = Palette_Index_To_Color(voxel.voxel->ColorIndex);
+	float r = color.R;
+	float g = color.G;
+	float b = color.B;
+	float a = color.A;
 
 	// Front
 	if (voxel.render_front_face == true)
@@ -252,8 +292,8 @@ void Chunk::Regenerate_Voxel(Renderer* renderer, const Render_Voxel& voxel, int 
 		v3 = renderer->Add_Mesh_Vertex(m_mesh_id, p3, n1, r, g, b, a, uv_r, uv_t);
 		v4 = renderer->Add_Mesh_Vertex(m_mesh_id, p4, n1, r, g, b, a, uv_l, uv_t);
 
-		renderer->Add_Mesh_Triangle(m_mesh_id, v1, v2, v3);
-		renderer->Add_Mesh_Triangle(m_mesh_id, v1, v3, v4);
+		renderer->Add_Mesh_Primitive(m_mesh_id, v1, v2, v3);
+		renderer->Add_Mesh_Primitive(m_mesh_id, v1, v3, v4);
 	}
 
     // Back
@@ -268,8 +308,8 @@ void Chunk::Regenerate_Voxel(Renderer* renderer, const Render_Voxel& voxel, int 
 		v7 = renderer->Add_Mesh_Vertex(m_mesh_id, p7, n1, r, g, b, a, uv_r, uv_t);
 		v8 = renderer->Add_Mesh_Vertex(m_mesh_id, p8, n1, r, g, b, a, uv_l, uv_t);
 
-		renderer->Add_Mesh_Triangle(m_mesh_id, v5, v6, v7);
-		renderer->Add_Mesh_Triangle(m_mesh_id, v5, v7, v8);
+		renderer->Add_Mesh_Primitive(m_mesh_id, v5, v6, v7);
+		renderer->Add_Mesh_Primitive(m_mesh_id, v5, v7, v8);
 	}
 
     // Right
@@ -284,8 +324,8 @@ void Chunk::Regenerate_Voxel(Renderer* renderer, const Render_Voxel& voxel, int 
 		v8 = renderer->Add_Mesh_Vertex(m_mesh_id, p8, n1, r, g, b, a, uv_r, uv_t);
 		v3 = renderer->Add_Mesh_Vertex(m_mesh_id, p3, n1, r, g, b, a, uv_l, uv_t);
 
-		renderer->Add_Mesh_Triangle(m_mesh_id, v2, v5, v8);
-		renderer->Add_Mesh_Triangle(m_mesh_id, v2, v8, v3);
+		renderer->Add_Mesh_Primitive(m_mesh_id, v2, v5, v8);
+		renderer->Add_Mesh_Primitive(m_mesh_id, v2, v8, v3);
 	}
 
     // left
@@ -300,8 +340,8 @@ void Chunk::Regenerate_Voxel(Renderer* renderer, const Render_Voxel& voxel, int 
 		v4 = renderer->Add_Mesh_Vertex(m_mesh_id, p4, n1, r, g, b, a, uv_r, uv_t);
 		v7 = renderer->Add_Mesh_Vertex(m_mesh_id, p7, n1, r, g, b, a, uv_l, uv_t);
 
-		renderer->Add_Mesh_Triangle(m_mesh_id, v6, v1, v4);
-		renderer->Add_Mesh_Triangle(m_mesh_id, v6, v4, v7);
+		renderer->Add_Mesh_Primitive(m_mesh_id, v6, v1, v4);
+		renderer->Add_Mesh_Primitive(m_mesh_id, v6, v4, v7);
 	}
 
     // Top
@@ -316,8 +356,8 @@ void Chunk::Regenerate_Voxel(Renderer* renderer, const Render_Voxel& voxel, int 
 		v8 = renderer->Add_Mesh_Vertex(m_mesh_id, p8, n1, r, g, b, a, uv_r, uv_b);
 		v7 = renderer->Add_Mesh_Vertex(m_mesh_id, p7, n1, r, g, b, a, uv_r, uv_t);
 
-		renderer->Add_Mesh_Triangle(m_mesh_id, v4, v3, v8);
-		renderer->Add_Mesh_Triangle(m_mesh_id, v4, v8, v7);
+		renderer->Add_Mesh_Primitive(m_mesh_id, v4, v3, v8);
+		renderer->Add_Mesh_Primitive(m_mesh_id, v4, v8, v7);
 	}
 
     // Bottom
@@ -332,8 +372,8 @@ void Chunk::Regenerate_Voxel(Renderer* renderer, const Render_Voxel& voxel, int 
 		v2 = renderer->Add_Mesh_Vertex(m_mesh_id, p2, n1, r, g, b, a, uv_l, uv_b);
 		v1 = renderer->Add_Mesh_Vertex(m_mesh_id, p1, n1, r, g, b, a, uv_r, uv_b);
 
-		renderer->Add_Mesh_Triangle(m_mesh_id, v6, v5, v2);
-		renderer->Add_Mesh_Triangle(m_mesh_id, v6, v2, v1);
+		renderer->Add_Mesh_Primitive(m_mesh_id, v6, v5, v2);
+		renderer->Add_Mesh_Primitive(m_mesh_id, v6, v2, v1);
 	}
 }
 
@@ -589,7 +629,7 @@ void Chunk::Regenerate_Mesh(Renderer* renderer, bool as_neighbour)
 	// Render the mesh!
 	if (m_render_triangles > 0)
 	{
-		m_mesh_id = renderer->Start_Mesh(m_render_vertices, m_render_triangles);
+		m_mesh_id = renderer->Start_Mesh(MeshPrimitiveType::Triangle, m_render_vertices, m_render_triangles);
 		DBG_ASSERT(m_mesh_id >= 0);
 
 		for (std::vector<Render_Voxel>::iterator iter = m_render_voxels.begin(); iter != m_render_voxels.end(); iter++)
@@ -614,6 +654,30 @@ Voxel* Chunk::Get_Voxel(int x, int y, int z)
 	}
 
 	return &m_voxels[Flatten_Index(x, y, z)];
+}
+
+void Chunk::Set_Voxel(int x, int y, int z, Voxel v)
+{
+	Voxel* voxel = Get_Voxel(x, y, z);
+	*voxel = v;
+
+	// Mark as requiring regeneration.
+	Mark_Dirty(true);
+	Recalculate_State();
+
+	// Recalculate-left neighbours on x-axis.
+	if (x == 0 && m_neighbour_chunks[0][1][1] != NULL)
+		m_neighbour_chunks[0][1][1]->Mark_Dirty(true);
+	if (x == m_width && m_neighbour_chunks[2][1][1] != NULL)
+		m_neighbour_chunks[2][1][1]->Mark_Dirty(true);
+	if (y == 0 && m_neighbour_chunks[1][0][1] != NULL)
+		m_neighbour_chunks[1][0][1]->Mark_Dirty(true);
+	if (y == m_height && m_neighbour_chunks[1][2][1] != NULL)
+		m_neighbour_chunks[1][2][1]->Mark_Dirty(true);
+	if (z == 0 && m_neighbour_chunks[1][1][0] != NULL)
+		m_neighbour_chunks[1][1][0]->Mark_Dirty(true);
+	if (z == m_depth && m_neighbour_chunks[1][1][2] != NULL)
+		m_neighbour_chunks[1][1][2]->Mark_Dirty(true);
 }
 
 Voxel* Chunk::Get_Relative_Voxel(int voxel_x, int voxel_y, int voxel_z, 

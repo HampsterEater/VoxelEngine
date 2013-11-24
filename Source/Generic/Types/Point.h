@@ -13,6 +13,12 @@ public:
 
 	Point();
 	Point(float x, float y);
+	
+	// Operators.
+	bool operator==(Point& rhs) const;
+	bool operator!=(Point& rhs) const;
+
+	Point Round() const;
 
 	// To/From string.
 	std::string To_String();

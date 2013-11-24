@@ -2,12 +2,13 @@
 	<defaults>
 
 		<state>
-			<clear-color>0,0,0,0</clear-color>
-			<clear-depth>1</clear-depth>
+			<clear-color-value>0,0,0,0</clear-color-value>
+			<clear-depth-value>1</clear-depth-value>
 			<depth-function>lower_or_equal</depth-function>
 			<cull-face>back</cull-face>
 			<depth-test>true</depth-test>
 			<alpha-test>false</alpha-test>
+			<blend>false</blend>
 		</state>
 		
 	</defaults>
@@ -86,11 +87,40 @@
 				<uniform name="g_material_specular" 			type="vector3" 	value="MATERIAL_SPECULAR" />
 			</uniforms>
 		</shader>
+		<shader name="solid_color_gbuffer">
+			<vertex>Data/Shaders/solid_color_gbuffer.vert</vertex>
+			<fragment>Data/Shaders/solid_color_gbuffer.frag</fragment>
+			<uniforms>
+				<uniform name="g_world_view_matrix" 			type="matrix4" 	value="WORLD_VIEW_MATRIX" />
+				<uniform name="g_world_view_projection_matrix" 	type="matrix4" 	value="WORLD_VIEW_PROJECTION_MATRIX" />
+				<uniform name="g_camera_near_clip" 				type="float" 	value="CAMERA_NEAR_CLIP" />
+				<uniform name="g_camera_far_clip" 				type="float" 	value="CAMERA_FAR_CLIP" />
+				<uniform name="g_material_shininess" 			type="float" 	value="MATERIAL_SHININESS" />
+				<uniform name="g_material_specular" 			type="vector3" 	value="MATERIAL_SPECULAR" />
+			</uniforms>
+		</shader>
 		<shader name="screen_quad">
 			<vertex>Data/Shaders/screen_quad.vert</vertex>
 			<fragment>Data/Shaders/screen_quad.frag</fragment>
 			<uniforms>
+				<uniform name="g_texture" 								type="texture" value="MATERIAL_TEXTURE" />
+			</uniforms>
+		</shader>
+		<shader name="solid_quad">
+			<vertex>Data/Shaders/solid_quad.vert</vertex>
+			<fragment>Data/Shaders/solid_quad.frag</fragment>
+			<uniforms>
+				<uniform name="g_world_view_projection_matrix" 			type="matrix4" 	value="WORLD_VIEW_PROJECTION_MATRIX" />
+			</uniforms>
+		</shader>
+		<shader name="ui_element">
+			<vertex>Data/Shaders/ui_element.vert</vertex>
+			<fragment>Data/Shaders/ui_element.frag</fragment>
+			<uniforms>
+				<!--
 				<uniform name="g_texture" 			type="texture" value="MATERIAL_TEXTURE" />
+				-->
+				<uniform name="g_world_view_projection_matrix" 			type="matrix4" 	value="WORLD_VIEW_PROJECTION_MATRIX" />
 			</uniforms>
 		</shader>
 		<shader name="ssao">
@@ -111,6 +141,7 @@
 			<vertex>Data/Shaders/combine.vert</vertex>
 			<fragment>Data/Shaders/combine.frag</fragment>
 			<uniforms>
+				<uniform name="g_depth" 			  type="texture" value="depth" />
 				<uniform name="g_diffuse" 			  type="texture" value="diffuse" />
 				<uniform name="g_light_accumulation"  type="texture" value="light_accumulation" />
 				<uniform name="g_shadow_accumulation" type="texture" value="shadow_accumulation" />
@@ -188,6 +219,21 @@
 		</shader>
 		
 	</shaders>
+	<slots>
+	
+		<slot name="geometry">
+			<shader>gbuffer</shader>
+			<sort>front_to_back</sort>
+			<passes>geometry</passes>
+		</slot>
+		
+		<slot name="solid_color_editor_geometry">
+			<shader>solid_color_gbuffer</shader>
+			<sort>none</sort>
+			<passes>editor-geometry</passes>
+		</slot>
+	
+	</slots>
 	<passes>
 	
 		<!-- Geometry pass, builds the gbuffer -->
@@ -195,8 +241,10 @@
 			<type>scene</type>
 			
 			<state>
-				<clear>true</clear>
+				<clear-color>true</clear-color>
+				<clear-depth>true</clear-depth>
 				<depth-test>true</depth-test>
+				<viewport>full</viewport>
 			</state>
 			
 			<target>gbuffer</target>
@@ -212,7 +260,7 @@
 				<output>shadow_accumulation</output> 
 			</outputs>
 		</pass>	
-	
+
 		<!-- Shadow map pass. Renders the scene form the pov of all shadow casters, and fills the shadow accumulation buffer. -->
 		<pass name="shadow-mapping" enabled="false">	
 			<foreach>shadow_casting_light</foreach>		
@@ -230,7 +278,7 @@
 					<shader>shadow_map</shader>
 					
 					<state>
-						<clear>true</clear>
+						<clear-color>true</clear-color>
 						<depth-test>true</depth-test>
 					</state>
 					
@@ -273,7 +321,7 @@
 			<shader>light</shader>
 			
 			<state>
-				<clear>true</clear>
+				<clear-color>true</clear-color>
 				<depth-test>false</depth-test>
 				<blend>true</blend>
 				<blend-function>one_one</blend-function>
@@ -325,32 +373,29 @@
 			<shader>combine</shader>
 			
 			<state>
-				<depth-test>false</depth-test>
+				<depth-test>true</depth-test>
+				<clear-depth>true</clear-depth>
+				<viewport>output</viewport>
 			</state>
 						
 			<outputs>
 				<output>BACK_BUFFER</output>
 			</outputs>
 		</pass>	
-				
-		<!-- UI pass on top. -->
-		<!--
-		<pass name="ui" enabled="true">	
-			<type>ui</type>
-			
-			<target></target>
-			<shader></shader>
+		
+		<!-- Debug visualisation. Draws overlays with extra debugging information. -->
+		<pass name="editor-geometry" enabled="false">	
+			<type>scene</type>
 			
 			<state>
-				<clear>false</clear>
-				<depth-test>false</depth-test>				
+				<depth-test>true</depth-test>
+				<viewport>output</viewport>
 			</state>
 						
 			<outputs>
 				<output>BACK_BUFFER</output>
 			</outputs>
 		</pass>	
-		-->
 		
 	</passes>
 </xml>

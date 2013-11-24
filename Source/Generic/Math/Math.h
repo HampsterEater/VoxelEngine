@@ -10,19 +10,22 @@
 #define PI 3.14159265358979f
 
 // Angle conversion.
-#define DegToRadFactor (PI / 180.0f)
-#define RadToDegFactor (180.0f / PI)
-#define DegToRad(x) ((x) * (PI / 180.0f))
-#define RadToDeg(x) ((x) * (180.0f / PI))
+#define DegToRadFactor		(PI / 180.0f)
+#define RadToDegFactor		(180.0f / PI)
+#define DegToRad(x)			((x) * (PI / 180.0f))
+#define RadToDeg(x)			((x) * (180.0f / PI))
 
 // Min/Max/Clamp etc
-#define Clamp(x, min, max) ((x) < (min) ? (min) : ((x) > (max) ? (max) : (x)))  
-#define Min(x, y) ((x) < (y) ? (x) : (y))
-#define Max(x, y) ((x) > (y) ? (x) : (y))
+#define Clamp(x, min, max)	((x) < (min) ? (min) : ((x) > (max) ? (max) : (x)))  
+#define Min(x, y)			((x) < (y) ? (x) : (y))
+#define Max(x, y)			((x) > (y) ? (x) : (y))
 
 // Speedy stuff.
-#define FastSign(x)	 ((0 < (x)) - ((x) < 0))
-#define FastFloor(x) (((x) > 0) ? (int)(x) : (int)(x) - 1)
+#define FastRound(x)		floorf((x) + 0.5f)
+#define FastSign(x)			((0 < (x)) - ((x) < 0))
+#define FastFloor(x)		(((x) > 0) ? (int)(x) : (int)(x) - 1)
+#define RoundToZero(x)		((x) < 0 ? ceil((x)) : floor((x)))
+#define RoundToNonZero(x)	((x) >= 0 ? ceil((x)) : floor((x)))
 
 // General math functions.
 class Math

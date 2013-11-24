@@ -115,3 +115,19 @@ void OpenGL_ShaderProgram::Bind_Float(const char* name, float value)
 //		DBG_LOG("Failed to bind float %s\n", name);
 //	}
 }
+
+void OpenGL_ShaderProgram::Bind_Bool(const char* name, bool value)
+{
+	Renderer::Get()->Bind_Shader_Program(this);
+
+	GLint image_id = glGetUniformLocation(m_id, name);
+	
+	if (image_id >= 0)
+	{
+		glUniform1f(image_id, value);
+	}
+//	else
+//	{
+//		DBG_LOG("Failed to bind float %s\n", name);
+//	}
+}

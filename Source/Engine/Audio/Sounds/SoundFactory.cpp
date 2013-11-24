@@ -60,3 +60,13 @@ SoundFactory::~SoundFactory()
 {
 	m_factories.Remove(m_factories.Find(this));
 }
+
+void SoundFactory::Dispose()
+{
+	for (HashTable<SoundHandle*, int>::Iterator iter = m_loaded_sounds.Begin(); iter != m_loaded_sounds.End(); iter++)
+	{
+		SoundHandle* handle = *iter;
+		SAFE_DELETE(handle);
+	}
+	m_loaded_sounds.Clear();
+}

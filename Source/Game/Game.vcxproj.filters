@@ -13,18 +13,6 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Source Files\Platform">
-      <UniqueIdentifier>{9aa2655c-bae7-4261-ad6f-5ef5d4d7060f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Platform">
-      <UniqueIdentifier>{ca38911e-01d6-4b6d-9032-4602396d59b0}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Platform\Win32">
-      <UniqueIdentifier>{84a6e0c3-598c-4764-9554-4edec8292650}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Platform\Win32">
-      <UniqueIdentifier>{9f7f3cdf-155b-41a8-92d7-4f97dba90a9f}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\Runner">
       <UniqueIdentifier>{3c52538f-000f-4278-8f1e-95fdecbffa1b}</UniqueIdentifier>
     </Filter>
@@ -34,17 +22,8 @@
     <Filter Include="Header Files\Scene">
       <UniqueIdentifier>{69c78852-e08d-4693-8470-6fc576ba9da9}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Scene">
-      <UniqueIdentifier>{73775987-1412-476a-aeba-6ea73ae8072c}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\Scene\Cameras">
       <UniqueIdentifier>{24644ae3-1c93-4e05-aa0b-381e9fd48f82}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Scene\Cameras">
-      <UniqueIdentifier>{1f828ede-d663-4f58-9417-eca80e0118f8}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Scene\Voxels">
-      <UniqueIdentifier>{8ddd8943-9ee2-4868-98c3-3813d86eb36b}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\Scene\Voxels">
       <UniqueIdentifier>{f63fc495-8ecd-467b-a0b6-4698bf325aa6}</UniqueIdentifier>
@@ -52,35 +31,62 @@
     <Filter Include="Header Files\Scene\Voxels\Generation">
       <UniqueIdentifier>{400ceb67-67d7-4640-869b-6b828014f4e8}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Scene\Voxels\Generation">
-      <UniqueIdentifier>{8c6742e5-f8de-485e-a21c-539549834136}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\Scene\Voxels\Serialization">
       <UniqueIdentifier>{926902a5-3c19-4be5-b55f-64cd1728bd88}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Scene\Voxels\Serialization">
-      <UniqueIdentifier>{e2bd693e-021f-46a8-aa56-f5c7473fcaaa}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\Scene\Voxels\Tasks">
       <UniqueIdentifier>{a0f81912-5bf0-4c45-88ba-dbac01e83693}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\UI">
+      <UniqueIdentifier>{ffa6b4fe-cf98-401e-8f4d-db0617d8dc2d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\UI">
+      <UniqueIdentifier>{b0d9a1d4-e2f5-4665-8741-2266eec5fb30}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\UI\Scenes">
+      <UniqueIdentifier>{1970721f-349a-4d2f-8a75-f7028fca51cb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\UI\Scenes">
+      <UniqueIdentifier>{b3755fc2-6b53-4de2-8d4a-ae9f8a533140}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\UI\Scenes\Editor">
+      <UniqueIdentifier>{d400423f-ef5e-4758-9695-f5a44d2c0e4d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\UI\Scenes\Editor">
+      <UniqueIdentifier>{7acf4f81-174d-4db7-b7c8-82b9c76ec20f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Scene">
+      <UniqueIdentifier>{73775987-1412-476a-aeba-6ea73ae8072c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Scene\Cameras">
+      <UniqueIdentifier>{1f828ede-d663-4f58-9417-eca80e0118f8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Scene\Voxels">
+      <UniqueIdentifier>{8ddd8943-9ee2-4868-98c3-3813d86eb36b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Scene\Voxels\Generation">
+      <UniqueIdentifier>{8c6742e5-f8de-485e-a21c-539549834136}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Scene\Voxels\Serialization">
+      <UniqueIdentifier>{e2bd693e-021f-46a8-aa56-f5c7473fcaaa}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source Files\Scene\Voxels\Tasks">
       <UniqueIdentifier>{5549ae00-edd1-4fd2-91f8-29807f4cc039}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Scene\Voxels\[Deprecated]">
-      <UniqueIdentifier>{7ebb312b-6182-4b8e-a53e-91f25ccba82a}</UniqueIdentifier>
+    <Filter Include="Header Files\Scene\Editor">
+      <UniqueIdentifier>{8d25e85a-7a7a-4594-92ed-eb76c65a267b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Scene\Voxels\[Deprecated]">
-      <UniqueIdentifier>{a7dd52ae-541c-48f1-85af-1afe4bae33d7}</UniqueIdentifier>
+    <Filter Include="Source Files\Scene\Editor">
+      <UniqueIdentifier>{5d1a10e5-b41b-4698-8355-74f9362b2ed6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\UI\Scenes\Editor\Actions">
+      <UniqueIdentifier>{d0cf5116-1f2a-414f-9bfb-a582bfe0e2f5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\UI\Scenes\Editor\Actions\Scene">
+      <UniqueIdentifier>{d90f6fbf-9c4d-424c-bb7b-550cf457f34c}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Platform\Win32\Entry.h">
-      <Filter>Header Files\Platform\Win32</Filter>
-    </ClInclude>
-    <ClInclude Include="Scene\Cameras\FirstPersonCamera.h">
-      <Filter>Header Files\Scene\Cameras</Filter>
-    </ClInclude>
     <ClInclude Include="Scene\Voxels\Chunk.h">
       <Filter>Header Files\Scene\Voxels</Filter>
     </ClInclude>
@@ -117,14 +123,38 @@
     <ClInclude Include="Scene\Voxels\Tasks\ChunkRegenerateMeshTask.h">
       <Filter>Header Files\Scene\Voxels\Tasks</Filter>
     </ClInclude>
+    <ClInclude Include="UI\Scenes\UIScene_Game.h">
+      <Filter>Header Files\UI\Scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Scenes\Editor\UIScene_Editor.h">
+      <Filter>Header Files\UI\Scenes\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="Version.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\Cameras\FirstPersonCamera.h">
+      <Filter>Header Files\Scene\Cameras</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\Cameras\EditorCamera.h">
+      <Filter>Header Files\Scene\Cameras</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\Cameras\GameCamera.h">
+      <Filter>Header Files\Scene\Cameras</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\Cameras\OrthoCamera.h">
+      <Filter>Header Files\Scene\Cameras</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\Editor\EditorGrid.h">
+      <Filter>Header Files\Scene\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\Editor\EditorSelectionPrimitive.h">
+      <Filter>Header Files\Scene\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Scenes\Editor\Actions\EditorAction.h">
+      <Filter>Source Files\UI\Scenes\Editor\Actions</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Platform\Win32\Entry.cpp">
-      <Filter>Source Files\Platform\Win32</Filter>
-    </ClCompile>
-    <ClCompile Include="Scene\Cameras\FirstPersonCamera.cpp">
-      <Filter>Source Files\Scene\Cameras</Filter>
-    </ClCompile>
     <ClCompile Include="Scene\Voxels\Chunk.cpp">
       <Filter>Source Files\Scene\Voxels</Filter>
     </ClCompile>
@@ -160,6 +190,30 @@
     </ClCompile>
     <ClCompile Include="Scene\Voxels\Tasks\ChunkRegenerateMeshTask.cpp">
       <Filter>Source Files\Scene\Voxels\Tasks</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Scenes\UIScene_Game.cpp">
+      <Filter>Source Files\UI\Scenes</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Scenes\Editor\UIScene_Editor.cpp">
+      <Filter>Source Files\UI\Scenes\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene\Cameras\FirstPersonCamera.cpp">
+      <Filter>Source Files\Scene\Cameras</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene\Cameras\EditorCamera.cpp">
+      <Filter>Source Files\Scene\Cameras</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene\Cameras\GameCamera.cpp">
+      <Filter>Source Files\Scene\Cameras</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene\Cameras\OrthoCamera.cpp">
+      <Filter>Source Files\Scene\Cameras</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene\Editor\EditorGrid.cpp">
+      <Filter>Source Files\Scene\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene\Editor\EditorSelectionPrimitive.cpp">
+      <Filter>Source Files\Scene\Editor</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
